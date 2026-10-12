@@ -21,7 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.APP_VERSION='20261012233108';</script>
+<script>window.APP_VERSION='20261013000340';</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,7 +89,7 @@ nav.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:6px 8px calc(6
 nav .in{display:flex;gap:2px;max-width:1160px;margin:0 auto}
 nav button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:0;background:none;border:0;font:700 .72rem var(--display);padding:4px 1px 2px;border-radius:12px;cursor:pointer;position:relative;white-space:nowrap}
 nav button svg{width:30px;height:30px}
-nav button.on{background:#fff3c2;box-shadow:inset 0 0 0 2.5px var(--ink)}
+
 nav button .dot{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:.7rem;line-height:15px;border:2px solid var(--ink)}
 
 /* Scenes */
@@ -153,7 +153,7 @@ nav button .dot{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;
 .dmlist{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);overflow:auto;padding:4px 2px;background:#fffaf0;border:2.5px solid var(--ink);border-radius:14px}
 .dm{align-self:flex-start;max-width:78%;padding:6px 11px;border-radius:14px;border:2px solid var(--ink);background:#fff;word-break:break-word;line-height:1.3;margin:0 8px}
 .dm.me{align-self:flex-end;background:#ffe3ec}.dm small{display:block;color:var(--muted);font-size:.72rem}
-.pscroll svg{display:block;height:var(--ph);width:calc(var(--ph) * 2.826);max-width:none}
+.pscroll .pinner>svg{display:block;height:var(--ph);width:calc(var(--ph) * 2.826);max-width:none}
 .shopcard{background:linear-gradient(#bfe9ff 0 62%,#9fd776 62%);border:3px solid var(--ink);border-radius:18px;padding:8px 8px 10px;cursor:pointer;box-shadow:0 4px 0 var(--ink);text-align:center;display:flex;flex-direction:column;gap:2px;transition:transform .12s}
 .shopcard:hover{transform:translateY(-3px)}
 .shopcard>svg{width:100%;height:auto;max-width:100%}
@@ -367,6 +367,14 @@ input.in{font:600 1rem var(--body);padding:9px 12px;border:3px solid var(--ink);
 @media (max-width:640px){.ptable{aspect-ratio:3/4;margin-top:34px}.pfelt{inset:13% 12%}.ps0{top:89%}.ps1{left:17%;top:50%}.ps2{top:9%}.ps3{left:83%;top:50%}.pseat{width:30vw}.pcenter{width:64%}.pd0{left:64%;top:80%}.pd1{left:26%;top:38%}.pd2{left:36%;top:22%}.pd3{left:74%;top:62%}}
 .pdealer{position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);font:800 .72rem var(--display);display:grid;place-items:center;z-index:3;transform:translate(-50%,-50%)}
 @media (max-width:520px){nav button{font-size:.58rem;white-space:normal;line-height:1.05}nav button svg{width:24px;height:24px}}
+nav .in{gap:6px;padding:0 4px}
+nav button{border:2.5px solid var(--ink);background:#fff6df;border-radius:14px;box-shadow:0 3px 0 var(--ink);padding:3px 2px 2px;margin-bottom:3px}
+nav button:hover{background:#fff}
+nav button.on{background:var(--yellow);box-shadow:0 1px 0 var(--ink);transform:translateY(2px)}
+@media (max-width:520px){nav .in{gap:3px;padding:0}nav button{border-width:2px;border-radius:10px;box-shadow:0 2px 0 var(--ink)}}
+.pscroll.fit{overflow:hidden;cursor:default;background:#fff8ec}.pscroll.fit .pinner{width:min(100%,calc(66vh * var(--ar,1.6)));margin:0 auto}.pscroll.fit .pinner>svg{width:100%;height:auto;max-height:none}
+@keyframes confetti{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(820px) rotate(540deg)}}
+.confetti{animation:confetti 3.2s linear infinite;transform-box:fill-box;transform-origin:center}
 </style>
 
 <div id="app" class="wrap"></div>
@@ -476,6 +484,88 @@ const CLOTH={
   a_veil:{n:'Voan cưới',s:'acc',k:'veil',c:'#ffffff',p:200},
   a_crown:{n:'Vương miện nhỏ',s:'acc',k:'crown',c:'#ffd34d',p:300},
 };
+/* ---------- thêm nhiều quần áo: tạo theo mẫu + bảng màu ---------- */
+const DRESSY=new Set(['dress','wedding','overall','aodai','maxi','sun','tutu','mermaid','gown']);
+const LONGSL=new Set(['sweater','hoodie','shirt','vest','cardigan','jacket','suit','tux','aodai']);
+const NOSLV=new Set(['tank','sun','mermaid','off']);
+let CUR_SKIN='#ffe2c6';
+const PAL={hong:['hồng phấn','#ffa8c6'],xanh:['xanh baby','#9fd4ff'],bacha:['bạc hà','#a8ead2'],tim:['tím lavender','#c9b2f2'],vang:['vàng chanh','#ffe680'],dao:['cam đào','#ffc49e'],do:['đỏ cherry','#ef5b5b'],trang:['trắng','#ffffff'],den:['đen','#3a3a48'],navy:['xanh navy','#3e5a9e'],be:['màu be','#efdcbf'],la:['xanh lá','#7fd35a'],nau:['nâu','#a8693a'],xam:['xám','#b9bcc8'],ruou:['đỏ rượu','#a3324a'],ngoc:['xanh ngọc','#4fc1c7'],kem:['màu kem','#fff4d6'],cam:['cam','#ff9a3d']};
+function genCloth(prefix,name,s,k,keys,price,g,extra={}){keys.forEach((key,i)=>{const[cn,c]=PAL[key.split('/')[0]];const v=key.split('/');const it={n:`${name} ${cn}`,s,k,c,p:price+(i%4)*10,g,...extra};
+  if(v[1])it.pat=v[1];if(v[2])it.c2=v[2];if(v[1]&&!v[2])it.c2='#fff';CLOTH[prefix+i]=it})}
+/* đồ nữ */
+genCloth('fmx','Váy maxi','top','maxi',['hong','xanh/flower/#ffffff','bacha','tim/dots','vang/flower/#ff9fbe','trang/flower/#ff9fbe','do','den/dots'],140,'f');
+genCloth('fsd','Váy hai dây','top','sun',['vang','hong/dots','xanh/stripe','dao/flower/#ffffff','la/check/#ffffff','trang/flower/#7cc4ff','ngoc','do/dots'],110,'f');
+genCloth('ftt','Váy xòe tutu','top','tutu',['hong','tim','xanh','vang','trang','bacha'],150,'f',{c2:'#ffffff'});
+genCloth('fad','Áo dài','top','aodai',['trang','hong','xanh','vang','tim','do','ngoc','kem'],220,'f');
+genCloth('fbl','Áo blouse bèo','top','blouse',['trang','hong','xanh','be','vang','tim','bacha','dao'],80,'f');
+genCloth('fcr','Áo croptop','top','crop',['hong','den','trang','vang/stripe','xanh/stripe','tim','la','do/check/#ffffff'],70,'f');
+genCloth('fof','Áo trễ vai','top','off',['trang','hong','vang','xanh','do','den'],95,'f');
+genCloth('fcd','Áo cardigan','top','cardigan',['hong','be','xanh','tim','vang','bacha'],105,'f');
+genCloth('ftk','Áo hai dây','top','tank',['trang','den','hong','vang','xanh','bacha'],55,'f');
+genCloth('fdr','Váy xinh','top','dress',['hong/heart/#fff','xanh/dots','tim/stripe','vang/check/#ffffff','trang/flower/#ff7fa6','do/dots','ngoc/flower/#ffffff','den/dots'],130,'f');
+genCloth('fbs','Chân váy dài','bottom','long',['be','den','hong','xanh','trang','nau/check/#efdcbf'],80,'f');
+genCloth('fbm','Chân váy ngắn','bottom','mini',['hong','den','navy','do/check/#ffffff','trang','vang'],60,'f');
+genCloth('fbp','Chân váy xếp ly','bottom','pleat',['navy','tim','xam','bacha'],75,'f');
+genCloth('fbj','Quần short jean','bottom','shorts',['xanh','trang','den'],60,'f');
+genCloth('fsh','Giày cao gót','shoes','heel',['do','den','hong','trang','be','tim'],120,'f');
+genCloth('fsm','Giày búp bê quai','shoes','mary',['den','hong','do','trang','vang'],80,'f');
+genCloth('fsb','Bốt cổ cao','shoes','boot',['trang','den','hong'],110,'f');
+genCloth('fah','Bờm tóc','acc','headband',['hong','den','trang','do'],35,'f');
+genCloth('fab','Mũ nồi','acc','beret',['do','den','be'],60,'f');
+genCloth('fbo','Nơ to sau đầu','acc','bigbow',['hong','den','trang'],45,'f');
+Object.assign(CLOTH,{
+  a_tiara:{n:'Vương miện mảnh',s:'acc',k:'tiara',c:'#ffe27a',p:180,g:'f'},
+  a_fcrown:{n:'Vòng hoa cài tóc',s:'acc',k:'fcrown',c:'#ff9fbe',p:70,g:'f'},
+  a_muff:{n:'Chụp tai lông',s:'acc',k:'earmuff',c:'#ffc2d4',p:55,g:'f'},
+  a_sun:{n:'Kính râm',s:'acc',k:'sunglass',c:'#2b2b33',p:60,g:'u'},
+  a_bucket:{n:'Mũ tai bèo',s:'acc',k:'bucket',c:'#efdcbf',p:50,g:'u'},
+});
+/* đồ nam */
+genCloth('mte','Áo phông','top','tee',['trang','den','xam','navy','do','la','vang','nau'],50,'m');
+genCloth('mpo','Áo polo','top','polo',['trang','navy','den','xanh','ruou','la'],85,'m');
+genCloth('msh','Sơ mi','top','shirt',['xanh','be','den','hong','xanh/check/#ffffff','do/check/#3a3a48'],95,'m');
+genCloth('mho','Hoodie','top','hoodie',['xam','den','navy','do','la'],120,'m');
+genCloth('mja','Áo khoác','top','jacket',['navy/x/x','den','nau','be','la'],160,'m');
+genCloth('msu','Bộ vest','top','suit',['den','navy','xam','be'],350,'m',{c2:'#e8505b'});
+genCloth('msp','Áo thể thao','top','sport',['do','xanh','vang','den','la'],70,'m');
+genCloth('mcd','Áo len cardigan','top','cardigan',['nau','xam','navy'],110,'m');
+genCloth('mbj','Quần jean','bottom','jeans',['navy','den','xam','xanh'],80,'m');
+genCloth('mbk','Quần kaki','bottom','jeans',['be','nau','la','den'],90,'m');
+genCloth('mbs','Quần short','bottom','shorts',['be','navy','xam','do'],55,'m');
+genCloth('mss','Giày sneaker','shoes','sneaker',['den','do','xanh','vang'],90,'m');
+genCloth('msl','Giày lười','shoes','loafer',['nau','den','be'],130,'m');
+genCloth('msd','Dép lê','shoes','slip',['xanh','den','do'],30,'u');
+genCloth('mca','Mũ lưỡi trai','acc','cap',['den','navy','trang','vang'],45,'m');
+genCloth('mbe','Mũ len','acc','beanie',['xam','do','navy'],50,'m');
+Object.assign(CLOTH,{a_headph:{n:'Tai nghe chụp',s:'acc',k:'headph',c:'#3a3a48',p:90,g:'u'}});
+/* tiệm váy cưới */
+Object.assign(CLOTH,{
+  w_gown1:{n:'Váy cưới công chúa',s:'top',k:'gown',c:'#ffffff',c2:'#ffe680',p:900,g:'f',shop:'bridal'},
+  w_gown2:{n:'Váy cưới ngà voi',s:'top',k:'gown',c:'#fff6e3',c2:'#f2cf6b',p:950,g:'f',shop:'bridal'},
+  w_gown3:{n:'Váy cưới hồng phấn',s:'top',k:'gown',c:'#ffe3ec',c2:'#ff9fbe',p:980,g:'f',shop:'bridal'},
+  w_gown4:{n:'Váy cưới champagne',s:'top',k:'gown',c:'#f6e2c4',c2:'#ffffff',p:1000,g:'f',shop:'bridal'},
+  w_mer1:{n:'Váy cưới đuôi cá',s:'top',k:'mermaid',c:'#ffffff',c2:'#cfe6ff',p:1100,g:'f',shop:'bridal'},
+  w_mer2:{n:'Váy cưới đuôi cá ren',s:'top',k:'mermaid',c:'#fff6e3',c2:'#ffd23f',p:1150,g:'f',shop:'bridal'},
+  w_mer3:{n:'Váy cưới đuôi cá hồng',s:'top',k:'mermaid',c:'#ffd0de',c2:'#ffffff',p:1150,g:'f',shop:'bridal'},
+  w_maxi:{n:'Váy cưới dáng suông',s:'top',k:'maxi',c:'#ffffff',c2:'#ffe3ec',p:700,g:'f',shop:'bridal'},
+  w_ad1:{n:'Áo dài cưới đỏ',s:'top',k:'aodai',c:'#d8343a',c2:'#ffd23f',p:800,g:'f',shop:'bridal'},
+  w_ad2:{n:'Áo dài cưới vàng',s:'top',k:'aodai',c:'#ffcc33',c2:'#d8343a',p:800,g:'f',shop:'bridal'},
+  w_veil2:{n:'Voan cưới dài',s:'acc',k:'veil',c:'#ffffff',p:260,g:'f',shop:'bridal'},
+  w_tiara:{n:'Vương miện cô dâu',s:'acc',k:'tiara',c:'#fff3a8',p:320,g:'f',shop:'bridal'},
+  w_fcrown:{n:'Vòng hoa cô dâu',s:'acc',k:'fcrown',c:'#ffffff',p:200,g:'f',shop:'bridal'},
+  w_heel:{n:'Giày cưới pha lê',s:'shoes',k:'heel',c:'#f2f6ff',p:300,g:'f',shop:'bridal'},
+  w_tux1:{n:'Tuxedo đen',s:'top',k:'tux',c:'#2b2b33',c2:'#2b2b33',flower:'#ffffff',p:700,g:'m',shop:'bridal'},
+  w_tux2:{n:'Tuxedo trắng',s:'top',k:'tux',c:'#ffffff',c2:'#2b2b33',flower:'#ff7fa6',p:750,g:'m',shop:'bridal'},
+  w_tux3:{n:'Tuxedo xanh navy',s:'top',k:'tux',c:'#2f4170',c2:'#ffffff',flower:'#ffffff',p:720,g:'m',shop:'bridal'},
+  w_suit:{n:'Vest chú rể kem',s:'top',k:'suit',c:'#f4ead3',c2:'#ff7fa6',flower:'#ff7fa6',p:680,g:'m',shop:'bridal'},
+  w_adnam:{n:'Áo dài cưới nam',s:'top',k:'aodai',c:'#d8343a',c2:'#ffd23f',c3:'#ffffff',p:650,g:'m',shop:'bridal'},
+  w_pant:{n:'Quần âu trắng',s:'bottom',k:'jeans',c:'#f4f4f8',p:200,g:'m',shop:'bridal'},
+  w_ox:{n:'Giày tây trắng',s:'shoes',k:'oxford',c:'#f4f4f8',p:260,g:'m',shop:'bridal'},
+});
+CLOTH.mja0.c2='#ffffff';delete CLOTH.mja0.pat;
+for(const[id,it]of Object.entries(CLOTH))if(!it.g)it.g=DRESSY.has(it.k)||['skirt','pleat','flat','bow','flower','veil','crown'].includes(it.k)?'f':['vest','oxford'].includes(it.k)?'m':'u';
+for(const id of ['d_wedding','t_vest','a_veil','a_crown'])if(CLOTH[id])CLOTH[id].shop='bridal';
+
 const DEF_F={top:'t_tee_pink',bottom:'b_skirt',shoes:'s_flat',acc:null};
 const DEF_M={top:'t_tee_blue',bottom:'b_jeans',shoes:'s_sneaker',acc:null};
 const SLOTS=[['top','Áo & váy'],['bottom','Quần & chân váy'],['shoes','Giày dép'],['acc','Phụ kiện'],['hair','Tóc & da']];
@@ -638,6 +728,8 @@ function paint(it){
   const id='pt'+(++PATN),b=it.c,c2=it.c2||'#fff';let w=8,inner='';
   if(it.pat==='stripe'){inner=`<rect width="8" height="8" fill="${b}"/><rect y="4" width="8" height="4" fill="${c2}"/>`}
   else if(it.pat==='dots'){w=10;inner=`<rect width="10" height="10" fill="${b}"/><circle cx="5" cy="5" r="1.8" fill="${c2}"/>`}
+  else if(it.pat==='flower'){w=14;inner=`<rect width="14" height="14" fill="${b}"/>${[0,1,2,3,4].map(j=>`<circle cx="${(7+2.3*Math.cos(j*1.256)).toFixed(1)}" cy="${(7+2.3*Math.sin(j*1.256)).toFixed(1)}" r="1.7" fill="${c2}"/>`).join('')}<circle cx="7" cy="7" r="1.1" fill="#ffd23f"/>`}
+  else if(it.pat==='check'){w=10;inner=`<rect width="10" height="10" fill="${b}"/><path d="M0 2.5 H10 M0 7.5 H10 M2.5 0 V10 M7.5 0 V10" stroke="${c2}" stroke-width="1.6" opacity=".7"/>`}
   else if(it.pat==='heart'){w=13;inner=`<rect width="13" height="13" fill="${b}"/><path d="${heartPath(6.5,6.5,2.6)}" fill="${c2}"/>`}
   return[`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="${w}" height="${w}">${inner}</pattern></defs>`,`url(#${id})`];
 }
@@ -657,12 +749,30 @@ function drawTop(it){
     case 'dress':s+=puff(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M37 116 L83 116 L96 150 Q60 158 24 150Z" fill="${f}"${SW}/><rect x="37" y="113" width="46" height="6" rx="3" fill="${dk}"${SW}/><path d="M51 89 Q60 95 69 89" fill="none"${SW}/>`;break;
     case 'overall':s+=shortS('#fff')+`<path d="${TORSO}" fill="#fff"${SW}/><path d="M45 100 h30 v18 h-30z" fill="${f}"${SW}/><path d="M47 101 L43 89 M73 101 L77 89" stroke="${O}" stroke-width="6" stroke-linecap="round"/><path d="M47 101 L43 89 M73 101 L77 89" stroke="${it.c}" stroke-width="3.4" stroke-linecap="round"/><path d="M38 116 L82 116 L92 148 Q60 155 28 148Z" fill="${f}"${SW}/><circle cx="48" cy="104" r="2" fill="#ffd23f"${SW}/><circle cx="72" cy="104" r="2" fill="#ffd23f"${SW}/><path d="M54 106 h12 v7 h-12z" fill="${dk}"${SW}/>`;break;
     case 'wedding':s+=puff('#fff')+`<path d="${TORSO}" fill="#fff"${SW}/><path d="M37 114 L83 114 L104 166 Q60 175 16 166Z" fill="#fff"${SW}/><g fill="#efe7f5">${[[44,130],[60,136],[76,130],[36,152],[52,156],[68,156],[84,152],[60,148]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3"/>`).join('')}</g><rect x="37" y="111" width="46" height="6" rx="3" fill="#ffb8d1"${SW}/><path d="M60 114 L52 108 L52 120Z M60 114 L68 108 L68 120Z" fill="#ff8fb1"${SW}/><path d="M50 90 Q60 96 70 90" fill="none" stroke="#e6dbee" stroke-width="2"/>`;break;
+    case 'crop':s+=shortS(f)+`<path d="M38 110 L82 110 L82.6 123 L37.4 123Z" fill="${CUR_SKIN}"${SW}/><circle cx="60" cy="118" r="1.2" fill="${O}"/><path d="M37 98 Q38 89 48 88 L72 88 Q82 89 83 98 L83 113 Q60 117 37 113Z" fill="${f}"${SW}/><path d="M50 89 Q60 96 70 89" fill="none"${SW}/>`;break;
+    case 'tank':s+=`<path d="${TORSO}" fill="${f}"${SW}/><path d="M47 88 Q60 101 73 88Z" fill="${CUR_SKIN}"${SW}/><path d="M44 88 V96 M76 88 V96" stroke="${dk}" stroke-width="4" stroke-linecap="round"/>`;break;
+    case 'blouse':s+=puff(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M47 88 Q48 99 60 95 Q72 99 73 88Z" fill="#fff"${SW}/><path d="M60 97 L53 92.5 L53 101.5Z M60 97 L67 92.5 L67 101.5Z" fill="${it.c2||'#ff6f9c'}"${SW}/><circle cx="60" cy="97" r="2.2" fill="${it.c2||'#ff6f9c'}"${SW}/><path d="M38 124 Q60 130 82 124" stroke="${dk}" stroke-width="2" fill="none"/>`;break;
+    case 'off':s+=`<path d="M40 102 Q40 88 50 88 L70 88 Q80 88 80 102Z" fill="${CUR_SKIN}"${SW}/>`+(NO_ARMS?'':`<circle cx="33.5" cy="106" r="8" fill="${f}"${SW}/>`+(NO_RS?'':`<circle cx="86.5" cy="106" r="8" fill="${f}"${SW}/>`))+`<path d="M36 101 Q60 95 84 101 L84 131 Q60 135 36 131Z" fill="${f}"${SW}/>${[39,47,55,63,71,79].map(x=>`<circle cx="${x+2}" cy="100" r="5" fill="${it.c2||dk}"${SW}/>`).join('')}`;break;
+    case 'cardigan':s+=longS+`<path d="${TORSO}" fill="${it.c2||'#fff'}"${SW}/><path d="M37 98 Q38 89 48 88 L55 88 L54 133 Q44 133 36 131Z" fill="${f}"${SW}/><path d="M83 98 Q82 89 72 88 L65 88 L66 133 Q76 133 84 131Z" fill="${f}"${SW}/><g fill="${dk}">${[100,110,120].map(y=>`<circle cx="52" cy="${y}" r="1.8"/>`).join('')}</g>`;break;
+    case 'jacket':s+=longS+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M52 89 L68 89 L66.5 131 L53.5 131Z" fill="${it.c2||'#fff'}"${SW}/><path d="M52 89 L47 106 L56 101Z M68 89 L73 106 L64 101Z" fill="${dk}"${SW}/><path d="M40 116 h9 M71 116 h9" stroke="${dk}" stroke-width="2.4"/>`;break;
+    case 'suit':case 'tux':s+=longS+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M51 88 L60 116 L69 88Z" fill="#fff"${SW}/>`+(it.k==='tux'?`<path d="M60 95 L52 91 L52 99Z M60 95 L68 91 L68 99Z" fill="${it.c2||'#2b2b33'}"${SW}/><circle cx="60" cy="95" r="2" fill="${it.c2||'#2b2b33'}"/>`:`<path d="M58 93 L62 93 L63.5 110 L60 115 L56.5 110Z" fill="${it.c2||'#e8505b'}"${SW}/>`)+`<path d="M51 88 L56 108 L47 100Z M69 88 L64 108 L73 100Z" fill="${shade(it.c,it.c==='#ffffff'?-.06:.18)}"${SW}/><g fill="${shade(it.c,.35)}"><circle cx="60" cy="121" r="1.6"/><circle cx="60" cy="127" r="1.6"/></g>${it.flower?`<circle cx="74" cy="101" r="3.6" fill="${it.flower}"${SW}/>`:''}`;break;
+    case 'polo':s+=shortS(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M49 88 L56 97 L60 90 L64 97 L71 88Z" fill="${it.c2||dk}"${SW}/><path d="M60 92 V104" stroke="${O}" stroke-width="1.4"/><g fill="${O}"><circle cx="60" cy="97" r="1"/><circle cx="60" cy="102" r="1"/></g>`;break;
+    case 'sport':s+=shortS(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M52 88 L60 97 L68 88" fill="none" stroke="${it.c2||'#fff'}" stroke-width="3"/><path d="M37 104 L83 104" stroke="${it.c2||'#fff'}" stroke-width="5"/><text x="60" y="126" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="${it.c2||'#fff'}" stroke="${O}" stroke-width=".8">${it.num||10}</text>`;break;
+    case 'aodai':s+=`<rect x="43.5" y="118" width="15" height="42" rx="4" fill="${it.c3||'#fff'}"${SW}/><rect x="61.5" y="118" width="15" height="42" rx="4" fill="${it.c3||'#fff'}"${SW}/>`+longS+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M44 112 L76 112 L80 168 Q60 173 40 168Z" fill="${f}"${SW}/><rect x="52" y="84" width="16" height="7" rx="2.5" fill="${dk}"${SW}/><path d="M60 91 Q70 95 79 100" stroke="${dk}" stroke-width="2" fill="none"/>${it.c2?[[50,126],[66,140],[54,154],[70,118]].map(([x,y])=>`<g transform="translate(${x} ${y})">${[0,1,2,3,4].map(j=>`<circle cx="${(3*Math.cos(j*1.256)).toFixed(1)}" cy="${(3*Math.sin(j*1.256)).toFixed(1)}" r="2.2" fill="${it.c2}"/>`).join('')}<circle r="1.4" fill="#ffd23f"/></g>`).join(''):''}`;break;
+    case 'maxi':s+=puff(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M37 114 L83 114 L95 164 Q60 172 25 164Z" fill="${f}"${SW}/><path d="M48 118 L42 162 M60 118 V166 M72 118 L78 162" stroke="${dk}" stroke-width="1.4" opacity=".6"/><rect x="37" y="111" width="46" height="6" rx="3" fill="${it.c2||dk}"${SW}/>`;break;
+    case 'sun':s+=`<path d="${TORSO}" fill="${f}"${SW}/><path d="M46 88 Q60 102 74 88Z" fill="${CUR_SKIN}"${SW}/><path d="M44 88 V96 M76 88 V96" stroke="${dk}" stroke-width="3.6" stroke-linecap="round"/><path d="M37 114 L83 114 L93 150 Q60 157 27 150Z" fill="${f}"${SW}/><path d="M37 114 H83" stroke="${it.c2||dk}" stroke-width="4"/>`;break;
+    case 'tutu':s+=shortS(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M28 118 Q60 108 92 118 L102 136 Q60 148 18 136Z" fill="${it.c2||'#fff'}"${SW}/><path d="M32 116 Q60 107 88 116 L95 130 Q60 141 25 130Z" fill="${f}" opacity=".85"${SW}/>${[30,44,58,72,86].map(x=>`<path d="M${x-7} 135 q7 8 14 0" fill="none" stroke="${O}" stroke-width="1.2"/>`).join('')}`;break;
+    case 'mermaid':s+=`<path d="M40 100 Q40 88 50 88 L70 88 Q80 88 80 100Z" fill="${CUR_SKIN}"${SW}/><path d="M38 99 Q60 93 82 99 L82 116 L77 146 L98 170 Q60 180 22 170 L43 146 L38 116Z" fill="${f}"${SW}/><path d="M43 146 Q60 152 77 146" stroke="${dk}" stroke-width="1.6" fill="none"/>${[[50,108],[68,112],[58,126],[46,160],[74,162],[60,166]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.8" fill="${it.c2||'#ffe680'}"/>`).join('')}`;break;
+    case 'gown':s+=puff(f)+`<path d="${TORSO}" fill="${f}"${SW}/><path d="M37 110 L83 110 L114 166 Q60 184 6 166Z" fill="${f}"${SW}/><path d="M24 140 Q60 152 96 140 M14 156 Q60 170 106 156" stroke="${dk}" stroke-width="1.6" fill="none"/>${[[30,150],[48,160],[72,160],[90,150],[60,132],[40,128],[80,128]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="${it.c2||'#ffe680'}"/>`).join('')}<rect x="37" y="107" width="46" height="6" rx="3" fill="${it.c2||'#ffb8d1'}"${SW}/>`;break;
+    case 'robe':s+=longS+`<path d="M37 98 Q38 89 48 88 L72 88 Q82 89 83 98 L92 164 Q60 171 28 164Z" fill="${f}"${SW}/><path d="M52 89 L54 160 M68 89 L66 160" stroke="${it.c2}" stroke-width="7"/><path d="M49 88 Q60 96 71 88" fill="none" stroke="${it.c2}" stroke-width="4"/><path d="M57 120 h6 M60 117 v9" stroke="#fff" stroke-width="2"/>`;break;
   }
   return s;
 }
 function drawBottom(it){
   const[df,f]=paint(it);let s=df;
   if(it.k==='jeans'||it.k==='shorts'){const h=it.k==='jeans'?32:15;s+=`<rect x="44.5" y="126" width="14.5" height="${h}" rx="4" fill="${f}"${SW}/><rect x="61" y="126" width="14.5" height="${h}" rx="4" fill="${f}"${SW}/><rect x="43" y="121" width="34" height="13" rx="4" fill="${f}"${SW}/>`;if(it.k==='jeans')s+=`<path d="M52 136 v20 M68 136 v20" stroke="${shade(it.c,.25)}" stroke-width="1.4" stroke-dasharray="2 2"/>`}
+  else if(it.k==='long'){s+=`<path d="M41 121 L79 121 L88 160 Q60 166 32 160Z" fill="${f}"${SW}/><path d="M52 124 L48 160 M68 124 L72 160" stroke="${shade(it.c,-.15)}" stroke-width="1.4"/>`}
+  else if(it.k==='mini'){s+=`<path d="M41 121 L79 121 L85 139 Q60 144 35 139Z" fill="${f}"${SW}/>`}
   else{s+=`<path d="M41 121 L79 121 L90 147 Q60 153 30 147Z" fill="${f}"${SW}/>`;if(it.k==='pleat')s+=`<path d="M50 123 L45 149 M60 123 L60 151 M70 123 L75 149" stroke="${shade(it.c,-.2)}" stroke-width="1.6"/>`}
   return s;
 }
@@ -672,6 +782,10 @@ function drawShoes(it,skin){
     case 'flat':return `<ellipse cx="${x}" cy="160" rx="8.5" ry="5.2" fill="${c}"${SW}/><circle cx="${x+3}" cy="157" r="2.2" fill="#fff"${SW}/>`;
     case 'boot':return `<rect x="${x-7.5}" y="143" width="15" height="18" rx="5" fill="${c}"${SW}/><ellipse cx="${x+1}" cy="160" rx="9" ry="5" fill="${c}"${SW}/><path d="M${x-7} 147 h14" stroke="${shade(c,.25)}" stroke-width="2"/>`;
     case 'sandal':return `<ellipse cx="${x}" cy="160" rx="8" ry="5" fill="${skin||'#ffe2c6'}"${SW}/><path d="M${x-8} 163 Q${x} 167 ${x+8} 163" stroke="${c}" stroke-width="3.2" fill="none"/><path d="M${x-6} 158 L${x+5} 161 M${x+6} 158 L${x-5} 161" stroke="${c}" stroke-width="2.4"/>`;
+    case 'heel':return `<path d="M${x-9} 161 Q${x-9} 154 ${x-2} 155 L${x+8} 158 Q${x+10} 162 ${x+7} 164 L${x-7} 164Z" fill="${c}"${SW}/><path d="M${x-6} 164 L${x-7} 170" stroke="${O}" stroke-width="2.8" stroke-linecap="round"/><circle cx="${x+3}" cy="158" r="1.6" fill="#fff"/>`;
+    case 'mary':return `<ellipse cx="${x}" cy="160" rx="8.5" ry="5.2" fill="${c}"${SW}/><path d="M${x-7} 156.5 H${x+7}" stroke="${O}" stroke-width="2.4"/><circle cx="${x+5}" cy="156.5" r="1.6" fill="#ffd23f"/>`;
+    case 'slip':return `<ellipse cx="${x}" cy="162" rx="9" ry="4" fill="${shade(c,-.2)}"${SW}/><ellipse cx="${x}" cy="158" rx="7" ry="4" fill="${skin||'#ffe2c6'}"${SW}/><path d="M${x-7} 158 Q${x} 152 ${x+7} 158" stroke="${c}" stroke-width="4" fill="none"/>`;
+    case 'loafer':return `<ellipse cx="${x}" cy="160" rx="9.5" ry="5.6" fill="${c}"${SW}/><path d="M${x-4} 156 h8" stroke="${shade(c,.3)}" stroke-width="2"/><circle cx="${x+2}" cy="158" r="1.4" fill="#ffd23f"/>`;
     case 'oxford':return `<ellipse cx="${x}" cy="160" rx="9.5" ry="5.6" fill="${c}"${SW}/><ellipse cx="${x+3}" cy="158" rx="3" ry="1.3" fill="#fff" opacity=".5"/>`;
   }return ''};
   return L(51)+L(69);
@@ -711,6 +825,16 @@ function drawAcc(it){
     case 'flower':return [...Array(6)].map((_,i)=>`<circle cx="${88+6*Math.cos(i*Math.PI/3)}" cy="${33+6*Math.sin(i*Math.PI/3)}" r="4.4" fill="#fff"${SW}/>`).join('')+`<circle cx="88" cy="33" r="3.6" fill="#ffd23f"${SW}/>`;
     case 'cap':return `<path d="M25 42 Q25 11 60 11 Q95 11 95 42Z" fill="${c}"${SW}/><path d="M62 39 Q92 34 110 43 Q94 48 62 45Z" fill="${shade(c,-.15)}"${SW}/><circle cx="60" cy="12" r="3" fill="${shade(c,-.15)}"${SW}/>`;
     case 'veil':return `<path d="M34 26 Q60 12 86 26" stroke="#e6dbee" stroke-width="4" fill="none"/>`+[38,50,60,70,82].map((x,i)=>`<circle cx="${x}" cy="${i===2?16:i%2?19:24}" r="3.6" fill="#fff"${SW}/>`).join('');
+    case 'tiara':return `<path d="M36 32 Q60 20 84 32 L79 22 L70 27 L65 13 L60 22 L55 13 L50 27 L41 22Z" fill="${c}"${SW}/><circle cx="60" cy="20" r="2.6" fill="#7cc7ff"/><circle cx="50.5" cy="25" r="1.7" fill="#ff7fa6"/><circle cx="69.5" cy="25" r="1.7" fill="#ff7fa6"/>`;
+    case 'headband':return `<path d="M26 46 Q30 12 60 12 Q90 12 94 46" stroke="${O}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M26 46 Q30 12 60 12 Q90 12 94 46" stroke="${c}" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M60 13 L51 8 L51 19Z M60 13 L69 8 L69 19Z" fill="${c}"${SW}/>`;
+    case 'beret':return `<ellipse cx="64" cy="22" rx="38" ry="13" transform="rotate(-10 64 22)" fill="${c}"${SW}/><path d="M67 10 v-6" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+    case 'bigbow':return `<path d="M60 18 L35 4 L37 34Z M60 18 L85 4 L83 34Z" fill="${c}"${SW}/><circle cx="60" cy="18" r="6" fill="${shade(c,-.15)}"${SW}/>`;
+    case 'fcrown':return `<path d="M24 38 Q60 6 96 38" stroke="#4fae45" stroke-width="3" fill="none"/>`+[...Array(9)].map((_,i)=>{const t=i/8,x=(1-t)*(1-t)*24+2*(1-t)*t*60+t*t*96,y=(1-t)*(1-t)*38+2*(1-t)*t*6+t*t*38;return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.4" fill="${[c,'#fff','#ffd23f'][i%3]}"${SW}/>`}).join('');
+    case 'earmuff':return `<path d="M24 56 Q24 10 60 10 Q96 10 96 56" stroke="${O}" stroke-width="6" fill="none"/><circle cx="24" cy="60" r="11" fill="${c}"${SW}/><circle cx="96" cy="60" r="11" fill="${c}"${SW}/>`;
+    case 'sunglass':return `<path d="M37 56 h19 v6 q0 9 -9.5 9 q-9.5 0 -9.5 -9z M64 56 h19 v6 q0 9 -9.5 9 q-9.5 0 -9.5 -9z" fill="${c}"${SW}/><path d="M56 58 h8 M26 58 h11 M83 58 h11" stroke="${O}" stroke-width="2.4"/><path d="M40 60 l5 -2.4" stroke="#fff" stroke-width="2" opacity=".7"/>`;
+    case 'bucket':return `<ellipse cx="60" cy="34" rx="44" ry="9" fill="${shade(c,-.1)}"${SW}/><path d="M32 34 Q32 6 60 6 Q88 6 88 34Z" fill="${c}"${SW}/><path d="M33 28 H87" stroke="${shade(c,-.25)}" stroke-width="2"/>`;
+    case 'beanie':return `<path d="M24 46 Q24 10 60 10 Q96 10 96 46Z" fill="${c}"${SW}/><rect x="22" y="40" width="76" height="10" rx="5" fill="${shade(c,-.15)}"${SW}/><circle cx="60" cy="8" r="7" fill="#fff"${SW}/>`;
+    case 'headph':return `<path d="M24 58 Q22 6 60 6 Q98 6 96 58" stroke="${O}" stroke-width="8" fill="none"/><path d="M24 58 Q22 6 60 6 Q98 6 96 58" stroke="${c}" stroke-width="4.4" fill="none"/><rect x="15" y="48" width="14" height="22" rx="6" fill="${c}"${SW}/><rect x="91" y="48" width="14" height="22" rx="6" fill="${c}"${SW}/>`;
     case 'crown':return `<path d="M43 24 L45 5 L53 16 L60 1 L67 16 L75 5 L77 24Z" fill="${c}"${SW}/><circle cx="60" cy="16" r="2.6" fill="#ff5e8e"/><circle cx="50" cy="19" r="1.8" fill="#4aa8f0"/><circle cx="70" cy="19" r="1.8" fill="#4aa8f0"/>`;
   }
   return '';
@@ -722,7 +846,7 @@ function charG(p,o={}){
   const def=g==='m'?DEF_M:DEF_F;
   if(o.only){const it=CLOTH[eq[o.only]];if(!it)return '';if(o.only==='top')return drawTop(it);if(o.only==='bottom')return drawBottom(it);if(o.only==='shoes')return drawShoes(it,null);return drawAccBack(it)+drawAcc(it)}
   const top=CLOTH[eq.top]||CLOTH[def.top],bot=CLOTH[eq.bottom]||CLOTH[def.bottom],sh=CLOTH[eq.shoes]||CLOTH[def.shoes],acc=eq.acc&&CLOTH[eq.acc];
-  const isDress=['dress','wedding','overall'].includes(top.k);
+  const isDress=DRESSY.has(top.k);CUR_SKIN=skin;
   const pose=o.pose||'stand',dy=pose==='sit'?16:pose==='kneel'?24:0,kneel=pose==='kneel';
   let s=o.noShadow?'':`<ellipse cx="60" cy="166" rx="30" ry="6" fill="#000" opacity=".13"/>`;
   const back=(acc?drawAccBack(acc):'')+hairBack(hs,hc);
@@ -742,7 +866,7 @@ function charG(p,o={}){
   up+=drawTop(top);
   NO_RS=false;
   if(kneel){
-    const longSl=['sweater','hoodie','shirt','vest'].includes(top.k),sc=top.k==='overall'?'#fff':top.c;
+    const longSl=LONGSL.has(top.k),sc=top.k==='overall'?'#fff':top.c;
     up+=`<path d="M86 98 L106 70" stroke="${O}" stroke-width="15.4" stroke-linecap="round"/><path d="M86 98 L106 70" stroke="${skin}" stroke-width="11" stroke-linecap="round"/>`
       +`<path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${O}" stroke-width="18" stroke-linecap="round"/><path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${sc}" stroke-width="13.6" stroke-linecap="round"/>`;
   }
@@ -757,7 +881,7 @@ const charSVG=(p,o={},cls='')=>`<svg viewBox="${o.vb||'0 0 120 180'}" class="${c
 const placeChar=(p,x,y,sc=1,o={},cls='idle')=>p?`<g transform="translate(${x-60*sc} ${y-168*sc}) scale(${sc})"><g class="${cls}">${charG(p,o)}</g></g>`:'';
 function clothIcon(id){
   const it=CLOTH[id];if(!it)return '';
-  const vb=it.s==='top'?(it.k==='wedding'?'14 84 92 94':['dress','overall'].includes(it.k)?'18 84 84 76':'20 84 80 54'):it.s==='bottom'?'26 116 68 40':it.s==='shoes'?'38 140 44 28':it.k==='veil'?'4 0 112 160':'12 0 96 72';
+  const vb=it.s==='top'?(['wedding','gown','mermaid'].includes(it.k)?'2 84 116 100':['aodai','maxi','robe'].includes(it.k)?'14 82 92 92':DRESSY.has(it.k)?'16 84 88 78':'20 84 80 54'):it.s==='bottom'?(it.k==='long'?'26 116 68 50':'26 116 68 40'):it.s==='shoes'?'38 140 44 32':['earmuff','headph'].includes(it.k)?'8 0 104 80':it.k==='veil'?'4 0 112 160':'12 0 96 72';
   return `<svg viewBox="${vb}" aria-hidden="true">${charG({eq:{[it.s]:id}},{only:it.s})}</svg>`;
 }
 
@@ -873,7 +997,7 @@ function start(uid){
     renderAll();
   });
   subInbox();subMyStall();subGames();
-  sub('inv',DB.collection('invites').where('to','==',uid),qs=>{S.invites=qs.docs.map(d=>({id:d.id,...clone(d.data())})).filter(x=>x.st==='pending');renderAll()});
+  sub('inv',DB.collection('invites').where('to','==',uid),qs=>{const prev=S.invites,first=!S.invInit;S.invInit=true;S.invites=qs.docs.map(d=>({id:d.id,...clone(d.data())})).filter(x=>x.st==='pending');if(!first)for(const i of S.invites)if(i.kind==='wedding'&&!prev.some(p=>p.id===i.id))toast(`${cleanText(i.fromNick)} gửi thiệp cưới mời bạn! Xem ở mục Bạn bè.`,'love');renderAll()});
 }
 function subHome(hid){S.home=null;sub('home',DB.doc('homes/'+hid),s=>{if(s.exists){const d=clone(s.data());if(JSON.stringify(d)===JSON.stringify(S.home))return;const prev=S.home;S.home=d;homeEvents(prev,d);renderAll()}});subDay()}
 function subDay(){S.dayKey=today();S.day=null;sub('day',DB.doc(dayPath()),s=>{const d=s.exists?clone(s.data()):{c:{},cl:{}};d.c=d.c||{};d.cl=d.cl||{};if(JSON.stringify(d)===JSON.stringify(S.day))return;S.day=d;renderAll()})}
@@ -891,6 +1015,7 @@ function doRender(){
   app.innerHTML=`${S.readOnly?`<div class="ro-banner">Tài khoản claude.ai đang mở trang này chỉ có quyền xem nên thao tác không lưu được. Nhờ người tạo trang mời bạn với quyền <b>Editor</b> (chỉnh sửa) nhé.</div>`:''}${hud()}<main id="view">${renderView()}</main>${nav()}`;
   S.sig=viewSig();
   {const ps=$('#pscroll');if(ps&&psl!=null)ps.scrollLeft=psl}
+  if(S.view!=='boutique'&&Object.keys(S.trial).length)S.trial={};if(S.view!=='church'&&UNS.wed)unsub('wed');
   applyParallax();presSync();lobbySync();mktSync();renderDock();syncChatWin();
   {const pr=S.home.proposal;if(pr&&pr.st==='pending'&&pr.to===S.uid&&S.seenProp!==pr.at&&!S.modal){S.seenProp=pr.at;S.modal={t:'proposed'}}}
   renderModal();
@@ -898,7 +1023,7 @@ function doRender(){
   function restore(){if(aid){const el=document.getElementById(aid);if(el&&el!==document.activeElement){el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}}
 }
 function loadingScreen(t){return `<div class="auth"><div class="logo"><h1>Nuôi Cá Trồng Rau</h1><p>${esc(t)}</p></div></div>`}
-function renderView(){switch(S.view){case 'pond':return viewPond();case 'coop':return viewCoop();case 'home':return viewHome();case 'town':return viewTown();case 'tasks':return viewTasks();case 'love':return viewLove();case 'park':return viewPark();case 'market':return viewMarket();case 'games':return viewGames();default:return viewFarm()}}
+function renderView(){switch(S.view){case 'pond':return viewPond();case 'coop':return viewCoop();case 'home':return viewHome();case 'town':return viewTown();case 'tasks':return viewTasks();case 'love':return viewLove();case 'park':return viewPark();case 'market':return viewMarket();case 'games':return viewGames();case 'boutique':return viewBoutique();case 'church':return viewChurch();default:return viewFarm()}}
 function avatar(p,act){return `<button class="avatar" data-act="go" data-v="love" aria-label="${esc(p.nick)}"><svg viewBox="18 10 84 84">${charG(p)}</svg></button>`}
 function loveLabel(h){const l=h.love||0;if(h.married)return 'Vợ chồng son';if(l>=100)return 'Yêu thắm thiết';if(l>=50)return 'Đang hẹn hò';if(l>=15)return 'Cảm nắng';return 'Mới quen'}
 function hud(){
@@ -922,10 +1047,11 @@ const NAVI={
   market:`<path d="M-15 -3 L-11 -13 H11 L15 -3Z" fill="#ff9a2e"${SW}/><path d="M-15 -3 q3.75 5 7.5 0 q3.75 5 7.5 0 q3.75 5 7.5 0 q3.75 5 7.5 0" fill="#fff3d6"${SW}/><rect x="-12" y="1" width="24" height="12" fill="#c98a52"${SW}/><circle cx="-5" cy="0" r="3.6" fill="#ef4b3f"${SW}/><circle cx="4" cy="0" r="3.6" fill="#7fd35a"${SW}/>`,
   games:`<rect x="-14" y="-9" width="28" height="19" rx="9" fill="#b892f0"${SW}/><path d="M-8 0.5 h7 M-4.5 -3 v7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="5" cy="-2" r="2.3" fill="#ffd23f"${SW}/><circle cx="9" cy="3" r="2.3" fill="#ff7fa6"${SW}/>`,
 };
+const navOn=()=>['boutique','church'].includes(S.view)?'town':S.view;
 function nav(){
   const items=[['farm','Nông trại'],['pond','Ao cá'],['coop','Chuồng trại'],['home','Nhà'],['town','Phố'],['market','Chợ'],['games','Chơi game'],['tasks','Nhiệm vụ'],['love','Bạn bè']];
   const claim=claimable(),inv=S.invites.length+unreadDM(),gb=gamesBadge();
-  return `<nav class="nav" aria-label="Khu vực"><div class="in">${items.map(([k,n])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}" aria-current="${S.view===k?'page':'false'}"><svg viewBox="-17 -17 34 34" aria-hidden="true">${NAVI[k]}</svg>${n}${k==='tasks'&&claim?`<span class="dot">${claim}</span>`:''}${k==='love'&&inv?`<span class="dot">${inv}</span>`:''}${k==='games'&&gb?`<span class="dot">${gb}</span>`:''}</button>`).join('')}</div></nav>`;
+  return `<nav class="nav" aria-label="Khu vực"><div class="in">${items.map(([k,n])=>`<button class="${navOn()===k?'on':''}" data-act="go" data-v="${k}" aria-current="${navOn()===k?'page':'false'}"><svg viewBox="-17 -17 34 34" aria-hidden="true">${NAVI[k]}</svg>${n}${k==='tasks'&&claim?`<span class="dot">${claim}</span>`:''}${k==='love'&&inv?`<span class="dot">${inv}</span>`:''}${k==='games'&&gb?`<span class="dot">${gb}</span>`:''}</button>`).join('')}</div></nav>`;
 }
 
 /* ---------- màn hình rộng: kéo cảnh ra hai bên ---------- */
@@ -958,56 +1084,70 @@ function plotInfo(p,t=now()){
   const dryAt=p.wAt+lim;
   return{st:'crop',C,ripe,stage,frac,thirsty,bug,weed,bugH,weedH,until,dryAt,yield:Math.max(1,4-(p.bugOk?0:1)-(p.weedOk?0:1))};
 }
-const PW=80,PH=40,PT=15;
-const PLOT_POS=i=>{const c=i%4,r=Math.floor(i/4);return[400+(c-r)*PW,166+(c+r)*PH]};
-function plotSVG(i,h,t){
-  const[x,y]=PLOT_POS(i);const open=i<(h.plotsOpen||6);
-  const top=`M${x} ${y-PH} L${x+PW} ${y} L${x} ${y+PH} L${x-PW} ${y}Z`,lft=`M${x-PW} ${y} L${x} ${y+PH} L${x} ${y+PH+PT} L${x-PW} ${y+PT}Z`,rgt=`M${x+PW} ${y} L${x} ${y+PH} L${x} ${y+PH+PT} L${x+PW} ${y+PT}Z`;
-  if(!open)return `<g class="plot" data-act="buyplot" role="button" aria-label="Mở rộng ô đất"><path d="${lft}" fill="#5fa53d"${SW}/><path d="${rgt}" fill="#4f9433"${SW}/><path d="${top}" class="top" fill="#9bd56c"${SW}/><g transform="translate(${x} ${y-6}) scale(1.25)"><rect x="-2" y="-4" width="4" height="16" fill="#a8693a"/><rect x="-16" y="-20" width="32" height="18" rx="4" fill="#f2d3a0"${SW}/><path d="M-5 -11 h10 M0 -16 v10" stroke="${O}" stroke-width="3" stroke-linecap="round"/></g></g>`;
-  const p=h.plots?.['p'+i]||{st:'wild'},I=plotInfo(p,t);
-  const moist=I.st==='crop'&&!I.thirsty&&!I.ripe;
-  const fill=I.st==='wild'?'#c49a5a':moist?'#7a4526':'#a5703f';
-  let s=`<g class="plot" data-act="plot" data-i="${i}" role="button" aria-label="Ô đất ${i+1}"><path d="${lft}" fill="#7a4a26"${SW}/><path d="${rgt}" fill="#5f3a1e"${SW}/><path d="${top}" class="top" fill="${fill}"${SW}/>`;
-  if(I.st==='wild')s+=tufts([[x-34,y-2],[x+24,y-10],[x+8,y+18],[x-8,y-20]])+`<ellipse cx="${x+40}" cy="${y+6}" rx="4" ry="2.6" fill="#d8cbb0"${SW}/><ellipse cx="${x-46}" cy="${y+8}" rx="3" ry="2" fill="#d8cbb0"${SW}/>`;
-  else{for(const k of[.25,.5,.75])s+=`<path d="M${x-PW+PW*k} ${y-PH*k} L${x+PW*k} ${y+PH-PH*k}" stroke="${shade(fill,-.22)}" stroke-width="3" stroke-linecap="round"/>`}
-  if(I.st==='crop'){
-    s+=`<g transform="translate(${x} ${y+6}) scale(1.3)">${cropSVG(p.crop,I.stage)}`;
+/* ---------- NÔNG TRẠI: cánh đồng rộng có chiều sâu, tối đa 10 thửa, mỗi thửa 12 ô ---------- */
+const FW_=2700,FH_=900,FHZ=290,FDS=y=>.32+(y-FHZ)*.00125,NF=10;
+const FIELDS=[...Array(NF)].map((_,f)=>{const back=f>=5,col=f%5,cxf=600+col*470;return back?{cx:1350+(cxf-1350)*.8,y0:372,y1:520}:{cx:cxf,y0:610,y1:830}});
+const fieldsOwned=()=>Math.max(1,Math.min(NF,S.home?.fields||1));
+const fieldPrice=n=>400+(n-1)*250;
+const fW=y=>420*FDS(y);
+const fRows=f=>{const F=FIELDS[f];return[0,.3,.63,1].map(k=>F.y0+(F.y1-F.y0)*k)};
+const fX=(f,y,c)=>FIELDS[f].cx+(c/4-.5)*fW(y);
+function tileQuad(f,i){const r=Math.floor(i/4),c=i%4,ys=fRows(f),ya=ys[r],yb=ys[r+1];return[[fX(f,ya,c),ya],[fX(f,ya,c+1),ya],[fX(f,yb,c+1),yb],[fX(f,yb,c),yb]]}
+const qd=q=>'M'+q.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')+'Z';
+function tileSVG(f,i,h,t){const idx=f*12+i,q=tileQuad(f,i),p=h.plots?.['p'+idx]||{st:'wild'},I=plotInfo(p,t);
+  const cx=(q[0][0]+q[1][0]+q[2][0]+q[3][0])/4,cy=(q[0][1]+q[2][1])/2,sc=FDS(cy)*1.05;
+  const moist=I.st==='crop'&&!I.thirsty&&!I.ripe,fill=I.st==='wild'?'#c49a5a':moist?'#7a4526':'#a5703f';
+  let s=`<g class="plot" data-act="plot" data-i="${idx}" role="button" aria-label="Thửa ${f+1}, ô ${i+1}"><path d="${qd(q)}" class="top" fill="${fill}" stroke="${O}" stroke-width="${(1.6*sc+.6).toFixed(2)}" stroke-linejoin="round"/>`;
+  if(I.st==='wild')s+=`<g transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)}) scale(${sc.toFixed(3)})">${tufts([[-20,4],[16,-6],[4,10]])}<ellipse cx="26" cy="6" rx="4" ry="2.6" fill="#d8cbb0"${SW}/></g>`;
+  else for(const k of[.33,.66]){const ya=q[0][1],yb=q[3][1],y=ya+(yb-ya)*k;s+=`<path d="M${(q[0][0]+(q[3][0]-q[0][0])*k+3).toFixed(1)} ${y.toFixed(1)} L${(q[1][0]+(q[2][0]-q[1][0])*k-3).toFixed(1)} ${y.toFixed(1)}" stroke="${shade(fill,-.22)}" stroke-width="${(2.6*sc).toFixed(2)}" stroke-linecap="round"/>`}
+  if(I.st==='crop'){s+=`<g transform="translate(${cx.toFixed(1)} ${(cy+8*sc).toFixed(1)}) scale(${(sc*1.05).toFixed(3)})">${cropSVG(p.crop,I.stage)}`;
     if(I.weed||I.weedH)s+=`<g transform="translate(-30 10)"><path d="M-6 0 L-9 -16 L-2 -5 L0 -19 L3 -5 L9 -14 L6 0Z" fill="#2f7d32"${SW}/></g>`;
     if(I.bug||I.bugH)s+=`<g transform="translate(16 ${I.stage>=3?-24:-12})"><g class="wig"><ellipse cx="-5" cy="0" rx="5" ry="4" fill="#9be05a"${SW}/><ellipse cx="2" cy="-1" rx="5" ry="4.2" fill="#9be05a"${SW}/><circle cx="8" cy="-3" r="4.4" fill="#b5ef6e"${SW}/><circle cx="9.5" cy="-4" r="1.1" fill="${O}"/></g></g>`;
     if(I.thirsty)s+=`<g transform="translate(26 ${-40-I.stage*8})"><g class="bob"><path d="M-14 -12 h28 a6 6 0 0 1 6 6 v12 a6 6 0 0 1 -6 6 h-10 l-6 7 l-1 -7 h-11 a6 6 0 0 1 -6 -6 v-12 a6 6 0 0 1 6 -6z" fill="#fff"${SW}/><path d="M0 -7 C4 -1 6 2 6 4 A6 6 0 0 1 -6 4 C-6 2 -4 -1 0 -7Z" fill="#4aa8f0"${SW}/></g></g>`;
     if(I.ripe)s+=`<path class="tw" d="M22 -54 l3 -7 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3z" fill="#fff36b"${SW}/>`;
-    if(p.fert&&!I.ripe)s+=`<circle cx="-22" cy="-4" r="3" fill="#ffd23f"${SW}/><circle cx="-16" cy="2" r="2.4" fill="#9be07a"${SW}/>`;
-    s+=`</g>`;
-  }
-  return s+`</g>`;
-}
-function farmScene(){
-  const h=S.home,t=now();
-  let s=`<defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#d4f3ff"/></linearGradient></defs>`;
-  s+=`<rect x="-1600" width="4000" height="150" fill="url(#skyg)"/><circle cx="728" cy="44" r="26" fill="#ffe066"${SW}/><g stroke="#ffd23f" stroke-width="3" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>`<path d="M${728+34*Math.cos(a*Math.PI/180)} ${44+34*Math.sin(a*Math.PI/180)} L${728+42*Math.cos(a*Math.PI/180)} ${44+42*Math.sin(a*Math.PI/180)}"/>`).join('')}</g>`;
-  s+=cloud(120,48,1,-10)+cloud(420,30,.8,-40)+cloud(640,70,.7,-25);
-  s+=[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 132 Q120 90 260 128 Q400 84 560 126 Q680 96 800 132 V160 H0Z" fill="#a6dd7c"/><path transform="translate(${dx} 0)" d="M0 132 Q120 90 260 128 Q400 84 560 126 Q680 96 800 132" fill="none"${SW}/>`).join('');
-  s+=`<rect x="-1600" y="140" width="4000" height="360" fill="#86cf5c"/>${sideDeco(500,170,480)}<ellipse cx="160" cy="420" rx="170" ry="40" fill="#93d76a"/><ellipse cx="660" cy="250" rx="120" ry="28" fill="#93d76a"/>`;
-  s+=`<g transform="translate(96 196) scale(.42)">${houseSVG(h.house||1)}</g>`;
-  s+=fence(150,250,800);
-  s+=tree(740,236,.75);
-  s+=tufts([[60,250],[240,450],[760,330],[520,470],[30,480],[690,480]])+flowerDots([[46,300,'#ff9fbe'],[226,232,'#fff'],[760,280,'#ffd23f'],[600,470,'#ff9fbe'],[300,470,'#b892f0']]);
-  const order=[...Array(12).keys()].sort((a,b)=>{const ca=a%4+Math.floor(a/4),cb=b%4+Math.floor(b/4);return ca-cb||a-b});
-  for(const i of order)s+=plotSVG(i,h,t);
-  s+=placeChar(S.me,74,482,.82)+placeChar(S.partner,150,490,.82);
-  const pets=live(h.pets);pets.slice(0,2).forEach(([id,p],i)=>{s+=`<g transform="translate(${672+i*68} ${482-i*6}) scale(1.25)"><g class="bob">${petSVG(p.t)}</g></g>`});
-  return s;
-}
+    if(p.fert&&!I.ripe)s+=`<circle cx="-22" cy="-4" r="3" fill="#ffd23f"${SW}/><circle cx="-16" cy="2" r="2.4" fill="#9be07a"${SW}/>`;s+=`</g>`}
+  return s+`</g>`}
+function fieldSVG(f,h,t){const F=FIELDS[f],own=f<fieldsOwned(),c0=FDS(F.y0),c1=FDS(F.y1),m=16;
+  const outer=[[fX(f,F.y0,0)-m*c0,F.y0-m*c0*.7],[fX(f,F.y0,4)+m*c0,F.y0-m*c0*.7],[fX(f,F.y1,4)+m*c1,F.y1+m*c1*.6],[fX(f,F.y1,0)-m*c1,F.y1+m*c1*.6]];
+  const lip=[outer[3],outer[2],[outer[2][0],outer[2][1]+16*c1],[outer[3][0],outer[3][1]+16*c1]];
+  if(!own){const next=f===fieldsOwned(),cy=(F.y0+F.y1)/2,cs=FDS(cy);let s=`<path d="${qd(outer)}" fill="#9fd776" stroke="#6fae4a" stroke-width="3" stroke-dasharray="10 8"/>`;
+    s+=`<g transform="translate(${F.cx} ${cy})" pointer-events="none">${[...Array(7)].map((_,i)=>{const r=seeded('fw'+f+i);return `<g transform="translate(${((r()-.5)*fW(cy)*.8).toFixed(0)} ${((r()-.5)*(F.y1-F.y0)*.7).toFixed(0)}) scale(${cs.toFixed(2)})">${r()>.6?`<ellipse rx="12" ry="7" fill="#c9c2b0"${SW}/>`:tufts([[0,0],[10,4]])}</g>`}).join('')}</g>`;
+    s+=`<g transform="translate(${F.cx} ${cy+10*cs}) scale(${(cs*1.25).toFixed(3)})" ${next?`data-act="buyfield" style="cursor:pointer" role="button" aria-label="Khai hoang thửa ruộng"`:'pointer-events="none"'}><rect x="-4" y="-50" width="8" height="52" fill="#a8693a"${SW}/><rect x="-74" y="-92" width="148" height="${next?56:40}" rx="10" fill="${next?'#fff3c2':'#f2e6d0'}"${SW}/><text y="${next?-68:-66}" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="18" fill="${O}">${next?'Khai hoang thửa '+(f+1):'Đất hoang'}</text>${next?`<text y="-46" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="17" fill="#c2456d">${fieldPrice(f)} xu</text>`:''}</g>`;return s}
+  let s=`<path d="${qd(lip)}" fill="#7a4a26"${SW}/><path d="${qd(outer)}" fill="#8a5a34"${SW}/>`;
+  for(let i=0;i<12;i++)s+=tileSVG(f,i,h,t);
+  s+=`<g transform="translate(${outer[0][0]-8} ${outer[0][1]+4}) scale(${c0.toFixed(2)})" pointer-events="none"><rect x="-3" y="-40" width="6" height="40" fill="#a8693a"${SW}/><rect x="-26" y="-58" width="52" height="24" rx="6" fill="#fff8e6"${SW}/><text y="-41" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="${O}">Thửa ${f+1}</text></g>`;
+  return s}
+function farmScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g});
+  let s=`<defs>${FGBLUR}<linearGradient id="fsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#e3f7ff"/></linearGradient><linearGradient id="fgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7dd7a"/><stop offset="1" stop-color="#7fca55"/></linearGradient><linearGradient id="fhz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#f4fbff" stop-opacity=".7"/><stop offset="1" stop-color="#f4fbff" stop-opacity="0"/></linearGradient></defs>`;
+  s+=`<rect width="${FW_}" height="${FH_}" fill="url(#fsk)"/>`+farLayers(FW_,FHZ-6,'farm');
+  s+=`<g class="par" data-k=".5"><path d="M0 ${FHZ-30} Q300 ${FHZ-90} 640 ${FHZ-40} Q1000 ${FHZ-100} 1400 ${FHZ-36} Q1800 ${FHZ-96} 2200 ${FHZ-40} Q2500 ${FHZ-80} ${FW_} ${FHZ-40} V${FHZ+10} H0Z" fill="#c6eaa2"/>${[...Array(30)].map((_,i)=>tree(40+i*92,FHZ-24+(i%2)*4,.2,i%4===0)).join('')}</g>`;
+  s+=`<rect y="${FHZ}" width="${FW_}" height="${FH_-FHZ}" fill="url(#fgr)"/>`;for(let y=FHZ+8,hh=9;y<FH_;y+=hh,hh*=1.16)s+=`<rect y="${y.toFixed(1)}" width="${FW_}" height="${(hh/2).toFixed(1)}" fill="#fff" opacity=".05"/>`;
+  s+=`<rect y="${FHZ-70}" width="${FW_}" height="100" fill="url(#fhz)" pointer-events="none"/>`;
+  s+=`<g transform="translate(0 ${FHZ+20})">${fence(0,20,FW_-20).replace(/stroke-width="7"/g,'stroke-width="4"').replace(/stroke-width="3.6"/g,'stroke-width="2"')}</g>`;
+  // đường đất giữa hai hàng ruộng
+  s+=`<path d="M0 548 Q700 536 1350 552 Q2000 568 ${FW_} 548 L${FW_} 590 Q2000 610 1350 594 Q700 578 0 592Z" fill="#e2c89a"/><path d="M0 548 Q700 536 1350 552 Q2000 568 ${FW_} 548" fill="none" stroke="#c9a86a" stroke-width="3"/>`;
+  for(let f=NF-1;f>=0;f--){const F=FIELDS[f];add(F.y0,fieldSVG(f,h,t))}
+  for(const[x,y,sc]of[[60,360,.5],[250,330,.42],[2600,350,.5],[2450,330,.42],[150,880,1.05],[1580,600,.75],[2100,880,1.05],[1100,580,.7],[2650,700,.9]])add(y,`<ellipse cx="${x+10*sc}" cy="${y+2}" rx="${60*sc}" ry="${12*sc}" fill="#2f6b1f" opacity=".18"/>`+tree(x,y,sc,x%3===0));
+  add(660,`<g transform="translate(200 660) scale(${(FDS(660)*.95).toFixed(3)})">${houseSVG(h.house||1)}</g>`);
+  add(820,placeChar(S.me,150,820,FDS(820)*.95)+placeChar(S.partner,250,830,FDS(830)*.95));
+  live(h.pets).slice(0,3).forEach(([id,p],i)=>{const x=340+i*80,y=770+i*18;add(y,`<g transform="translate(${x} ${y}) scale(${(FDS(y)*1.3).toFixed(3)})"><g class="bob">${petSVG(p.t)}</g></g>`)});
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);
+  s+=fgLayer([[40,955,'bush',1.9],[820,965,'flowers',2.2],[1460,960,'bush',1.9],[2080,965,'flowers',2.1],[2660,955,'bush',1.9]]);
+  return s}
 function viewFarm(){
   const h=S.home;
   const tools=TOOLS.map(t=>`<button class="tool ${S.tool===t.k?'on':''}" data-act="tool" data-v="${t.k}" aria-pressed="${S.tool===t.k}"><svg viewBox="-20 -20 40 40" aria-hidden="true">${t.ico}</svg>${t.n}${t.k==='fert'?`<i>${sup('fert')}</i>`:''}${t.k==='seed'?`<i>${Object.values(h.seeds||{}).reduce((a,b)=>a+(b||0),0)}</i>`:''}</button>`).join('');
   const seeds=S.tool==='seed'?`<div class="seedrow">${Object.keys(CROPS).map(k=>{const n=h.seeds?.[k]||0;return `<button class="seedchip ${S.seed===k?'on':''} ${n?'':'none'}" data-act="seed" data-v="${k}"><svg viewBox="-20 -22 40 42" aria-hidden="true">${produceIcon(k)}</svg>${CROPS[k].n} ×${n}</button>`}).join('')}<button class="seedchip" data-act="shop" data-v="seeds">+ Mua hạt</button></div>`:'';
-  const ripeN=[...Array(h.plotsOpen||6).keys()].filter(i=>plotInfo(h.plots?.['p'+i]).ripe).length;
-  return `<div class="sec-title"><h2>Nông trại ${S.partner?'của hai đứa':'của bạn'}</h2><div class="row">${installBtn('btn sm white')}${ripeN?`<button class="btn green sm" data-act="harvestall">Thu hoạch hết (${ripeN})</button>`:''}<button class="btn sm white" data-act="shop" data-v="market">Ra chợ bán</button></div></div>
-  <div class="scene" id="scene"><svg viewBox="${wideVB(800,500)}" role="img" aria-label="Cánh đồng">${farmScene()}</svg></div>
+  const ripeN=[...Array(fieldsOwned()*12).keys()].filter(i=>plotInfo(h.plots?.['p'+i]).ripe).length;
+  return `<div class="sec-title"><h2>Nông trại ${S.partner?'của hai đứa':'của bạn'} <span class="tag">${fieldsOwned()}/${NF} thửa</span></h2><div class="row">${installBtn('btn sm white')}${ripeN?`<button class="btn green sm" data-act="harvestall">Thu hoạch hết (${ripeN})</button>`:''}${fieldsOwned()<NF?`<button class="btn sm white" data-act="buyfield">Khai hoang thửa mới ${priceTag(fieldPrice(fieldsOwned()))}</button>`:''}<button class="btn sm white" data-act="shop" data-v="market">Bán nông sản</button></div></div>
+  ${sceneBox(FW_,FH_,farmScene(),'Cánh đồng',false)}
   <div class="toolbar" role="toolbar" aria-label="Dụng cụ">${tools}</div>${seeds}
-  <p class="hint">${esc(TOOLS.find(t=>t.k===S.tool).h)}</p>`;
+  <p class="hint">${esc(TOOLS.find(t=>t.k===S.tool).h)} Kéo ngang để xem hết các thửa ruộng.</p>`;
 }
+function harvestAll(){let tot=0;for(let i=0;i<fieldsOwned()*12;i++){const p=S.home.plots?.['p'+i];const I=plotInfo(p);if(I.ripe)tot+=harvest(i,p,I,true)}if(tot)toast(`Thu hoạch được ${tot} nông sản, mang ra chợ bán nhé!`,'good')}
+function buyField(){const n=fieldsOwned();if(n>=NF)return toast('Đã khai hoang hết 10 thửa rồi!');const p=fieldPrice(n);if(!pay(p))return;const plots={};for(let i=0;i<12;i++)plots['p'+(n*12+i)]={...EMPTY,st:'wild'};H({coins:coins()-p,fields:n+1,plots});toast(`Đã khai hoang thửa ruộng số ${n+1}! Dùng cuốc xới đất rồi gieo hạt nhé.`,'good');
+  setTimeout(()=>{const sc=$('#pscroll'),F=FIELDS[n];if(sc){const svg=sc.querySelector('svg'),r=svg.getBoundingClientRect().width/FW_;sc.scrollTo({left:Math.max(0,F.cx*r-sc.clientWidth/2),behavior:'smooth'})}},120)}
+
 function floatAt(ev,text){
   const sc=$('#scene')||$('#view');if(!sc||!ev)return;const r=sc.getBoundingClientRect();
   const d=document.createElement('div');d.className='float';d.textContent=text;Music.sfx('pop');d.style.left=(ev.clientX-r.left)+'px';d.style.top=(ev.clientY-r.top-20)+'px';sc.appendChild(d);setTimeout(()=>d.remove(),1200);
@@ -1055,7 +1195,6 @@ function plotAct(i){
     setPlot(i,{fert:true});H({sup:useSup('fert',1)});bump('fert');floatAt(lastEv,'Cây lớn nhanh hơn!');return;
   }
 }
-function harvestAll(){let tot=0;const h=S.home;for(let i=0;i<(h.plotsOpen||6);i++){const p=S.home.plots?.['p'+i];const I=plotInfo(p);if(I.ripe)tot+=harvest(i,p,I,true)}if(tot)toast(`Thu hoạch được ${tot} nông sản, mang ra chợ bán nhé!`,'good')}
 
 /* ---------- POND ---------- */
 function fishInfo(f,t=now()){const F=FISH[f.t];const G=F.g*1000;const prog=(f.grown||0)+Math.min(Math.max(0,t-f.fAt),FLIM);return{F,mature:prog>=G,frac:Math.min(1,prog/G),hungry:prog<G&&t-f.fAt>FLIM,until:t+(G-prog)}}
@@ -1261,20 +1400,22 @@ const SHOPS=[
   {k:'animals',n:'Gia súc gia cầm',d:'Gà, vịt, bò, dê, lợn, cừu, thức ăn',wall:'#fff0d4',aw:'#e8913a',ico:()=>['-16 -28 32 32',chickSVG('ga',false)]},
   {k:'market',n:'Thương lái',d:'Thu mua nông sản lấy xu ngay',wall:'#fff7e6',aw:'#ef5b4c',ico:()=>['-20 -20 40 40',produceIcon('tomato')]},
   {k:'furniture',n:'Nội thất Tổ Ấm',d:'Đồ đạc cho ngôi nhà',wall:'#f1e7ff',aw:'#8a63d2',ico:()=>['-80 -72 160 80',FD.sofa()]},
-  {k:'fashion',n:'Tiệm quần áo',d:'Quần áo, giày, nhẫn cưới',wall:'#ffe8f1',aw:'#ff6f9c',ico:()=>['16 84 88 76',drawTop(CLOTH.d_princess)]},
+  {k:'fashion',n:'Thời trang Tổ Ấm',d:'Quần áo, giày, nhẫn cưới',wall:'#ffe8f1',aw:'#ff6f9c',ico:()=>['16 84 88 76',drawTop(CLOTH.d_princess)]},
   {k:'cafe',n:'Cafe Hẹn Hò',d:'Hẹn hò, tăng tình cảm',wall:'#fff1e4',aw:'#a0643a',ico:()=>['-20 -22 40 40',`<path d="M-11 -4 h22 v8 q0 10 -11 10 q-11 0 -11 -10z" fill="#fff"${SW}/><path d="M11 0 q7 0 7 5 q0 5 -7 5" fill="none"${SW}/><path d="${heartPath(0,-12,5)}" fill="#ff7fa6"${SW}/>`]},
   {k:'park',n:'Công viên Hoa',d:'Đu quay, cầu trượt, ghế đá',wall:'#e9f9df',aw:'#56b847',ico:()=>['-70 -140 140 144',tree(0,0,1,false)]},
+  {k:'bridal',n:'Váy cưới Thiên Thần',d:'Váy cưới, vest chú rể, nhẫn',wall:'#fffaf0',aw:'#e0b84a',ico:()=>['2 84 116 100',drawTop(CLOTH.w_gown1)]},
+  {k:'church',n:'Nhà thờ Hoa Hồng',d:'Tổ chức lễ cưới',wall:'#f6efe2',aw:'#c8323e',ico:()=>['-20 -24 40 44',`<path d="M0 -20 V20 M-12 -8 H12" stroke="#e0b84a" stroke-width="6" stroke-linecap="round"/>`]},
+  {k:'chomkt',n:'Chợ phiên',d:'Bày sạp, mua bán',wall:'#fff7e6',aw:'#ff9a2e',ico:()=>['-20 -20 40 40',produceIcon('pumpkin')]},
   {k:'civil',n:'Cục Dân Chính',d:'Đăng ký kết hôn',wall:'#f6f1e6',aw:'#c0392b',ico:()=>['-20 -20 40 40',`<circle r="15" fill="#e8505b"${SW}/><path d="M0 -9 L2.6 -3 L9 -3 L4 1 L6 8 L0 4 L-6 8 L-4 1 L-9 -3 L-2.6 -3Z" fill="#ffd23f"/>`]},
 ];
 function facade(s){const[vb,ic]=s.ico();return `<svg viewBox="0 0 160 140" aria-hidden="true"><rect x="14" y="44" width="132" height="92" rx="4" fill="${s.wall}"${SW}/><path d="M6 46 L22 28 H138 L154 46Z" fill="${s.aw}"${SW}/>${[...Array(7)].map((_,i)=>`<path d="M${10+i*20} 45 h20 v8 q-10 9 -20 0z" fill="${i%2?'#fff':s.aw}"${SW}/>`).join('')}<rect x="42" y="2" width="76" height="30" rx="9" fill="#fff8e6"${SW}/><svg x="62" y="4" width="36" height="26" viewBox="${vb}">${ic}</svg><rect x="64" y="90" width="32" height="46" rx="7" fill="#b5773f"${SW}/><circle cx="90" cy="114" r="2.2" fill="${O}"/><rect x="24" y="68" width="30" height="26" rx="4" fill="#bfe6ff"${SW}/><rect x="106" y="68" width="30" height="26" rx="4" fill="#bfe6ff"${SW}/><rect x="22" y="94" width="34" height="8" rx="3" fill="#8a5530"${SW}/><rect x="104" y="94" width="34" height="8" rx="3" fill="#8a5530"${SW}/>${[28,38,48,110,120,130].map((x,i)=>`<circle cx="${x}" cy="92" r="3.4" fill="${['#ff7fa6','#ffd23f','#fff'][i%3]}"${SW}/>`).join('')}</svg>`}
-function viewTown(){return `<div class="sec-title"><h2>Khu phố</h2><span class="muted">Chạm vào cửa hàng để ghé vào</span></div><div class="town">${SHOPS.map(s=>`<button class="shopcard" data-act="shop" data-v="${s.k}">${facade(s)}<b>${s.n}</b><small>${s.d}</small></button>`).join('')}</div>`}
 const buyBtn=(t,v,p,lbl='Mua',dis=false,n=1)=>`<button class="btn sm" data-act="buy" data-t="${t}" data-v="${v}" data-n="${n}" ${dis||coins()<p?'disabled':''}>${lbl} ${priceTag(p)}</button>`;
 function shopBody(m){
   const h=S.home;
   switch(m.k){
-    case 'seeds':{const nx=h.plotsOpen||6,pp=plotPrice();return `<div class="list">${Object.entries(CROPS).map(([k,C])=>`<div class="item"><div class="ic"><svg viewBox="-20 -22 40 42">${produceIcon(k)}</svg></div><div class="tx"><b>Hạt ${C.n} <span class="muted" style="font-size:.85rem">· có ${h.seeds?.[k]||0}</span></b><small>Lớn trong ${C.g/60} phút · thu 4 củ · bán ${C.price} xu/củ</small></div><div class="row" style="gap:6px">${buyBtn('seed',k,C.seed,'×1')}${buyBtn('seed',k,C.seed*5,'×5',false,5)}</div></div>`).join('')}
+    case 'seeds':{return `<div class="list">${Object.entries(CROPS).map(([k,C])=>`<div class="item"><div class="ic"><svg viewBox="-20 -22 40 42">${produceIcon(k)}</svg></div><div class="tx"><b>Hạt ${C.n} <span class="muted" style="font-size:.85rem">· có ${h.seeds?.[k]||0}</span></b><small>Lớn trong ${C.g/60} phút · thu 4 củ · bán ${C.price} xu/củ</small></div><div class="row" style="gap:6px">${buyBtn('seed',k,C.seed,'×1')}${buyBtn('seed',k,C.seed*5,'×5',false,5)}</div></div>`).join('')}
       ${supRow('fert')}
-      <div class="item"><div class="ic"><svg viewBox="-30 -24 60 48"><path d="M0 -20 L28 0 L0 20 L-28 0Z" fill="#9bd56c"${SW}/><path d="M-6 0 h12 M0 -6 v12" stroke="${O}" stroke-width="3" stroke-linecap="round"/></svg></div><div class="tx"><b>Khai hoang thêm ô đất</b><small>${nx}/12 ô đã mở</small></div>${nx<12?buyBtn('plot','plot',pp,'Mở'):'<span class="tag ok">Đã mở hết</span>'}</div></div>`}
+      <div class="item"><div class="ic"><svg viewBox="-30 -24 60 48"><path d="M0 -20 L28 0 L0 20 L-28 0Z" fill="#9bd56c"${SW}/><path d="M-6 0 h12 M0 -6 v12" stroke="${O}" stroke-width="3" stroke-linecap="round"/></svg></div><div class="tx"><b>Khai hoang thửa ruộng mới</b><small>${fieldsOwned()}/${NF} thửa, mỗi thửa 12 ô đất</small></div>${fieldsOwned()<NF?`<button class="btn sm" data-act="buyfield" ${coins()<fieldPrice(fieldsOwned())?'disabled':''}>Khai hoang ${priceTag(fieldPrice(fieldsOwned()))}</button>`:'<span class="tag ok">Đã đủ 10 thửa</span>'}</div></div>`}
     case 'fishshop':{const cap=h.pondCap||6,cnt=live(h.fish).length;return `<div class="list">${Object.entries(FISH).map(([k,F])=>`<div class="item"><div class="ic"><svg viewBox="-30 -16 60 32">${fishShape(F.c,F.c2,F.spots)}</svg></div><div class="tx"><b>${F.n} giống</b><small>Lớn trong ${F.g/60} phút nếu được cho ăn đều · bán ${F.sell} xu</small></div>${buyBtn('fish',k,F.price,'Mua',cnt>=cap)}</div>`).join('')}
       <div class="item"><div class="ic"><svg viewBox="-24 -16 48 32"><ellipse rx="20" ry="11" fill="#5fb6e8"${SW}/></svg></div><div class="tx"><b>Đào rộng ao</b><small>Sức chứa ${cap} con, thêm 2 chỗ</small></div>${cap<12?buyBtn('pond','pond',250+(cap-6)*100,'Đào'):'<span class="tag ok">Ao to nhất rồi</span>'}</div></div><h3>Cám cá và mồi câu</h3><div class="list">${supRow('fishfood')}${supRow('bait')}</div>`}
     case 'animals':{const cap=h.coopCap||6,pets=live(h.pets).length;
@@ -1286,7 +1427,7 @@ function shopBody(m){
       <h3>Thú cưng</h3><div class="list">${Object.entries(PETS).map(([k,D])=>`<div class="item"><div class="ic"><svg viewBox="-34 -62 68 66">${petSVG(k)}</svg></div><div class="tx"><b>${D.n}</b><small>Vuốt ve mỗi ngày để tăng tình cảm, bé còn tha xu về nhà</small></div>${buyBtn('pet',k,D.price,'Nhận nuôi',pets>=3)}</div>`).join('')}</div>`}
     case 'market':{const inv=Object.entries(h.inv||{}).filter(([k,n])=>n>0&&ITEMS[k]);const tot=inv.reduce((a,[k,n])=>a+n*ITEMS[k].price,0);return inv.length?`<div class="list">${inv.map(([k,n])=>`<div class="item"><div class="ic"><svg viewBox="-22 -22 44 44">${itemIcon(k)}</svg></div><div class="tx"><b>${ITEMS[k].n} ×${n}</b><small>${ITEMS[k].price} xu mỗi cái</small></div><button class="btn sm white" data-act="sell" data-v="${k}">Bán ${priceTag(n*ITEMS[k].price)}</button></div>`).join('')}</div><button class="btn green big" data-act="sellall">Bán tất cả ${priceTag(tot)}</button>`:`<div class="panel muted">Giỏ hàng trống. Thu hoạch rau củ, thu trứng, sữa, lông cừu hoặc đi câu cá rồi quay lại nhé.</div>`}
     case 'furniture':return `<div class="wgrid">${Object.entries(FURN).map(([k,F])=>{const own=live(h.furn).filter(([,f])=>f.t===k).length;return `<div class="wcell" style="cursor:default">${furnIcon(k)}${F.n}${own?`<span class="tag ok own">có ${own}</span>`:''}${buyBtn('furn',k,F.p)}</div>`}).join('')}</div>`;
-    case 'fashion':return fashionBody(m);
+    case 'fashion':case 'bridal':return fashionBody(m);
     case 'cafe':return cafeBody(m);
     case 'civil':return civilBody(m);
   }
@@ -1313,15 +1454,19 @@ function sellItems(keys){const inv=S.home.inv||{};let xu=0;const patch={};for(co
 
 /* fashion */
 function fashionBody(m){
-  const who=m.who==='pa'&&S.partner?'pa':'me',per=who==='pa'?S.partner:S.me,cat=m.cat||'top';
-  const tryP={...per,eq:{...(per.eq||{}),...(m.tryId?{[CLOTH[m.tryId].s]:m.tryId}:{})}};
-  const list=Object.entries(CLOTH).filter(([,it])=>it.s===cat&&it.p>0);
+  const k=m.k==='bridal'?'bridal':'fashion',who=m.who==='pa'&&S.partner?'pa':'me',per=who==='pa'?S.partner:S.me,g=m.g||(per.g==='m'?'m':'f'),cat=m.cat||'top';
+  const base={...per,eq:{...(per.eq||{}),...(who==='me'&&S.view==='boutique'?S.trial:{})}};
+  const tryP={...base,eq:{...base.eq,...(m.tryId?{[CLOTH[m.tryId].s]:m.tryId}:{})}};
+  const list=shopItems(k,k==='bridal'?null:g,cat);
+  const paHere=S.partner&&roomPeers().some(p=>p.uid===S.me.partner),it=m.tryId&&CLOTH[m.tryId],own=it&&per.owned?.[m.tryId];
   return `${S.partner?`<div class="tabs" role="tablist"><button class="${who==='me'?'on':''}" data-act="fwho" data-v="me">Mua cho mình</button><button class="${who==='pa'?'on':''}" data-act="fwho" data-v="pa">Mua tặng ${esc(S.partner.nick)}</button></div>`:''}
   <div class="preview">${charSVG(tryP)}</div>
-  <div class="item" style="background:#fff3c2"><div class="ic"><svg viewBox="-20 -20 40 40"><circle cx="-5" cy="3" r="9" fill="none" stroke="#ffd23f" stroke-width="4"/><circle cx="5" cy="3" r="9" fill="none" stroke="#e0a91c" stroke-width="4"/><path d="M5 -8 l3 -4 l3 4 l-3 3z" fill="#bfe6ff"${SW}/></svg></div><div class="tx"><b>Nhẫn cưới đôi</b><small>Cần có để cầu hôn</small></div>${h_ring()}</div>
-  <div class="tabs">${SLOTS.slice(0,4).map(([k,n])=>`<button class="${cat===k?'on':''}" data-act="fcat" data-v="${k}">${n}</button>`).join('')}</div>
-  <div class="wgrid">${list.map(([id,it])=>{const own=per.owned?.[id];return `<button class="wcell ${m.tryId===id?'on':''}" data-act="ftry" data-v="${id}">${clothIcon(id)}${it.n}${own?`<span class="tag ok own">Đã có</span>`:`<span class="price">${coinSVG()}${it.p}</span>`}</button>`}).join('')}</div>
-  ${m.tryId&&!per.owned?.[m.tryId]?`<div class="row" style="justify-content:center">${buyBtn('cloth',m.tryId,CLOTH[m.tryId].p,`Mua ${CLOTH[m.tryId].n}`)}</div>`:''}`;
+  ${it?`<div class="row" style="justify-content:center">${own?`<span class="tag ok">Đã có ${esc(it.n)}</span>`:buyBtn('cloth',m.tryId,it.p,`Mua ${esc(it.n)}`)}${own&&who==='me'?`<button class="btn sm green" data-act="wearnow" data-v="${m.tryId}">Mặc luôn</button>`:''}${who==='pa'&&paHere?`<button class="btn sm pink" data-act="sugtry" data-v="${m.tryId}">Nhờ ${esc(S.partner.nick)} mặc thử</button>`:''}</div>`:''}
+  ${k==='bridal'||cat==='acc'?`<div class="item" style="background:#fff3c2"><div class="ic"><svg viewBox="-20 -20 40 40"><circle cx="-5" cy="3" r="9" fill="none" stroke="#ffd23f" stroke-width="4"/><circle cx="5" cy="3" r="9" fill="none" stroke="#e0a91c" stroke-width="4"/><path d="M5 -8 l3 -4 l3 4 l-3 3z" fill="#bfe6ff"${SW}/></svg></div><div class="tx"><b>Nhẫn cưới đôi</b><small>Cần có để cầu hôn</small></div>${h_ring()}</div>`:''}
+  ${k==='bridal'?'':`<div class="tabs"><button class="${g==='f'?'on':''}" data-act="fg" data-v="f">Đồ nữ</button><button class="${g==='m'?'on':''}" data-act="fg" data-v="m">Đồ nam</button></div>`}
+  <div class="tabs">${[['top',k==='bridal'?'Váy cưới & vest':'Áo & váy'],['bottom','Quần & chân váy'],['shoes','Giày dép'],['acc','Phụ kiện']].map(([c,n])=>`<button class="${cat===c?'on':''}" data-act="fcat" data-v="${c}">${n}</button>`).join('')}</div>
+  <p class="muted" style="margin:0">${list.length} món · bấm vào món đồ để ${who==='me'?'mặc thử':'xem người ấy mặc thử'}</p>
+  <div class="wgrid">${list.map(([id,it])=>{const o=per.owned?.[id];return `<button class="wcell ${m.tryId===id?'on':''}" data-act="ftry" data-v="${id}">${clothIcon(id)}${esc(it.n)}${o?`<span class="tag ok own">Đã có</span>`:`<span class="price">${coinSVG()}${it.p}</span>`}</button>`}).join('')||'<p class="muted">Chưa có món nào.</p>'}</div>`;
 }
 const h_ring=()=>S.home.ring?'<span class="tag ok">Đã có</span>':buyBtn('ring','ring',RING_PRICE);
 
@@ -1506,20 +1651,21 @@ function othersPlaced(list){
 }
 /* ---------- ai đang ở công viên / chợ (thời gian thực) ---------- */
 function nameTag(x,y,txt,bg='#fff'){const w=Math.max(46,txt.length*8.2+20);return `<g transform="translate(${x} ${y})" pointer-events="none"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="13" fill="${bg}"${SW}/><path d="M-6 11 L0 18 L6 11Z" fill="${bg}"${SW}/><rect x="${-w/2+2}" y="-13" width="${w-4}" height="22" rx="11" fill="${bg}"/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="${O}">${esc(txt)}</text></g>`}
-const SCENES=['park','market'];
+const SCENES=['park','market','town','boutique','church'];
 const sceneView=()=>SCENES.includes(S.view);
-const sceneDS=y=>S.view==='market'?MDS(y):DS(y);
-const sceneW=()=>S.view==='market'?MW_:PW_;
+const sceneDS=y=>S.view==='park'?DS(y):S.view==='church'?CDS(y):(ROOMS[S.view]?ROOMS[S.view].ds(y):DS(y));
+const sceneW=()=>S.view==='park'?PW_:S.view==='church'?CW_:(ROOMS[S.view]?ROOMS[S.view].W:PW_);
 const PRES={room:null,peers:[],sig:'',api:null,lastJ:'',tok:0};
 function roomPeers(){return PRES.peers}
 const parkPeers=roomPeers;
 const lookOf=p=>({g:p.g,skin:p.skin,hs:p.hs,hc:p.hc,eq:p.eq||{}});
-function myRoomState(){const b={uid:S.uid,nick:S.me.nick,look:lookOf(S.me)};
-  if(PRES.room==='market'){const M=S.mkt;return{...b,x:Math.round(M.x),y:Math.round(M.y)}}
+function myRoomState(){const b={uid:S.uid,nick:S.me.nick,look:meLook()};
+  if(S.view==='church')return{...b,seat:S.churchSeat||null};
+  if(ROOMS[S.view]){const M=S.pos[S.view];return{...b,x:Math.round(M.x),y:Math.round(M.y)}}
   const P=S.park||{};return{...b,spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now())}}
 function setPeers(list){const seen={},out=[];for(const st of list){if(!st||typeof st!=='object'||!st.uid||st.uid===S.uid||seen[st.uid]||!st.look||typeof st.look!=='object')continue;seen[st.uid]=1;
-    const o={uid:String(st.uid),nick:cleanText(st.nick).slice(0,14),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride};
-    if(Number.isFinite(+st.x)&&Number.isFinite(+st.y)&&st.x!=null){o.x=Math.max(60,Math.min(MW_-60,+st.x));o.y=Math.max(MHZ+40,Math.min(MH_-20,+st.y))}out.push(o)}
+    const o={uid:String(st.uid),nick:cleanText(st.nick).slice(0,14),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride,seat:/^[LR]\d-\d$/.test(st.seat||'')?st.seat:null};
+    if(Number.isFinite(+st.x)&&Number.isFinite(+st.y)&&st.x!=null&&st.y!=null){o.x=Math.max(40,Math.min(3000,+st.x));o.y=Math.max(100,Math.min(1200,+st.y))}out.push(o)}
   const j=JSON.stringify(out);if(j===PRES.lastJ)return;PRES.lastJ=j;PRES.peers=out;if(out.some(x=>isFriend(x.uid)))ensureFriendDocs();if(sceneView()||S.view==='love')renderAll()}
 async function presEnter(room){
   const tok=++PRES.tok;PRES.sig=JSON.stringify(myRoomState());
@@ -1541,7 +1687,7 @@ async function presEnter(room){
   }catch(e){console.warn(e)}
 }
 function presLeave(){if(!PRES.room)return;PRES.tok++;try{PRES.api&&PRES.api.leave()}catch(e){}PRES.api=null;PRES.room=null;PRES.peers=[];PRES.lastJ='';S.bubbles=[];S.parkLog=[];S.fights=[]}
-function presSync(){const room=S.uid&&S.me&&sceneView()?S.view:null;
+function presSync(){const room=sceneView()?roomName():null;
   if(room!==PRES.room){presLeave();if(room){PRES.room=room;presEnter(room)}return}
   if(!room)return;const st=myRoomState(),j=JSON.stringify(st);if(j!==PRES.sig){PRES.sig=j;PRES.api&&PRES.api.update(st)}}
 addEventListener('pagehide',()=>{presLeave();lobbyLeave()});
@@ -1551,6 +1697,8 @@ S.bubbles=[];S.parkLog=[];S.ppos={};
 const cleanText=t=>String(t||'').replace(/[\u0000-\u001f\u007f​-‏‪-‮⁦-⁩]/g,'').trim().slice(0,80);
 function onRoomChat(m){if(!m||typeof m!=='object')return;
   if(m.kind==='hit'){if(m.by&&m.to&&m.uid===m.by&&m.uid!==S.uid)addHit(m);return}
+  if(m.kind==='react'){if(m.uid&&m.uid!==S.uid&&['clap','flower','heart'].includes(m.r)){S.reacts.push({uid:String(m.uid),r:m.r,t:now()});if(S.view==='church'){renderAll();setTimeout(renderAll,2700)}}return}
+  if(m.kind==='suggest'){if(m.to===S.uid&&m.uid===S.me?.partner&&CLOTH[m.id]&&S.view==='boutique'){S.modal={t:'suggest',id:m.id,nick:cleanText(m.nick)};renderModal()}return}
   if(m.kind)return;const text=cleanText(m.text),nick=cleanText(m.nick).slice(0,14);if(!text||!m.uid||m.uid===S.uid)return;addBubble(String(m.uid),nick||'Ai đó',text)}
 function addBubble(uid,nick,text){const t=now();S.bubbles=S.bubbles.filter(b=>t-b.t<6500);S.bubbles.push({uid,nick,text,t,id:rid()});S.parkLog=[...S.parkLog,{nick,text,t,me:uid===S.uid}].slice(-6);if(sceneView())renderAll();setTimeout(()=>{if(sceneView())renderAll()},6600)}
 let lastChat=0;
@@ -1581,7 +1729,7 @@ async function lobbyEnter(){if(LOBBY.on||!S.uid||!S.me)return;LOBBY.on=true;cons
 }
 function lobbyLeave(){if(!LOBBY.on)return;LOBBY.on=false;LOBBY.tok++;try{LOBBY.api&&LOBBY.api.leave()}catch(e){}LOBBY.api=null;LOBBY.st={};LOBBY.j=''}
 function lobbySync(){if(!S.uid||!S.me)return lobbyLeave();if(!LOBBY.on)return lobbyEnter();const st=lobbyState(),j=JSON.stringify(st);if(j!==LOBBY.sig){LOBBY.sig=j;LOBBY.api&&LOBBY.api.update(st)}}
-const WHERE={park:'Đang ở công viên',market:'Đang đi chợ',games:'Đang chơi game',farm:'Đang ở nông trại',pond:'Đang ở ao cá',coop:'Đang ở chuồng trại',home:'Đang ở nhà',town:'Đang dạo phố'};
+const WHERE={boutique:'Đang đi mua sắm',church:'Đang ở nhà thờ',park:'Đang ở công viên',market:'Đang đi chợ',games:'Đang chơi game',farm:'Đang ở nông trại',pond:'Đang ở ao cá',coop:'Đang ở chuồng trại',home:'Đang ở nhà',town:'Đang dạo phố'};
 const onlineTxt=uid=>{const o=LOBBY.st[uid];return o?(WHERE[o.where]||'Đang online'):''};
 
 /* ---------- đấm nhau: mỗi lần bấm là một cú đấm hoặc đá trong 1 giây ---------- */
@@ -1590,12 +1738,12 @@ const HIT_MS=1000,MOVES=['p1','p2','k'];S.fights=[];
 function fighterG(p,role,mv,el){
   const g=p.g||'f',skin=p.skin||SKINS[0],hc=p.hc||HAIRC[0],hs=p.hs||(g==='m'?'short':'bob'),eq=p.eq||{},def=g==='m'?DEF_M:DEF_F;
   const top=CLOTH[eq.top]||CLOTH[def.top],bot=CLOTH[eq.bottom]||CLOTH[def.bottom],sh=CLOTH[eq.shoes]||CLOTH[def.shoes],acc=eq.acc&&CLOTH[eq.acc];
-  const isDress=['dress','wedding','overall'].includes(top.k),pants=!isDress&&['jeans','shorts'].includes(bot.k);
+  const isDress=DRESSY.has(top.k),pants=!isDress&&['jeans','shorts'].includes(bot.k);CUR_SKIN=skin;
   const A=cls=>cls?`class="fx" style="animation-name:${cls};animation-delay:-${el}ms"`:'';
   const legCol=pants&&bot.k==='jeans'?bot.c:skin;
   const leg=(x,cls)=>`<g transform="translate(${x} 125)"><g ${A(cls)}><rect x="-6" y="-3" width="12" height="36" rx="5" fill="${legCol}"${SW}/>${pants&&bot.k==='shorts'?`<rect x="-7.5" y="-4" width="15" height="17" rx="4" fill="${bot.c}"${SW}/>`:''}<ellipse cx="2.5" cy="33" rx="9.5" ry="5.8" fill="${sh.c}"${SW}/></g></g>`;
-  const longSl=['sweater','hoodie','shirt','vest'].includes(top.k),slc=top.k==='overall'?'#fff':top.c,puff=['dress','wedding'].includes(top.k);
-  const arm=(x,cls)=>`<g transform="translate(${x} 96)"><g ${A(cls)}><rect x="-6.5" y="-3" width="13" height="31" rx="6.5" fill="${longSl?slc:skin}"${SW}/>${longSl?'':puff?`<circle cx="0" cy="1" r="9" fill="${slc}"${SW}/>`:`<rect x="-8.5" y="-5" width="17" height="16" rx="7.5" fill="${slc}"${SW}/>`}<circle cx="0" cy="30" r="7.2" fill="${skin}"${SW}/><path d="M-4 27 h8" stroke="${O}" stroke-width="1.2" opacity=".5"/></g></g>`;
+  const longSl=LONGSL.has(top.k),slc=top.k==='overall'?'#fff':top.c,puff=['dress','wedding','blouse','maxi','gown'].includes(top.k),nosl=NOSLV.has(top.k);
+  const arm=(x,cls)=>`<g transform="translate(${x} 96)"><g ${A(cls)}><rect x="-6.5" y="-3" width="13" height="31" rx="6.5" fill="${longSl?slc:skin}"${SW}/>${longSl||nosl?'':puff?`<circle cx="0" cy="1" r="9" fill="${slc}"${SW}/>`:`<rect x="-8.5" y="-5" width="17" height="16" rx="7.5" fill="${slc}"${SW}/>`}<circle cx="0" cy="30" r="7.2" fill="${skin}"${SW}/><path d="M-4 27 h8" stroke="${O}" stroke-width="1.2" opacity=".5"/></g></g>`;
   let legs,arms,body;
   if(role==='atk'){
     body=mv==='k'?'fkb':mv==='p2'?'fab2':'fab';
@@ -1662,7 +1810,7 @@ function playerBody(m){const p=parkPeers().find(x=>x.uid===m.uid);if(!p)return '
 /* ---------- CHỢ: mọi người bày sạp bán hàng cho nhau ---------- */
 const MW_=2400,MH_=900,MHZ=330;
 const MDS=y=>.34+(y-MHZ)*.00135;
-S.mkt={x:380,y:770,pick:null};S.stalls={};S.myStall=null;S.claimed={};
+S.mkt={x:Math.round(300+Math.random()*500),y:Math.round(720+Math.random()*120),pick:null};S.stalls={};S.myStall=null;S.claimed={};
 const stRemain=it=>Math.max(0,(+it?.n||0)-Object.values(it?.sold||{}).reduce((a,b)=>a+(+b||0),0));
 const stallFresh=st=>st&&st.uid&&now()-(st.at||0)<3*86400000;
 function allStalls(){const m={...S.stalls};if(S.myStall)m[S.uid]=S.myStall;else delete m[S.uid];return Object.values(m).filter(stallFresh)}
@@ -1728,7 +1876,7 @@ function marketScene(){
   for(let y=MHZ+6,h=7;y<MH_;y+=h,h*=1.14)s+=`<path d="M0 ${y.toFixed(1)} H${MW_}"/>`;
   for(let xb=-3000;xb<=MW_+3000;xb+=150){const xh=MW_/2+(xb-MW_/2)*.16;s+=`<path d="M${xb} ${MH_} L${xh.toFixed(1)} ${MHZ}"/>`}
   s+=`</g><path d="M0 ${MHZ} H${MW_}" stroke="#a8693a" stroke-width="3"/>`;
-  s+=`<rect x="0" y="${MHZ+24}" width="${MW_}" height="${MH_-MHZ-24}" fill="transparent" data-act="mground" style="cursor:pointer"/>`;
+  s+=`<rect x="0" y="${MHZ+24}" width="${MW_}" height="${MH_-MHZ-24}" fill="transparent" data-act="ground" data-v="market" style="cursor:pointer"/>`;
   const items=[];const add=(y,svg)=>items.push({y,svg});
   for(let i=0;i<14;i++){const x=90+i*172,y=350+(i%2)*14;add(y,npcStall(x,y,i))}
   for(let i=0;i<12;i++){const x=30+i*210+(i%2)*60,y=338;add(y-2,tree(x,y,MDS(y)*1.1,i%3===0))}
@@ -1737,21 +1885,12 @@ function marketScene(){
   for(const[x,y,k]of[[620,470,'crate'],[1540,440,'barrel'],[980,640,'basket'],[2100,470,'crate'],[2260,760,'barrel'],[760,820,'lamp'],[1650,830,'lamp'],[1240,470,'lamp'],[60,560,'bush'],[2360,520,'bush'],[1420,700,'basket']])add(y,mktProp(x,y,k));
   // sạp của người chơi + người chơi
   const near=(p,st)=>p&&Math.abs(p[0]-st.x)<110&&Math.abs(p[1]-st.y)<70;
-  const pos={};pos[S.uid]=[M.x,M.y];for(const p of peers)pos[p.uid]=[p.x??(300+(hash(p.uid).charCodeAt(0)%30)*60),p.y??760];
+  const pos0={};pos0[S.uid]=[M.x,M.y];for(const p of peers)pos0[p.uid]=[p.x??-999,p.y??-999];
   const atStall={};
-  for(const x of st){const own=x.uid===S.uid?S.me:peers.find(p=>p.uid===x.uid)?.look;const ok=own&&near(pos[x.uid],x)&&!fu.has(x.uid);if(ok)atStall[x.uid]=1;
+  for(const x of st){const own=x.uid===S.uid?meLook():peers.find(p=>p.uid===x.uid)?.look;const ok=own&&near(pos0[x.uid],x)&&!fu.has(x.uid);if(ok)atStall[x.uid]=1;
     add(x.y,`<g transform="translate(${x.x} ${x.y}) scale(${MDS(x.y).toFixed(3)})" data-act="stall" data-v="${esc(x.uid)}" style="cursor:pointer" role="button" aria-label="Sạp của ${esc(cleanText(x.nick))}">${stallSVG(x,ok?own:null)}</g>`)}
-  S.ppos={};
-  const tagFor=uid=>{if(uid===S.uid)return['Bạn','#fff3c2'];if(!isFriend(uid))return null;const d=uid===S.me.partner?S.partner:S.friendDocs[uid];return[`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,uid===S.me.partner?'#ffe3ec':'#dff3ff']};
   const tags=[];
-  const placeP=(uid,look,p,act)=>{const[x,y]=p,c=MDS(y);
-    if(atStall[uid]){const stx=st.find(z=>z.uid===uid),cs=MDS(stx.y),hx=stx.x,hy=stx.y-(196+4)*cs;S.ppos[uid]=[hx,hy-26];const tg=tagFor(uid);if(tg)tags.push(nameTag(hx,hy-8,tg[0],tg[1]));return}
-    if(fu.has(uid))return;
-    add(y+2,`<g ${act?`data-act="pplayer" data-v="${esc(uid)}" style="cursor:pointer" role="button" aria-label="Người chơi"`:''}>${placeChar(look,x,y,.95*c,{},'idle')}</g>`);
-    const hy=y-178*c*.95;const tg=tagFor(uid);if(tg)tags.push(nameTag(x,hy,tg[0],tg[1]));S.ppos[uid]=[x,hy-(tg?24:4)]};
-  placeP(S.uid,S.me,pos[S.uid],false);
-  for(const p of peers)placeP(p.uid,p.look,pos[p.uid],true);
-  addFights(add,uid=>pos[uid]||null);
+  placeWalkers(add,tags,'market',{custom:uid=>{if(!atStall[uid])return false;const stx=st.find(z=>z.uid===uid),cs=MDS(stx.y),hx=stx.x,hy=stx.y-200*cs;S.ppos[uid]=[hx,hy-26];const tg=tagFor(uid);if(tg)tags.push(nameTag(hx,hy-8,tg[0],tg[1]));return true}});
   if(M.pick&&!fu.has(S.uid)){const{x,y}=M.pick,c=MDS(y),mine=!!S.myStall;add(y+3,`<g transform="translate(${x} ${y}) scale(${c.toFixed(3)})"><ellipse rx="40" ry="10" fill="none" stroke="#ff5e8e" stroke-width="4" stroke-dasharray="8 6"/><g data-act="stallhere" style="cursor:pointer" role="button" aria-label="${mine?'Dời sạp tới đây':'Bày sạp ở đây'}"><g class="bob"><rect x="-86" y="-262" width="172" height="48" rx="24" fill="#ff7fa6"${SW} stroke-width="3"/><text x="0" y="-230" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="22" fill="#fff" stroke="${O}" stroke-width="1" paint-order="stroke">${mine?'Dời sạp tới đây':'Bày sạp'}</text><path d="M-8 -214 L0 -204 L8 -214Z" fill="#ff7fa6"${SW}/></g></g></g>`)}
   items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.svg);
   s+=tags.join('');
@@ -1806,6 +1945,249 @@ function stallBuy(k,uid){const st=S.stalls[uid];if(!st||uid===S.uid)return;const
   toast(`Đã mua ${q} ${ITEMS[k].n.toLowerCase()} của ${cleanText(st.nick)}, trả ${cost} xu. Hàng đã về kho.`,'good');renderModal();renderAll()}
 function stallClose(){const st=S.myStall;if(!st)return;claimSales(st);const inv={};for(const[k,it]of Object.entries(st.items||{})){const r=stRemain(it);if(r>0&&ITEMS[k])inv[k]=(S.home.inv?.[k]||0)+r}
   if(Object.keys(inv).length)H({inv});S.myStall=null;W('st',()=>DB.doc('stalls/'+S.uid).delete());closeModal();toast('Đã dọn sạp, hàng chưa bán đã về lại kho.','good');renderAll()}
+/* ---------- các không gian đi bộ tự do: chợ, phố, tiệm quần áo ---------- */
+const TW_=2800,TH_=1000,THZ=300,TDS=y=>.3+(y-THZ)*.0012;
+const BW_=1200,BH_=700,BHZ=300,BDS=y=>.5+(y-BHZ)*.0013;
+const CW_=1200,CH_=760,CHZ=280,CDS=y=>.64+(y-CHZ)*.0011;
+const ROOMS={market:{W:MW_,H:MH_,ds:MDS,y0:MHZ+70,y1:MH_-24},town:{W:TW_,H:TH_,ds:TDS,y0:THZ+90,y1:TH_-20},boutique:{W:BW_,H:BH_,ds:BDS,y0:BHZ+60,y1:BH_-14}};
+S.pos={market:S.mkt,town:{x:Math.round(1000+Math.random()*700),y:Math.round(860+Math.random()*90)},boutique:{x:600,y:640}};S.trial={};S.bq='fashion';
+const meLook=()=>{const l=lookOf(S.me);if(S.view==='boutique'&&Object.keys(S.trial).length)l.eq={...l.eq,...S.trial};return l};
+function roomName(){if(!S.uid||!S.me)return null;if(S.view==='park'||S.view==='market'||S.view==='town')return S.view;if(S.view==='boutique')return 'shop-'+S.bq;if(S.view==='church'&&S.churchId)return 'church-'+String(S.churchId).replace(/[^a-z0-9_]/gi,'').slice(0,40);return null}
+const posKey=()=>S.view;
+function tagFor(uid){if(uid===S.uid)return['Bạn','#fff3c2'];if(!isFriend(uid))return null;const d=uid===S.me.partner?S.partner:S.friendDocs[uid];return[`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,uid===S.me.partner?'#ffe3ec':'#dff3ff']}
+function placeWalkers(add,tags,key,opt={}){const R=ROOMS[key],peers=roomPeers(),fu=fightUids(),pos={},me=S.pos[key];pos[S.uid]=[me.x,me.y];
+  for(const p of peers){const r=hash(p.uid);pos[p.uid]=[p.x??Math.round(R.W*(.3+(r.charCodeAt(0)%10)/25)),p.y??(R.y1-40-(r.charCodeAt(1)%5)*20)]}
+  S.ppos={};
+  const placeP=(uid,look,act)=>{if(opt.custom&&opt.custom(uid,pos))return;if(fu.has(uid))return;const[x,y]=pos[uid],c=R.ds(y);
+    add(y+2,`<g ${act?`data-act="pplayer" data-v="${esc(uid)}" style="cursor:pointer" role="button" aria-label="Người chơi"`:''}>${placeChar(look,x,y,.95*c,{},'idle')}</g>`);
+    const hy=y-178*c*.95,tg=tagFor(uid);if(tg)tags.push(nameTag(x,hy,tg[0],tg[1]));S.ppos[uid]=[x,hy-(tg?24:4)]};
+  placeP(S.uid,meLook(),false);for(const p of peers)placeP(p.uid,p.look,true);
+  addFights(add,uid=>pos[uid]||null);return pos}
+function walkGround(ev,el,key){const R=ROOMS[key];if(!R)return;const[x0,y0]=svgPt(ev,el);const x=Math.max(70,Math.min(R.W-70,x0)),y=Math.max(R.y0,Math.min(R.y1,y0));const P=S.pos[key];P.x=x;P.y=y;if(key==='market')S.mkt.pick={x,y};renderAll()}
+const groundRect=(key,y)=>`<rect x="0" y="${y}" width="${ROOMS[key].W}" height="${ROOMS[key].H-y}" fill="transparent" data-act="ground" data-v="${key}" style="cursor:pointer"/>`;
+function sceneBox(W,H,inner,label,fit){return `<div class="pscroll ${fit?'fit':''}" id="pscroll" style="--ar:${(W/H).toFixed(4)}"><div class="pinner" id="scene"><svg viewBox="0 0 ${W} ${H}" data-w="${W}" ${fit?'':`style="width:calc(var(--ph) * ${(W/H).toFixed(4)})"`} role="img" aria-label="${label}">${inner}</svg><div class="pbub" aria-live="polite">${bubblesHTML(W,H)}</div></div></div>`}
+const chatForm=ph=>`<form class="chatbar" style="margin:0 0 10px" data-form="pchat"><input class="in" id="pchat" maxlength="80" autocomplete="off" placeholder="${ph}" aria-label="Chat công khai"><button class="btn pink" type="submit">Gửi</button></form>`;
+const chatLog=()=>S.parkLog.length?`<div class="chatlog">${S.parkLog.map(l=>`<div><b>${esc(l.nick)}:</b> ${esc(l.text)}</div>`).join('')}</div>`:'';
+const peopleHint=w=>{const n=roomPeers().length;return `<b>${n?`Đang có ${n} người khác ở ${w}.`:`Hiện chưa có ai khác ở ${w}.`}</b>`};
+
+/* ---------- TIỆM QUẦN ÁO / VÁY CƯỚI: vào cùng nhau, thử đồ, chat ---------- */
+const BQ={fashion:{n:'Thời trang Tổ Ấm',wall:['#ffe8f1','#fff7fb'],trim:'#ff7fa6',floor:['#fff1d6','#f2d6ae']},bridal:{n:'Váy cưới Thiên Thần',wall:['#fffaf0','#fff3dc'],trim:'#e0b84a',floor:['#ffffff','#efe7f5']}};
+const RACKS={fashion:[{k:'rf',n:'Đồ nữ',x:300,y:430,g:'f',cat:'top'},{k:'rm',n:'Đồ nam',x:900,y:430,g:'m',cat:'top'},{k:'rs',n:'Giày dép',x:150,y:600,g:'f',cat:'shoes'},{k:'rb',n:'Váy & quần',x:600,y:400,g:'f',cat:'bottom'},{k:'ra',n:'Phụ kiện',x:1050,y:600,g:'f',cat:'acc'}],
+  bridal:[{k:'rf',n:'Váy cưới',x:300,y:430,g:'f',cat:'top'},{k:'rm',n:'Đồ chú rể',x:900,y:430,g:'m',cat:'top'},{k:'rs',n:'Giày cưới',x:150,y:600,g:'f',cat:'shoes'},{k:'rb',n:'Quần âu',x:600,y:400,g:'m',cat:'bottom'},{k:'ra',n:'Voan & vương miện',x:1050,y:600,g:'f',cat:'acc'}]};
+function shopItems(k,g,cat){return Object.entries(CLOTH).filter(([,it])=>it.p>0&&it.p<50000&&it.s===cat&&(k==='bridal'?it.shop==='bridal':!it.shop&&(it.g===g||it.g==='u'||!g)))}
+function rackSVG(R,k){const pool=shopItems(k,R.g,R.cat),pref=pool.filter(([,it])=>k==='bridal'?it.g===R.g||R.cat!=='top':it.g===R.g),src=pref.length>=4?pref:pool,n=R.cat==='top'?5:6,its=[...Array(Math.min(n,src.length))].map((_,i)=>src[Math.floor(i*src.length/Math.min(n,src.length))]);const sc=BDS(R.y);
+  let g=`<ellipse cx="0" cy="4" rx="150" ry="16" fill="#000" opacity=".12"/>${hit(-150,-250,300,256)}`;
+  if(R.cat==='top'||R.cat==='bottom'){g+=`<path d="M-130 0 V-210 M130 0 V-210" stroke="${O}" stroke-width="9" stroke-linecap="round"/><path d="M-130 0 V-210 M130 0 V-210" stroke="#d9d9e6" stroke-width="5" stroke-linecap="round"/><path d="M-140 -210 H140" stroke="${O}" stroke-width="9" stroke-linecap="round"/><path d="M-140 -210 H140" stroke="#d9d9e6" stroke-width="5" stroke-linecap="round"/><path d="M-150 0 H-110 M110 0 H150" stroke="${O}" stroke-width="7" stroke-linecap="round"/>`;
+    its.forEach(([id,it],i)=>{const x=-104+i*52;const vb=R.cat==='top'?{x:60,y:88}:{x:60,y:121};g+=`<path d="M${x} -210 q0 -8 6 -8 M${x} -212 v10" stroke="${O}" stroke-width="2.4" fill="none"/><g transform="translate(${x} -196) scale(${R.cat==='top'?.92:1.1}) translate(${-vb.x} ${-vb.y})">${charG({g:it.g,eq:{[it.s]:id}},{only:it.s})}</g>`})}
+  else{g+=`<rect x="-140" y="-150" width="280" height="150" rx="10" fill="#e8c088"${SW}/><path d="M-140 -100 H140 M-140 -50 H140" stroke="${O}" stroke-width="3"/>`;
+    its.forEach(([id,it],i)=>{const row=Math.floor(i/3),col=i%3,x=-90+col*90,y=-108+row*50;const[cx,cy]=R.cat==='shoes'?[60,158]:[60,36];g+=`<g transform="translate(${x} ${y}) scale(${R.cat==='shoes'?1.3:.5}) translate(${-cx} ${-cy})">${charG({g:it.g,eq:{[it.s]:id}},{only:it.s})}</g>`})}
+  g+=`<g transform="translate(0 ${R.cat==='top'||R.cat==='bottom'?-246:-176})"><rect x="-80" y="-18" width="160" height="34" rx="12" fill="#fff8e6"${SW}/><text y="6" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="20" fill="${BQ[k].trim}" stroke="${O}" stroke-width=".6">${R.n}</text></g>`;
+  return `<g transform="translate(${R.x} ${R.y}) scale(${sc.toFixed(3)})" data-act="rack" data-v="${R.k}" style="cursor:pointer" role="button" aria-label="Xem ${R.n}">${g}</g>`}
+function mannequin(x,y,id){const sc=BDS(y),it=CLOTH[id];return `<g transform="translate(${x} ${y}) scale(${sc.toFixed(3)})" pointer-events="none"><ellipse rx="40" ry="8" fill="#000" opacity=".12"/><path d="M0 0 V-40" stroke="${O}" stroke-width="5"/><ellipse cy="-2" rx="28" ry="6" fill="#c9b8a6"${SW}/><g transform="translate(-60 -186)"><circle cx="60" cy="72" r="18" fill="#f2e6d6"${SW}/><path d="M48 88 h24" stroke="${O}" stroke-width="2"/>${charG({g:it.g,eq:{[it.s]:id}},{only:'top'})}</g></g>`}
+function boutiqueScene(){const k=S.bq,T=BQ[k],tags=[];
+  let s=`<defs>${FGBLUR}<linearGradient id="bqw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.wall[1]}"/><stop offset="1" stop-color="${T.wall[0]}"/></linearGradient></defs>`;
+  s+=`<rect width="${BW_}" height="${BHZ}" fill="url(#bqw)"/>`;for(let x=0;x<BW_;x+=48)s+=`<rect x="${x}" width="24" height="${BHZ}" fill="${T.trim}" opacity=".07"/>`;
+  s+=`<path d="M0 ${BHZ-24} H${BW_}" stroke="${T.trim}" stroke-width="8" opacity=".5"/><rect y="${BHZ-8}" width="${BW_}" height="8" fill="#c98a52"/>`;
+  // sàn có phối cảnh: các đường gạch hội tụ về giữa
+  s+=`<rect y="${BHZ}" width="${BW_}" height="${BH_-BHZ}" fill="${T.floor[0]}"/><g stroke="${T.floor[1]}" stroke-width="3">`;for(let y=BHZ+8,h=12;y<BH_;y+=h,h*=1.2)s+=`<path d="M0 ${y.toFixed(1)} H${BW_}"/>`;for(let xb=-1800;xb<=3000;xb+=140)s+=`<path d="M${xb} ${BH_} L${(600+(xb-600)*.32).toFixed(1)} ${BHZ}"/>`;s+=`</g>`;
+  // tường sau: biển hiệu, gương, phòng thử đồ, đèn chùm
+  s+=`<g transform="translate(600 70)"><rect x="-230" y="-40" width="460" height="74" rx="22" fill="#fff8e6" stroke="${T.trim}" stroke-width="6"/><text y="12" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="38" fill="${T.trim}" stroke="${O}" stroke-width="1.2" paint-order="stroke">${T.n}</text></g>`;
+  for(const x of[120,1080])s+=`<g transform="translate(${x} 190)"><ellipse rx="54" ry="80" fill="${k==='bridal'?'#f2cf6b':'#ffd23f'}"${SW}/><ellipse rx="44" ry="70" fill="#dff3ff"/><path d="M-20 -40 L10 -60 M-26 -10 L20 -44" stroke="#fff" stroke-width="5" opacity=".7"/></g>`;
+  s+=`<g transform="translate(860 168)">${[0,1].map(i=>`<g transform="translate(${i*110} 0)"><rect x="-46" y="-110" width="92" height="140" fill="#fff"${SW}/><path d="M-46 -110 Q-20 -40 -38 30 H-6 Q-30 -40 -4 -110Z M46 -110 Q20 -40 38 30 H6 Q30 -40 4 -110Z" fill="${T.trim}" opacity=".85"${SW}/><rect x="-46" y="-124" width="92" height="16" rx="5" fill="#c98a52"${SW}/></g>`).join('')}<text x="55" y="-132" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="16" fill="${O}">Phòng thử đồ</text></g>`;
+  s+=`<g transform="translate(300 40)"><path d="M0 -40 V0" stroke="${O}" stroke-width="2"/><path d="M-40 10 Q0 40 40 10 Z" fill="#ffd23f"${SW}/>${[-30,-10,10,30].map(x=>`<circle class="tw" cx="${x}" cy="${26}" r="4" fill="#fff3a8"${SW}/>`).join('')}</g>`;
+  const items=[];const add=(y,g)=>items.push({y,g});
+  for(const R of RACKS[k])add(R.y,rackSVG(R,k));
+  const mq=k==='bridal'?['w_gown1','w_mer1','w_tux1']:['fmx1','fad1','mja0'];[[450,560],[750,560],[600,330]].forEach(([x,y],i)=>add(y,mannequin(x,y,mq[i])));
+  s+=groundRect('boutique',BHZ+30);
+  placeWalkers(add,tags,'boutique');
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  s+=fgLayer([[40,740,'bush',1.4],[1160,745,'flowers',1.6]]);
+  return s}
+function viewBoutique(){const T=BQ[S.bq],tried=Object.keys(S.trial).length,pa=S.partner,paHere=pa&&roomPeers().some(p=>p.uid===S.me.partner);
+  return `<div class="sec-title"><h2>${T.n}</h2><div class="row"><button class="btn sm white" data-act="go" data-v="town">Về phố</button><button class="btn sm pink" data-act="rack" data-v="rf">Xem hàng</button>${tried?'<button class="btn sm white" data-act="untry">Cởi đồ đang thử</button>':''}<button class="btn sm white" data-act="wardrobe" data-v="me">Tủ đồ của mình</button></div></div>
+  ${chatForm('Chat với mọi người trong tiệm...')}${sceneBox(BW_,BH_,boutiqueScene(),T.n,true)}${chatLog()}
+  <p class="hint">Chạm vào giá treo, kệ giày hay bàn phụ kiện để xem hàng. Bấm vào món đồ là <b>mặc thử ngay</b>, mọi người trong tiệm đều nhìn thấy. ${pa?(paHere?`${esc(pa.nick)} đang ở đây cùng bạn: chọn đồ ở mục "Mua tặng ${esc(pa.nick)}" rồi bấm "Nhờ mặc thử" để người ấy thử cho bạn xem.`:`Rủ ${esc(pa.nick)} cùng vào tiệm để thử đồ cho nhau xem nhé.`):''} ${peopleHint('trong tiệm')}</p>`}
+function goBoutique(k){closeModal();S.bq=k;S.view='boutique';S.trial={};S.pos.boutique={x:Math.round(420+Math.random()*360),y:Math.round(590+Math.random()*90)};renderAll();try{scrollTo({top:0})}catch(e){}}
+function suggestTry(id){const pa=S.me.partner;if(!pa||!PRES.api)return;PRES.api.chat({kind:'suggest',uid:S.uid,to:pa,id,nick:S.me.nick});toast(`Đã nhờ ${S.partner.nick} mặc thử ${CLOTH[id].n}.`,'love')}
+function suggestBody(m){const it=CLOTH[m.id];if(!it)return '';const prev={...S.me,eq:{...lookOf(S.me).eq,...S.trial,[it.s]:m.id}};
+  return `<p style="margin:0"><b>${esc(m.nick)}</b> muốn bạn mặc thử <b>${esc(it.n)}</b>.</p><div class="preview">${charSVG(prev)}</div><div class="row" style="justify-content:center"><button class="btn pink big" data-act="sugyes">Mặc thử cho xem</button><button class="btn white" data-act="close">Để sau</button></div>`}
+
+/* ---------- NHÀ THỜ: thiệp cưới, khách ngồi hai bên, lễ cưới có cha xứ hướng dẫn ---------- */
+S.churchId=null;S.wed=null;S.churchSeat=null;S.reacts=[];
+const PEW_Y=[470,528,588,650,715],PRIEST_LOOK={g:'m',skin:'#f7cfa6',hs:'short',hc:'#e8e4dc',eq:{top:'n_priest',bottom:'b_black',shoes:'s_oxford'}};
+CLOTH.n_priest={n:'Áo lễ cha xứ',s:'top',k:'robe',c:'#ffffff',c2:'#e0b84a',p:99999,g:'m',shop:'npc'};
+const aisleHW=y=>48+(y-CHZ)*.17;
+function seatXY(id){const m=/^([LR])(\d)-(\d)$/.exec(id||'');if(!m)return null;const y=PEW_Y[+m[2]],c=CDS(y),side=m[1]==='L'?-1:1;return[600+side*(aisleHW(y)+44*c+(+m[3])*86*c),y]}
+const ALLSEATS=[];for(let r=0;r<5;r++)for(const sd of'LR')for(let k=0;k<3;k++)ALLSEATS.push(`${sd}${r}-${k}`);
+function wedRoles(wd){return wd?{A:wd.a,B:wd.b}:{}}
+const wordOf=g=>g==='m'?'chú rể':'cô dâu';
+function wedLine(wd){if(!wd)return'Chào con! Nhà thờ Hoa Hồng luôn mở cửa. Khi hai con đã đính hôn, hãy đến đây để cha làm lễ cưới cho các con nhé.';
+  const a=cleanText(wd.an),b=cleanText(wd.bn),st=wd.step||0,walking=st===2&&now()-(wd.walkAt||0)<7000;
+  return[`Chào mừng mọi người đến dự lễ cưới của ${a} và ${b}. Xin mời ${wordOf(wd.ag)} ${a} bước lên lễ đài.`,
+    `Xin mời ${wordOf(wd.bg)} ${b} tiến vào lễ đường.`,
+    walking?`Mọi người hãy cùng đón ${b} đang bước vào lễ đường...`:`${a}, con có nhận ${b} làm người bạn đời, hứa yêu thương và chung thủy trọn đời không?`,
+    `${b}, con có nhận ${a} làm người bạn đời, hứa yêu thương và chung thủy trọn đời không?`,
+    `Bây giờ, mời hai con trao nhẫn cưới cho nhau.`,
+    `Ta tuyên bố hai con chính thức là vợ chồng! ${a}, con có thể hôn ${b}.`,
+    `Chúc hai con trăm năm hạnh phúc! Mời mọi người vỗ tay và tung hoa chúc mừng.`][Math.min(6,st)]}
+function wedPos(wd,uid){const st=wd.step||0;
+  if(uid===wd.a)return st>=1?[538,408]:[420,410];
+  if(uid===wd.b){if(st<2)return[600,745];const k=Math.min(1,(now()-(wd.walkAt||0))/7000);if(st===2&&k<1){const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;return[600+(662-600)*e,745+(408-745)*e]}return[662,408]}
+  return null}
+function wrapText(t,n){const w=t.split(' '),out=[];let l='';for(const x of w){if((l+' '+x).trim().length>n){out.push(l.trim());l=x}else l+=' '+x}if(l.trim())out.push(l.trim());return out}
+function churchScene(){const wd=S.wed,tags=[],peers=roomPeers(),fu=fightUids(),t=now();
+  let s=`<defs>${FGBLUR}<linearGradient id="chw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6efe2"/><stop offset="1" stop-color="#e9dcc6"/></linearGradient><radialGradient id="chl" cx=".5" cy=".2" r=".7"><stop offset="0" stop-color="#fff6c8" stop-opacity=".75"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient></defs>`;
+  s+=`<rect width="${CW_}" height="${CHZ+10}" fill="url(#chw)"/>`;
+  // cửa sổ kính màu hai bên, cửa sổ hoa hồng ở giữa
+  const glass=(x,y,w,h)=>{const cs=['#ff7fa6','#7cc7ff','#ffd23f','#9be07a','#b892f0'];let g=`<path d="M${x-w/2} ${y+h} V${y+w/2} A${w/2} ${w/2} 0 0 1 ${x+w/2} ${y+w/2} V${y+h}Z" fill="#5b4a6e"${SW}/>`;for(let i=0;i<6;i++)g+=`<rect x="${x-w/2+4+(i%2)*(w/2-4)}" y="${y+w/2+Math.floor(i/2)*(h-w/2)/3}" width="${w/2-8}" height="${(h-w/2)/3-4}" fill="${cs[(i+x)%5]}" opacity=".85"/>`;return g+`<circle cx="${x}" cy="${y+w/2}" r="${w/2-6}" fill="${cs[x%5]}" opacity=".8"/>`};
+  for(const x of[110,250,950,1090])s+=glass(x,40,70,170);
+  s+=`<g transform="translate(600 92)"><circle r="62" fill="#5b4a6e"${SW}/>${[...Array(12)].map((_,i)=>`<path d="M0 0 L${(56*Math.cos(i*Math.PI/6)).toFixed(1)} ${(56*Math.sin(i*Math.PI/6)).toFixed(1)} L${(56*Math.cos((i+1)*Math.PI/6)).toFixed(1)} ${(56*Math.sin((i+1)*Math.PI/6)).toFixed(1)}Z" fill="${['#ff7fa6','#7cc7ff','#ffd23f','#b892f0'][i%4]}" opacity=".85"/>`).join('')}<circle r="16" fill="#fff3a8"${SW}/></g>`;
+  s+=`<rect width="${CW_}" height="${CHZ+10}" fill="url(#chl)"/>`;
+  // bàn thờ, bậc thềm, hoa, nến
+  s+=`<rect y="${CHZ}" width="${CW_}" height="${CH_-CHZ}" fill="#d9c6a6"/><path d="M300 ${CHZ+30} L900 ${CHZ+30} L960 ${CHZ+80} L240 ${CHZ+80}Z" fill="#e2d2b8"${SW}/><path d="M240 ${CHZ+80} H960" stroke="${O}" stroke-width="2"/>`;
+  s+=``;for(let y=CHZ+88,h=10;y<CH_;y+=h,h*=1.16)s+=`<path d="M0 ${y.toFixed(1)} H${CW_}" stroke="#c9b28a" stroke-width="2"/>`;
+  s+=`<path d="M${600-aisleHW(CHZ+70)} ${CHZ+70} L${600+aisleHW(CHZ+70)} ${CHZ+70} L${600+aisleHW(CH_)} ${CH_} L${600-aisleHW(CH_)} ${CH_}Z" fill="#c8323e"/><path d="M${600-aisleHW(CHZ+70)+8} ${CHZ+70} L${600-aisleHW(CH_)+18} ${CH_} M${600+aisleHW(CHZ+70)-8} ${CHZ+70} L${600+aisleHW(CH_)-18} ${CH_}" stroke="#ffd23f" stroke-width="3"/>`;
+  s+=[...Array(18)].map((_,i)=>{const r=seeded('pt'+i),y=CHZ+90+r()*(CH_-CHZ-100),x=600+(r()-.5)*aisleHW(y)*1.6;return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(5*CDS(y)).toFixed(1)}" ry="${(3*CDS(y)).toFixed(1)}" fill="${r()>.5?'#ffd3df':'#fff'}"/>`}).join('');
+  s+=`<path d="M600 150 V250 M572 182 H628" stroke="#e0b84a" stroke-width="10" stroke-linecap="round"/>`;
+  for(const x of[420,780])s+=`<g transform="translate(${x} ${CHZ+36}) scale(.8)"><path d="M-14 0 L-20 -40 H20 L14 0Z" fill="#fff"${SW}/>${[-14,0,14,-7,7].map((dx,i)=>`<circle cx="${dx}" cy="${-46-(i>2?12:0)}" r="10" fill="${['#ff9fbe','#fff','#ff9fbe','#fff','#ffd3df'][i]}"${SW}/>`).join('')}</g>`;
+  for(const x of[470,730])s+=`<g transform="translate(${x} ${CHZ+30})"><rect x="-4" y="-40" width="8" height="40" fill="#fff"${SW}/><path class="tw" d="M0 -42 q-5 -8 0 -14 q5 6 0 14" fill="#ffd23f"/></g>`;
+  const items=[];const add=(y,g)=>items.push({y,g});
+  // cha xứ + bàn lễ
+  add(CHZ+44,placeChar(PRIEST_LOOK,600,CHZ+50,CDS(CHZ+50)*1.15,{},'idle'));
+  add(CHZ+46,`<g transform="translate(600 ${CHZ+60})"><rect x="-70" y="-46" width="140" height="46" rx="4" fill="#fff"${SW}/><rect x="-70" y="-46" width="140" height="10" fill="#e0b84a"${SW}/><path d="M-10 -30 h20 M0 -38 v20" stroke="#e0b84a" stroke-width="4"/></g>`);
+  // hàng ghế hai bên
+  PEW_Y.forEach((y,r)=>{const c=CDS(y);for(const side of[-1,1]){const x0=600+side*(aisleHW(y)+14*c),x1=600+side*(aisleHW(y)+300*c);const xa=Math.min(x0,x1),w=Math.abs(x1-x0);
+    add(y-30,`<g data-act="pew" data-v="${side<0?'L':'R'}${r}" style="cursor:pointer"><rect x="${xa}" y="${y-30*c}" width="${w}" height="${16*c}" rx="${4*c}" fill="#b5773f"${SW}/><rect x="${xa}" y="${y-18*c}" width="${w}" height="${18*c}" fill="transparent"/></g>`);
+    add(y+6,`<g data-act="pew" data-v="${side<0?'L':'R'}${r}" style="cursor:pointer"><rect x="${xa}" y="${y-58*c}" width="${w}" height="${50*c}" rx="${6*c}" fill="#9a6532"${SW}/><path d="M${xa+8*c} ${y-40*c} H${xa+w-8*c}" stroke="#7a4a26" stroke-width="${2*c}"/><path d="M${xa+6*c} ${y-8*c} V${y+10*c} M${xa+w-6*c} ${y-8*c} V${y+10*c}" stroke="${O}" stroke-width="${5*c}"/></g>`)}});
+  // ai ngồi ở đâu
+  const roles=wedRoles(wd),couple=new Set([roles.A,roles.B].filter(Boolean)),taken={},seatOf={};
+  const want=[...(couple.has(S.uid)?[]:[[S.uid,S.churchSeat]]),...peers.filter(p=>!couple.has(p.uid)).map(p=>[p.uid,p.seat])];
+  for(const[u,sid]of want)if(sid&&!taken[sid]&&seatXY(sid)){taken[sid]=u;seatOf[u]=sid}
+  for(const[u]of want)if(!seatOf[u]){const f=ALLSEATS.find(x=>!taken[x]);if(f){taken[f]=u;seatOf[u]=f}}
+  S.ppos={};const pos={};
+  const lookOfU=u=>u===S.uid?meLook():peers.find(p=>p.uid===u)?.look;
+  for(const[u,sid]of Object.entries(seatOf)){const lk=lookOfU(u);if(!lk)continue;const[x,y]=seatXY(sid),c=CDS(y);pos[u]=[x,y];if(fu.has(u))continue;
+    add(y-2,`<g ${u===S.uid?'':`data-act="pplayer" data-v="${esc(u)}" style="cursor:pointer"`}>${placeChar(lk,x,y-14*c,.9*c,{pose:'sit'},'')}</g>`);const hy=y-14*c-150*c*.9,tg=tagFor(u);if(tg)tags.push(nameTag(x,hy,tg[0],tg[1]));S.ppos[u]=[x,hy-(tg?24:4)]}
+  if(wd)for(const u of couple){const lk=lookOfU(u);if(!lk)continue;const p=wedPos(wd,u);if(!p)continue;const[x,y]=p,c=CDS(y);pos[u]=[x,y];if(fu.has(u))continue;const kiss=(wd.step||0)>=5&&wd.kissAt;
+    add(y+1,`<g id="${u===roles.B?'bridewalk':''}" ${u===S.uid?'':`data-act="pplayer" data-v="${esc(u)}" style="cursor:pointer"`}>${placeChar(lk,x,y,.95*c,kiss?{mood:'love'}:{},(wd.step===2&&u===roles.B)?'step':'idle')}</g>`);
+    const hy=y-178*c*.95;tags.push(nameTag(x,hy,(u===roles.A?wordOf(wd.ag):wordOf(wd.bg)).replace(/^./,m=>m.toUpperCase())+' '+cleanText(u===roles.A?wd.an:wd.bn),u===roles.A?'#dff3ff':'#ffe3ec'));S.ppos[u]=[x,hy-24]}
+  addFights(add,u=>pos[u]||null);
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  // lời cha xứ
+  const L=wrapText(wedLine(wd),34);s+=`<g transform="translate(770 ${CHZ-170})" pointer-events="none"><rect x="0" y="0" width="330" height="${20+L.length*22}" rx="16" fill="#fffdf5"${SW}/><path d="M20 ${20+L.length*22} L-40 ${60+L.length*22} L46 ${20+L.length*22}Z" fill="#fffdf5"${SW}/><rect x="2" y="${16+L.length*22}" width="60" height="8" fill="#fffdf5"/>${L.map((l,i)=>`<text x="14" y="${30+i*22}" font-family="Nunito,sans-serif" font-weight="700" font-size="16" fill="${O}">${esc(l)}</text>`).join('')}</g>`;
+  // hiệu ứng: tim, hoa, pháo giấy
+  if(wd&&(wd.step||0)>=6&&wd.kissAt&&t-wd.kissAt<9000)s+=`<g pointer-events="none">${[...Array(26)].map((_,i)=>{const r=seeded('cf'+i);return `<rect class="confetti" style="animation-delay:${(r()*1.6).toFixed(2)}s" x="${(r()*CW_).toFixed(0)}" y="-20" width="9" height="14" rx="2" fill="${['#ff7fa6','#ffd23f','#7cc7ff','#9be07a','#b892f0'][i%5]}"/>`}).join('')}${[...Array(6)].map((_,i)=>`<g transform="translate(${560+i*16} 270)"><path class="rise" style="animation-delay:${i*.35}s" d="${heartPath(0,0,9)}" fill="#ff5e8e"${SW}/></g>`).join('')}</g>`;
+  S.reacts=S.reacts.filter(x=>t-x.t<2600);for(const x of S.reacts){const p=S.ppos[x.uid]||[600,600];s+=`<g transform="translate(${p[0]} ${p[1]+20})" pointer-events="none"><g class="rise" style="animation-duration:2.4s;animation-iteration-count:1;animation-delay:${-(t-x.t)}ms">${x.r==='flower'?giftSVG('rose'):x.r==='clap'?`<text font-size="26" font-weight="800" font-family="Baloo 2,sans-serif" fill="#ff9a2e" stroke="${O}" stroke-width="1" text-anchor="middle">Bốp bốp!</text>`:`<path d="${heartPath(0,0,12)}" fill="#ff5e8e"${SW}/>`}</g></g>`}
+  s+=fgLayer([[60,800,'flowers',1.8],[1140,800,'flowers',1.8]]);
+  return s}
+function churchActions(){const wd=S.wed;if(!wd)return'';const me=S.uid,st=wd.step||0,isA=me===wd.a,isB=me===wd.b,walking=st===2&&now()-(wd.walkAt||0)<7000;let b='';
+  if(isA&&st===0)b=`<button class="btn pink" data-act="wact" data-v="up">Bước lên lễ đài</button>`;
+  else if(isB&&st===1)b=`<button class="btn pink" data-act="wact" data-v="enter">Tiến vào lễ đường</button>`;
+  else if(isA&&st===2&&!walking)b=`<button class="btn pink" data-act="wact" data-v="vowA">Con xin nguyện</button>`;
+  else if(isB&&st===3)b=`<button class="btn pink" data-act="wact" data-v="vowB">Con xin nguyện</button>`;
+  else if((isA||isB)&&st===4&&!wd.rings?.[me])b=`<button class="btn pink" data-act="wact" data-v="ring">Trao nhẫn</button>`;
+  else if(isA&&st===5)b=`<button class="btn pink" data-act="wact" data-v="kiss">${wd.ag==='m'?'Hôn cô dâu':'Trao nụ hôn'}</button>`;
+  else if((isA||isB)&&st<6)b=`<span class="tag">Chờ ${st===4?'người ấy trao nhẫn':'tới lượt người ấy'}...</span>`;
+  if((isA||isB)&&st>=6)b=`<button class="btn white sm" data-act="wact" data-v="reset">Làm lại buổi lễ</button>`;
+  return b}
+function viewChurch(){const wd=S.wed,own=S.churchId===S.me.homeId,isCouple=wd&&(wd.a===S.uid||wd.b===S.uid);
+  return `<div class="sec-title"><h2>Nhà thờ Hoa Hồng${wd?` · Lễ cưới ${esc(cleanText(wd.an))} & ${esc(cleanText(wd.bn))}`:''}</h2><div class="row"><button class="btn sm white" data-act="go" data-v="town">Về phố</button>${own&&wd?'<button class="btn sm pink" data-act="wcards">Gửi thiệp cưới</button>':''}<button class="btn sm white" data-act="wardrobe" data-v="me">Thay đồ</button></div></div>
+  ${chatForm('Chat với mọi người trong nhà thờ...')}${sceneBox(CW_,CH_,churchScene(),'Nhà thờ',true)}
+  <div class="panel" style="margin-top:10px"><div class="row" style="justify-content:space-between"><div style="flex:1;min-width:220px"><b style="font-family:var(--display)">Cha xứ:</b> ${esc(wedLine(wd))}</div><div class="row">${churchActions()}<button class="btn sm white" data-act="react" data-v="clap">Vỗ tay</button><button class="btn sm white" data-act="react" data-v="flower">Tung hoa</button><button class="btn sm white" data-act="react" data-v="heart">Thả tim</button></div></div></div>
+  ${chatLog()}<p class="hint">${isCouple?'Hai bạn làm theo hướng dẫn của cha xứ từng bước. Bấm <b>Gửi thiệp cưới</b> để mời bạn bè tới dự.':'Chạm vào hàng ghế bên trái hoặc bên phải để chọn chỗ ngồi.'} ${peopleHint('nhà thờ')}</p>`}
+async function goChurch(id){closeModal();if(id===S.me.homeId&&!(S.partner&&(S.home.engaged||S.home.married)))return toast('Cần đính hôn trước rồi mới tổ chức lễ cưới được.','bad');
+  S.churchId=id;S.churchSeat=null;S.wed=null;S.view='church';unsub('wed');
+  if(id!=='public'){sub('wed',DB.doc('weddings/'+id),s=>{const d=s.exists?clone(s.data()):null;const prev=S.wed;S.wed=d;
+      if(d&&prev&&prev.step!==d.step){Music.sfx('coin');if(d.step===2)churchWalk();if(d.step===6&&!(d.a===S.uid||d.b===S.uid)){const k='ntdt_wg_'+id+'_'+(d.kissAt||0);if(!LS.get(k)){LS.set(k,1);H({coins:coins()+20});toast('Cảm ơn bạn đã tới dự! Nhận 20 xu lộc cưới.','good')}}}
+      if(d&&d.step===2)churchWalk();if(S.view==='church')renderAll()});
+    if(id===S.me.homeId){try{const g=await DB.doc('weddings/'+id).get();if(!g.exists){const me=S.me,pa=S.partner,aFirst=me.g==='m'||(pa.g!=='m'&&S.uid<S.me.partner);const A=aFirst?me:pa,B=aFirst?pa:me,Au=aFirst?S.uid:S.me.partner,Bu=aFirst?S.me.partner:S.uid;
+      const d={home:id,a:Au,b:Bu,an:A.nick,bn:B.nick,ag:A.g||'m',bg:B.g||'f',step:0,at:now(),rings:{}};S.wed=d;W('wed',()=>DB.doc('weddings/'+id).set(d))}}catch(e){console.warn(e)}}}
+  const inv=S.invites.find(i=>i.kind==='wedding'&&i.wid===id);if(inv)W('x',()=>DB.doc('invites/'+inv.id).update({st:'ok'}));
+  renderAll();try{scrollTo({top:0})}catch(e){}}
+let CWT=0;function churchWalk(){cancelAnimationFrame(CWT);const step=()=>{const wd=S.wed;if(!wd||wd.step!==2||S.view!=='church')return;const k=(now()-(wd.walkAt||0))/7000;const g=document.getElementById('bridewalk');if(g){const p=wedPos(wd,wd.b),c=CDS(p[1])*.95;const lk=wd.b===S.uid?meLook():roomPeers().find(x=>x.uid===wd.b)?.look;if(lk)g.innerHTML=placeChar(lk,p[0],p[1],c,{},'step')}if(k<1)CWT=requestAnimationFrame(step);else renderAll()};CWT=requestAnimationFrame(step)}
+function wedAct(v){const wd=S.wed;if(!wd)return;const me=S.uid,st=wd.step||0,paHere=roomPeers().some(p=>p.uid===(me===wd.a?wd.b:wd.a));let patch=null;
+  if(v!=='reset'&&!paHere)return toast('Chờ người ấy vào nhà thờ rồi mới làm lễ được nhé.','bad');
+  if(v==='up'&&me===wd.a&&st===0)patch={step:1};
+  else if(v==='enter'&&me===wd.b&&st===1)patch={step:2,walkAt:now()};
+  else if(v==='vowA'&&me===wd.a&&st===2)patch={step:3};
+  else if(v==='vowB'&&me===wd.b&&st===3)patch={step:4};
+  else if(v==='ring'&&st===4){const other=me===wd.a?wd.b:wd.a;patch={rings:{[me]:true}};if(wd.rings?.[other])patch.step=5}
+  else if(v==='kiss'&&me===wd.a&&st===5){patch={step:6,kissAt:now()};H({love:(S.home.love||0)+30,churchWed:now()});toast('Chúc mừng hai bạn! +30 tình cảm','love')}
+  else if(v==='reset'&&(me===wd.a||me===wd.b))patch={step:0,rings:{[wd.a]:false,[wd.b]:false},walkAt:0,kissAt:0};
+  if(!patch)return;S.wed=deepMerge(wd,patch);W('wed',()=>DB.doc('weddings/'+S.churchId).update(patch));if(patch.step===2)churchWalk();Music.sfx('coin');renderAll()}
+function react(r){if(now()-(S.lastReact||0)<600)return;S.lastReact=now();const m={kind:'react',uid:S.uid,r};PRES.api&&PRES.api.chat(m);S.reacts.push({uid:S.uid,r,t:now()});Music.sfx('pop');renderAll();setTimeout(renderAll,2700)}
+function churchMenuBody(){const h=S.home,ok=S.partner&&(h.engaged||h.married),inv=S.invites.filter(i=>i.kind==='wedding');
+  return `<div class="list">${ok?`<div class="item"><div class="tx"><b>Lễ cưới của ${esc(S.me.nick)} & ${esc(S.partner.nick)}</b><small>Vào nhà thờ, gửi thiệp mời bạn bè rồi cùng làm lễ theo hướng dẫn của cha xứ</small></div><button class="btn pink sm" data-act="wgo" data-v="${esc(S.me.homeId)}">Vào tổ chức</button></div>`:`<div class="panel muted">Khi hai bạn đã đính hôn (cầu hôn thành công), có thể tổ chức lễ cưới ở đây.</div>`}
+  ${inv.map(i=>`<div class="item"><div class="tx"><b>Đám cưới ${esc(cleanText(i.fromNick))}</b><small>Bạn được mời tới dự</small></div><button class="btn pink sm" data-act="wgo" data-v="${esc(i.wid)}">Tới dự</button></div>`).join('')}
+  <div class="item"><div class="tx"><b>Tham quan nhà thờ</b><small>Vào ngắm và trò chuyện với mọi người</small></div><button class="btn white sm" data-act="wgo" data-v="public">Vào xem</button></div></div>`}
+function wcardsBody(){const fl=friendIds().filter(id=>id!==S.me.partner);ensureFriendDocs();
+  return `<p class="muted" style="margin:0">Gửi thiệp mời bạn bè tới nhà thờ dự lễ cưới. Bạn bè sẽ nhận được thiệp ở mục Bạn bè và tới thẳng nhà thờ của hai bạn.</p>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}</b><small>${onlineTxt(id)||'Ngoại tuyến'}</small></div>${S.sent[id+'w']?'<span class="tag love">Đã gửi thiệp</span>':`<button class="btn sm pink" data-act="wcard" data-v="${esc(id)}">Gửi thiệp</button>`}</div>`}).join('')}</div>`:'<div class="panel muted">Chưa có bạn bè nào để mời. Kết bạn bằng ID ở mục Bạn bè nhé.</div>'}`}
+function sendCard(uid){const wd=S.wed;if(!wd)return;W('x',()=>DB.doc('invites/'+S.me.homeId+'__'+uid+'__w').set({from:S.uid,to:uid,kind:'wedding',fromNick:`${cleanText(wd.an)} & ${cleanText(wd.bn)}`,fromCode:S.me.code,wid:S.me.homeId,at:now(),st:'pending'})).then(()=>{S.sent[uid+'w']=true;toast('Đã gửi thiệp cưới!','love');renderModal()})}
+
+/* ---------- PHỐ: bản đồ có đường, ngã tư, tên đường, cửa hàng rải rác ---------- */
+const VROADS=[{xb:760,n:'Ngõ Cá Vàng'},{xb:1400,n:'Đường Tình Yêu'},{xb:2040,n:'Phố Hạt Giống'}];
+const HROADS=[{y0:390,y1:432,n:'Đường Hoa Sữa'},{y0:690,y1:782,n:'Phố Hàng Rau'}];
+const vX=(xb,y)=>xb+(1400-xb)*(1-TDS(y)/TDS(TH_))*.55;
+const vHW=y=>78*TDS(y)/TDS(TH_);
+const TSHOPS=[
+  {k:'seeds',x:230,row:0},{k:'fishshop',x:480,row:0},{k:'animals',x:1150,row:0},{k:'furniture',x:1620,row:0},{k:'cafe',x:2090,row:0},{k:'market',x:2340,row:0},{k:'civil',x:2610,row:0},
+  {k:'park',x:240,row:1},{k:'chomkt',x:560,row:1},{k:'fashion',x:1120,row:1},{k:'bridal',x:1680,row:1},{k:'church',x:2330,row:1}];
+const SIGNC={seeds:'#3f9a35',fishshop:'#2f7fc4',animals:'#d9772a',market:'#c2453a',furniture:'#7a52c4',fashion:'#e0507e',bridal:'#c9a032',cafe:'#8a5530',civil:'#b03024'};
+function shopFacade(s){const c=SIGNC[s.k]||s.aw,[vb,ic]=s.ico(),r=seeded(s.k),tall=r()>.5;
+  let g=`<ellipse cx="0" cy="4" rx="170" ry="16" fill="#000" opacity=".15"/>${hit(-160,-300,320,304)}`;
+  g+=`<rect x="-150" y="${tall?-270:-230}" width="300" height="${tall?270:230}" rx="6" fill="${s.wall}"${SW} stroke-width="3"/>`;
+  if(tall)g+=`<rect x="-120" y="-262" width="70" height="44" rx="6" fill="#bfe6ff"${SW}/><rect x="50" y="-262" width="70" height="44" rx="6" fill="#bfe6ff"${SW}/><path d="M-85 -262 V-218 M85 -262 V-218" stroke="${O}" stroke-width="2"/>`;
+  g+=`<path d="M-162 ${tall?-270:-230} L-150 ${tall?-292:-252} H150 L162 ${tall?-270:-230}Z" fill="${shade(c,-.1)}"${SW}/>`;
+  g+=`<g transform="translate(0 -184)"><rect x="-140" y="-34" width="280" height="64" rx="16" fill="#fffdf5" stroke="${c}" stroke-width="7"/><rect x="-140" y="-34" width="280" height="64" rx="16" fill="none" stroke="${O}" stroke-width="2"/><svg x="-128" y="-26" width="48" height="48" viewBox="${vb}">${ic}</svg><text x="20" y="10" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="${s.n.length>14?22:26}" fill="${c}" stroke="${O}" stroke-width=".8" paint-order="stroke">${esc(s.n)}</text>${[-120,-60,0,60,120].map((x,i)=>`<circle class="tw" style="animation-delay:${i*.25}s" cx="${x}" cy="-40" r="4" fill="${['#ffd23f','#ff7fa6','#7cc7ff'][i%3]}"${SW}/>`).join('')}</g>`;
+  g+=`<path d="M-160 -142 H160 L150 -112 H-150Z" fill="${c}"${SW}/>${[...Array(8)].map((_,i)=>`<path d="M${-150+i*37.5} -112 q18.75 16 37.5 0" fill="${i%2?'#fff':c}"${SW}/>`).join('')}`;
+  g+=`<rect x="-136" y="-96" width="96" height="74" rx="6" fill="#dff3ff"${SW}/><rect x="40" y="-96" width="96" height="74" rx="6" fill="#dff3ff"${SW}/>${[-112,-64,64,112].map(x=>`<svg x="${x-20}" y="-74" width="40" height="40" viewBox="${vb}">${ic}</svg>`).join('')}<path d="M-136 -22 H-40 M40 -22 H136" stroke="${O}" stroke-width="4"/>`;
+  g+=`<rect x="-30" y="-100" width="60" height="100" rx="10" fill="#b5773f"${SW}/><rect x="-22" y="-90" width="44" height="40" rx="6" fill="#ffe9b8"${SW}/><circle cx="18" cy="-44" r="3.4" fill="#ffd23f"${SW}/><rect x="-44" y="-4" width="88" height="8" rx="3" fill="${shade(c,.4)}"${SW}/>`;
+  for(const x of[-150,150])g+=`<g transform="translate(${x} 0)"><path d="M-14 0 L-18 -26 H18 L14 0Z" fill="#e2784a"${SW}/>${leaf(0,-26,20,-140,'#58b947')}${leaf(0,-26,20,-40,'#6cc04a')}<circle cx="0" cy="-40" r="7" fill="#ff7fa6"${SW}/></g>`;
+  return g}
+function churchFacade(){return `<ellipse cx="0" cy="4" rx="200" ry="18" fill="#000" opacity=".15"/>${hit(-190,-470,380,474)}<rect x="-180" y="-250" width="360" height="250" fill="#f6efe2"${SW} stroke-width="3"/><path d="M-196 -250 L0 -330 L196 -250Z" fill="#c8323e"${SW}/>
+  <rect x="-60" y="-400" width="120" height="160" fill="#f6efe2"${SW}/><path d="M-72 -400 L0 -470 L72 -400Z" fill="#c8323e"${SW}/><path d="M0 -470 V-510 M-14 -496 H14" stroke="#e0b84a" stroke-width="7" stroke-linecap="round"/><circle cy="-340" r="30" fill="#5b4a6e"${SW}/>${[...Array(8)].map((_,i)=>`<path d="M0 -340 L${(26*Math.cos(i*Math.PI/4)).toFixed(1)} ${(-340+26*Math.sin(i*Math.PI/4)).toFixed(1)} L${(26*Math.cos((i+1)*Math.PI/4)).toFixed(1)} ${(-340+26*Math.sin((i+1)*Math.PI/4)).toFixed(1)}Z" fill="${['#ff7fa6','#7cc7ff','#ffd23f','#b892f0'][i%4]}"/>`).join('')}<g class="sway" style="transform-origin:0 -372px"><path d="M-12 -392 Q0 -420 12 -392 L16 -372 H-16Z" fill="#ffd23f"${SW}/></g>
+  ${[-130,130].map(x=>`<path d="M${x-26} -60 V-170 A26 26 0 0 1 ${x+26} -170 V-60Z" fill="#7cc7ff"${SW}/><path d="M${x} -196 V-60 M${x-26} -120 H${x+26}" stroke="${O}" stroke-width="2"/>`).join('')}
+  <path d="M-52 0 V-140 A52 52 0 0 1 52 -140 V0Z" fill="#8a5530"${SW}/><path d="M0 -192 V0" stroke="${O}" stroke-width="2"/><circle cx="-10" cy="-70" r="4" fill="#ffd23f"/><circle cx="10" cy="-70" r="4" fill="#ffd23f"/>
+  <g transform="translate(0 -276)"><rect x="-110" y="-22" width="220" height="40" rx="12" fill="#fffdf5" stroke="#c8323e" stroke-width="6"/><text y="6" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="24" fill="#c8323e">Nhà thờ Hoa Hồng</text></g>
+  <path d="M-90 0 L-100 14 H100 L90 0Z" fill="#e2d2b8"${SW}/>${[-160,160].map(x=>`<g transform="translate(${x} 0)"><circle cy="-22" r="20" fill="#ff9fbe"${SW}/><circle cx="-12" cy="-30" r="8" fill="#fff"${SW}/><circle cx="10" cy="-34" r="8" fill="#fff"${SW}/></g>`).join('')}`}
+function streetSign(x,y,a,b){const c=TDS(y);return `<g transform="translate(${x} ${y}) scale(${c.toFixed(3)})" pointer-events="none"><rect x="-4" y="-170" width="8" height="170" fill="#4d4f63"${SW}/><g transform="translate(0 -170)"><rect x="-100" y="-28" width="200" height="26" rx="5" fill="#2f8f4a"${SW}/><text y="-10" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="#fff">${esc(a)}</text><rect x="-90" y="2" width="180" height="26" rx="5" fill="#2f7fc4"${SW}/><text y="20" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="#fff">${esc(b)}</text></g></g>`}
+function townScene(){const tags=[],items=[],add=(y,g)=>items.push({y,g});
+  let s=`<defs>${FGBLUR}<linearGradient id="tsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd2ff"/><stop offset="1" stop-color="#eaf8ff"/></linearGradient><linearGradient id="thz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="tclip"><rect y="${THZ}" width="${TW_}" height="${TH_-THZ}"/></clipPath></defs>`;
+  s+=`<rect width="${TW_}" height="${TH_}" fill="url(#tsk)"/>`+farLayers(TW_,THZ-4,'town');
+  {const r=seeded('tsky');let m=`<g class="par" data-k=".45">`;for(let x=-20;x<TW_+40;x+=70+r()*40){const hgt=60+r()*120,w=50+r()*40;m+=`<rect x="${x}" y="${THZ-hgt}" width="${w}" height="${hgt}" fill="${['#cfe0ef','#dfe9f3','#e8dff0','#f3e6d6'][Math.floor(r()*4)]}" stroke="#9fb4c8" stroke-width="1.4"/>${[...Array(Math.floor(hgt/26))].map((_,j)=>`<rect x="${x+8}" y="${THZ-hgt+10+j*26}" width="${w-16}" height="10" fill="#fff" opacity=".6"/>`).join('')}`}s+=m+`</g>`}
+  s+=`<rect y="${THZ-80}" width="${TW_}" height="110" fill="url(#thz)" pointer-events="none"/>`;
+  s+=`<rect y="${THZ}" width="${TW_}" height="${TH_-THZ}" fill="#f1e2c4"/><g clip-path="url(#tclip)" stroke="#e2cfa8" stroke-width="2">`;for(let y=THZ+6,h=8;y<TH_;y+=h,h*=1.13)s+=`<path d="M0 ${y.toFixed(1)} H${TW_}"/>`;s+=`</g>`;
+  // cỏ hai bên khối nhà
+  s+=`<path d="M0 ${THZ} H${TW_} V385 H0Z" fill="#9fd776"/><path d="M0 800 H${TW_} V${TH_} H0Z" fill="#93d76a"/>`;
+  // đường ngang
+  for(const R of HROADS){const sw=8*TDS(R.y0);s+=`<rect y="${R.y0-sw*2}" width="${TW_}" height="${sw*2}" fill="#e6e6ee"/><rect y="${R.y1}" width="${TW_}" height="${sw*2.2}" fill="#e6e6ee"/><rect y="${R.y0}" width="${TW_}" height="${R.y1-R.y0}" fill="#7d8291"/><path d="M0 ${(R.y0+R.y1)/2} H${TW_}" stroke="#fff" stroke-width="${3*TDS(R.y0)+1}" stroke-dasharray="${40*TDS(R.y0)} ${30*TDS(R.y0)}"/>`}
+  // đường dọc (hội tụ về xa) + vạch kẻ đường
+  for(const V of VROADS){const y0=HROADS[0].y0,y1=TH_,l=y=>vX(V.xb,y)-vHW(y),r=y=>vX(V.xb,y)+vHW(y);
+    s+=`<path d="M${l(y0)-6} ${y0} L${r(y0)+6} ${y0} L${r(y1)+16} ${y1} L${l(y1)-16} ${y1}Z" fill="#e6e6ee"/><path d="M${l(y0)} ${y0} L${r(y0)} ${y0} L${r(y1)} ${y1} L${l(y1)} ${y1}Z" fill="#7d8291"/>`;
+    for(let y=y0+10;y<y1;y+=38*TDS(y)+10){const yy=y+22*TDS(y);if(HROADS.some(R=>yy>R.y0-4&&y<R.y1+4))continue;s+=`<path d="M${vX(V.xb,y)} ${y} L${vX(V.xb,yy)} ${yy}" stroke="#fff" stroke-width="${3*TDS(y)+1}"/>`}
+    for(const R of HROADS){s+=`<path d="M${l(R.y0)} ${R.y0} L${r(R.y0)} ${R.y0} L${r(R.y1)} ${R.y1} L${l(R.y1)} ${R.y1}Z" fill="#7d8291"/>`;
+      for(const yz of[R.y0-2,R.y1+2]){const c=TDS(yz),n=7;for(let k=0;k<n;k++){const xa=l(yz)+(r(yz)-l(yz))*(k+.2)/n,xb=l(yz)+(r(yz)-l(yz))*(k+.75)/n,dy=(yz<R.y0?-1:1)*16*c;s+=`<path d="M${xa} ${yz} L${xb} ${yz} L${xb} ${yz+dy} L${xa} ${yz+dy}Z" fill="#fff" opacity=".95"/>`}}
+      for(const xz of[l(R.y0)-4,r(R.y0)+4]){}}}
+  s+=groundRect('town',THZ+80);
+  // biển tên đường ở các ngã tư
+  for(const V of VROADS){add(HROADS[0].y1+6,streetSign(vX(V.xb,HROADS[0].y1)+vHW(HROADS[0].y1)+22,HROADS[0].y1+6,V.n,HROADS[0].n));add(HROADS[1].y1+10,streetSign(vX(V.xb,HROADS[1].y1)+vHW(HROADS[1].y1)+30,HROADS[1].y1+10,V.n,HROADS[1].n))}
+  // cửa hàng
+  for(const T of TSHOPS){const y=T.row?684:384,c=TDS(y)*(T.row?.92:1.32),S_=SHOPS.find(x=>x.k===T.k);let inner;
+    if(T.k==='church')inner=churchFacade();else if(T.k==='park')inner=`<g transform="translate(0 0) scale(1.3)">${gateSVG(0).replace(/^<g transform="translate\(0 412\)">/,'<g>')}</g>${hit(-130,-320,260,322)}`;else if(T.k==='chomkt')inner=`${hit(-140,-290,280,292)}<g transform="scale(1.05)">${marketGate(0,MH_).replace(/^<g transform="[^"]*" pointer-events="none">/,'<g>')}</g>`;else inner=shopFacade(S_);
+    add(y,`<g transform="translate(${T.x} ${y}) scale(${c.toFixed(3)})" data-act="shop" data-v="${T.k}" style="cursor:pointer" role="button" aria-label="${esc(S_.n)}">${inner}</g>`)}
+  // cây, đèn, ghế, đài phun nước
+  for(const[x,y,k]of[[90,840,'lamp'],[1000,840,'lamp'],[1800,840,'lamp'],[2650,840,'lamp'],[380,560,'lamp'],[1270,560,'lamp'],[2200,560,'lamp']])add(y,`<g transform="translate(${x} ${y}) scale(${(TDS(y)*.9).toFixed(3)})" pointer-events="none">${propG(k)}</g>`);
+  for(const[x,y]of[[40,600],[860,600],[1990,600],[2760,600],[700,900],[2500,920],[1700,920]])add(y,`<ellipse cx="${x}" cy="${y+2}" rx="${60*TDS(y)}" ry="${12*TDS(y)}" fill="#2f6b1f" opacity=".2"/>`+tree(x,y,TDS(y)*1.05,x%2===0));
+  add(915,`<g transform="translate(1080 915) scale(${(TDS(915)*.9).toFixed(3)})" pointer-events="none">${fountainSVG(0).replace(/^<g transform="translate\(0 412\)">/,'<g>')}</g>`);
+  add(880,`<g transform="translate(2200 880) scale(${(TDS(880)*.8).toFixed(3)})" pointer-events="none">${benchSVG(0).replace(/^<g transform="translate\(0 412\)">/,'<g>')}</g>`);
+  placeWalkers(add,tags,'town');
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  s+=fgLayer([[60,1050,'bush',2],[900,1060,'flowers',2.3],[1500,1055,'bush',2],[2300,1060,'flowers',2.2],[2760,1050,'bush',2]]);
+  return s}
+function viewTown(){return `<div class="sec-title"><h2>Khu phố</h2><div class="row"><span class="muted">Chạm vào cửa hàng để ghé vào, chạm vào đường để đi dạo</span></div></div>
+  ${chatForm('Chat với mọi người ngoài phố...')}${sceneBox(TW_,TH_,townScene(),'Khu phố',false)}${chatLog()}
+  <p class="hint">Đường Hoa Sữa và Phố Hàng Rau chạy ngang, ba đường Ngõ Cá Vàng, Đường Tình Yêu, Phố Hạt Giống chạy dọc. Kéo ngang để đi hết phố. Chạm vào người khác để nhắn tin, kết bạn hoặc đấm nhau. ${peopleHint('ngoài phố')}</p>`}
+
 
 
 function viewPark(){
@@ -1968,11 +2350,11 @@ function viewLove(){
     body+=`<div class="sec-title"><h2>Danh sách bạn bè</h2><span class="tag">${fl.length} người</span></div>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];const here=parkPeers().some(x=>x.uid===id);return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}${id===S.me.partner?' <span class="tag love">người ấy</span>':''}</b><small>ID ${esc(d?.code||'')}${here?' · đang ở công viên':''}</small></div><button class="btn sm white" data-act="dm" data-v="${id}">Nhắn tin${S.inbox.find(x=>x.with===id&&x.unread)?' <span class="tag bad">mới</span>':''}</button>${here?'<button class="btn sm green" data-act="go" data-v="park">Tới công viên</button>':''}</div>`}).join('')}</div>`:`<div class="panel muted">Chưa có bạn bè nào. Tìm bạn bằng ID ở trên nhé.</div>`}`;
     ensureFriendDocs();
   }
-  const invs=S.invites.filter(i=>i.kind==='friend'?!isFriend(i.from):!pa);
+  const invs=S.invites.filter(i=>i.kind==='wedding'?true:i.kind==='friend'?!isFriend(i.from):!pa);
   return `<div class="sec-title"><h2>Bạn bè</h2><div class="row">${installBtn()}<button class="btn sm white" data-act="logout">Đăng xuất</button></div></div>
   <div class="scene" style="background:#ffe3ec"><svg viewBox="0 0 600 250" role="img" aria-label="Cặp đôi">${scene}</svg></div>
   <div class="idcard" style="margin:14px 0"><div style="flex:1;min-width:140px"><div class="muted" style="font-weight:800">ID của bạn</div><div class="num" id="myid">${esc(me.code)}</div><small class="muted">${S.mode==='cloud'?'Gmail: '+esc(S.authUser?.email||''):'Tên đăng nhập: '+esc(me.user||'')}</small></div><button class="btn sm" data-act="copyid">Sao chép ID</button></div>
-  ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>ID ${esc(i.fromCode)} ${i.kind==='friend'?'muốn kết bạn với bạn':'muốn ghép đôi, cùng bạn xây tổ ấm'}</small></div><button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button><button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div>${invs.some(i=>i.kind!=='friend')?'<p class="muted" style="margin:8px 0 0">Khi đồng ý ghép đôi, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p>':''}</div>`:''}
+  ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>${i.kind==='wedding'?'gửi thiệp mời bạn tới dự lễ cưới ở Nhà thờ Hoa Hồng':`ID ${esc(i.fromCode)} ${i.kind==='friend'?'muốn kết bạn với bạn':'muốn ghép đôi, cùng bạn xây tổ ấm'}`}</small></div>${i.kind==='wedding'?`<button class="btn sm pink" data-act="wgo" data-v="${esc(i.wid)}">Tới dự</button>`:`<button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button>`}<button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div>${invs.some(i=>i.kind!=='friend')?'<p class="muted" style="margin:8px 0 0">Khi đồng ý ghép đôi, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p>':''}</div>`:''}
   ${body}
   ${S.mode==='local'?`<p class="muted" style="margin-top:12px">Đang chơi trên máy này: dữ liệu lưu trong trình duyệt. Có thể tạo thêm tài khoản thứ hai trên cùng máy để thử ghép đôi.</p>`:''}`;
 }
@@ -2037,7 +2419,7 @@ function renderDock(){const el=$('#dock');if(!el)return;const on=docked();docume
   const html=`<div class="dk-h"><h3>Người liên hệ</h3><span class="tag ${fr.some(x=>x.o)?'ok':''}">${fr.filter(x=>x.o).length} online</span></div><div class="dk-list">
     ${fr.length?fr.map(({id,d,o})=>{const ib=S.inbox.find(x=>x.with===id);return row(id,d,d?.nick||'...',o||(ib?.last||'Ngoại tuyến'),!!o,ib?.unread,id===S.me.partner?' <span class="tag love">người ấy</span>':'')}).join(''):`<p class="muted" style="margin:8px">Chưa có bạn bè nào. Vào mục <b>Bạn bè</b> để tìm bạn bằng ID nhé.</p>`}
     ${strangers.length?`<div class="dk-sec">Tin nhắn người lạ</div>`+strangers.map(x=>row(x.with,null,x.withNick||nickOf(x.with),x.last||'',!!onlineTxt(x.with),x.unread)).join(''):''}
-    ${here.length?`<div class="dk-sec">Đang ở ${S.view==='market'?'chợ':'công viên'} cùng bạn</div>`+here.map(p=>row(p.uid,p.look,p.nick||'Người chơi','Người lạ · bấm để nhắn tin',true,false)).join(''):''}
+    ${here.length?`<div class="dk-sec">Đang ở ${({market:'chợ',town:'phố',boutique:'tiệm',church:'nhà thờ'})[S.view]||'công viên'} cùng bạn</div>`+here.map(p=>row(p.uid,p.look,p.nick||'Người chơi','Người lạ · bấm để nhắn tin',true,false)).join(''):''}
   </div>`;
   if(el.dataset.h!==html){el.dataset.h=html;el.innerHTML=html}}
 let lastDM=0;
@@ -2394,6 +2776,9 @@ function renderModal(){
   else if(m.t==='install'){title='Tải app về máy';body=installBody()}
   else if(m.t==='stallset'){title=S.myStall?'Bày thêm hàng':'Bày sạp bán hàng';body=stallSetBody(m)}
   else if(m.t==='stall'){title='Sạp hàng';body=stallBody(m)}
+  else if(m.t==='suggest'){title='Người ấy nhờ bạn thử đồ';body=suggestBody(m)}
+  else if(m.t==='churchmenu'){title='Nhà thờ Hoa Hồng';body=churchMenuBody()}
+  else if(m.t==='wcards'){title='Gửi thiệp cưới';body=wcardsBody()}
   else if(m.t==='ginv'){title='Mời bạn chơi '+GNAME[m.k].toLowerCase();body=ginvBody(m)}
   else if(m.t==='plot'){title='Khai hoang đất';body=`<p>Mở thêm một ô đất để trồng nhiều cây hơn.</p>${buyBtn('plot','plot',plotPrice(),'Khai hoang')}`}
   const scroll=el.querySelector('.sheet')?.scrollTop||0,ae=document.activeElement,keepId=ae&&el.contains(ae)&&ae.id,keepV={};el.querySelectorAll('input[id]').forEach(i=>{if(i.type!=='password')keepV[i.id]=i.value});const dl=$('#dmlist'),atBottom=!dl||dl.scrollHeight-dl.scrollTop-dl.clientHeight<40;
@@ -2481,10 +2866,24 @@ document.addEventListener('click',ev=>{
     case 'go':S.view=v;closeModal();renderAll();try{scrollTo({top:0,behavior:'smooth'})}catch(e){}break;
     case 'tool':S.tool=v;renderAll();break;
     case 'seed':S.seed=v;renderAll();break;
-    case 'plot':plotAct(+el.dataset.i);break;
+    case 'plot':if(S.dragged){S.dragged=false;break}plotAct(+el.dataset.i);break;
     case 'buyplot':openModal({t:'plot'});break;
     case 'harvestall':harvestAll();break;
-    case 'shop':if(v==='park'){S.view='park';closeModal();renderAll();try{scrollTo({top:0})}catch(e){}break}openModal({t:'shop',k:v,who:'me',cat:'top'});break;
+    case 'shop':if(S.dragged){S.dragged=false;break}if(v==='park'||v==='chomkt'){S.view=v==='park'?'park':'market';closeModal();renderAll();try{scrollTo({top:0})}catch(e){}break}if(v==='fashion'||v==='bridal'){goBoutique(v);break}if(v==='church'){openModal({t:'churchmenu'});break}openModal({t:'shop',k:v,who:'me',cat:'top'});break;
+    case 'ground':if(S.dragged){S.dragged=false;break}walkGround(ev,el,v);break;
+    case 'rack':{if(S.dragged){S.dragged=false;break}const R=RACKS[S.bq].find(x=>x.k===v)||RACKS[S.bq][0];openModal({t:'shop',k:S.bq,who:'me',cat:R.cat,g:R.g});break}
+    case 'fg':S.modal.g=v;S.modal.tryId=null;renderModal();break;
+    case 'wearnow':{const it=CLOTH[v];if(!it||!S.me.owned?.[v])break;P(S.uid,{eq:{[it.s]:v},dressedDay:today(),dressedBy:S.uid,dressedAt:now()});delete S.trial[it.s];bump('dress');toast(`Đã mặc ${it.n}!`,'love');renderModal();break}
+    case 'sugtry':suggestTry(v);break;
+    case 'sugyes':{const it=CLOTH[S.modal?.id];if(it){S.trial={...S.trial,[it.s]:S.modal.id};toast('Đang mặc thử, mọi người trong tiệm đều thấy!','love')}closeModal();renderAll();break}
+    case 'untry':S.trial={};renderAll();break;
+    case 'pew':{if(S.dragged){S.dragged=false;break}const wd=S.wed;if(wd&&(wd.a===S.uid||wd.b===S.uid))break;for(let k=0;k<3;k++){const id=v+'-'+k;if(!roomPeers().some(p=>p.seat===id)){S.churchSeat=id;break}}renderAll();break}
+    case 'wact':wedAct(v);break;
+    case 'react':react(v);break;
+    case 'wgo':goChurch(v);break;
+    case 'wcards':openModal({t:'wcards'});break;
+    case 'wcard':sendCard(v);break;
+    case 'buyfield':if(S.dragged){S.dragged=false;break}buyField();break;
     case 'pk':if(S.dragged){S.dragged=false;break}parkAct(v);break;
     case 'cartbuy':cartBuy(v);break;
     case 'parkwalk':parkWalk();break;
@@ -2501,7 +2900,6 @@ document.addEventListener('click',ev=>{
     case 'eggs':collectEggs(v);break;
     case 'pen':S.pen=v;renderAll();break;
     case 'penup':penUp(v);break;
-    case 'mground':if(S.dragged){S.dragged=false;break}mktGround(ev,el);break;
     case 'stallhere':stallHere();break;
     case 'stall':if(S.dragged){S.dragged=false;break}openModal({t:'stall',uid:v});break;
     case 'stallsave':stallSave();break;
@@ -2543,7 +2941,7 @@ document.addEventListener('click',ev=>{
     case 'wsave':wardSave();break;
     case 'fwho':S.modal.who=v;S.modal.tryId=null;renderModal();break;
     case 'fcat':S.modal.cat=v;S.modal.tryId=null;renderModal();break;
-    case 'ftry':S.modal.tryId=v;renderModal();break;
+    case 'ftry':S.modal.tryId=v;if(S.view==='boutique'&&S.modal.who!=='pa'&&CLOTH[v]){S.trial={...S.trial,[CLOTH[v].s]:v};renderAll()}renderModal();break;
     case 'order':order(v);break;
     case 'propose':openModal({t:'propose'});break;
     case 'propview':openModal({t:'proposed'});break;
@@ -2598,7 +2996,7 @@ matchMedia('(min-width:1180px)').addEventListener?.('change',()=>{if(S.me&&S.hom
 /* ================= tick ================= */
 function viewSig(){
   const t=now(),h=S.home;if(!h)return '';
-  if(S.view==='farm')return [...Array(12).keys()].map(i=>{const I=plotInfo(h.plots?.['p'+i],t);return[I.st,I.stage,I.thirsty,I.bug,I.weed,I.ripe].join('')}).join('|');
+  if(S.view==='farm')return [...Array(fieldsOwned()*12).keys()].map(i=>{const I=plotInfo(h.plots?.['p'+i],t);return[I.st,I.stage,I.thirsty,I.bug,I.weed,I.ripe].join('')}).join('|');
   if(S.view==='pond')return live(h.fish).map(([id,f])=>{const I=fishInfo(f,t);return id+I.mature+I.hungry+Math.floor(I.frac*20)}).join('|')+S.fishing.phase;
   if(S.view==='coop')return live(h.coop).map(([id,c])=>{const I=chickInfo(c,t);return id+I.mature+I.hungry+I.eggs+Math.floor(I.frac*20)}).join('|')+live(h.pets).map(([id,p])=>{const I=petInfo(p,t);return id+I.hungry+I.canPat}).join('');
   if(S.view==='home'||S.view==='love')return '';
