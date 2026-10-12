@@ -33,7 +33,7 @@ html,body{min-height:100%}
 body{background:linear-gradient(180deg,#a9e1ff 0%,#d8f4ff 34%,#e6f8d2 70%,#cdeeb0 100%) fixed;color:var(--ink);font-family:var(--body);font-size:15px;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
-.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:0 104px}
+.wrap{max-width:none;margin:0 auto;padding-inline:clamp(16px,3vw,48px);padding-block:0 104px}
 .panel{background:var(--cream);border:3px solid var(--woodDk);border-radius:18px;box-shadow:0 5px 0 var(--woodDk);padding:14px}
 .btn{font-family:var(--display);font-weight:800;font-size:1rem;background:var(--yellow);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:.35em .95em;cursor:pointer;line-height:1.2;display:inline-flex;align-items:center;gap:6px;justify-content:center;transition:transform .06s}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
@@ -77,7 +77,7 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
 
 /* Nav */
 nav.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:repeating-linear-gradient(90deg,#e6b06a 0 60px,#dea561 60px 62px);border-top:3px solid var(--ink)}
-nav .in{display:flex;gap:2px;max-width:980px;margin:0 auto}
+nav .in{display:flex;gap:2px;max-width:1200px;margin:0 auto}
 nav button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:0;background:none;border:0;font:700 .72rem var(--display);padding:4px 1px 2px;border-radius:12px;cursor:pointer;position:relative;white-space:nowrap}
 nav button svg{width:30px;height:30px}
 nav button.on{background:#fff3c2;box-shadow:inset 0 0 0 2.5px var(--ink)}
@@ -757,6 +757,12 @@ function nav(){
   return `<nav class="nav" aria-label="Khu vực"><div class="in">${items.map(([k,n])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}" aria-current="${S.view===k?'page':'false'}"><svg viewBox="-17 -17 34 34" aria-hidden="true">${NAVI[k]}</svg>${n}${k==='tasks'&&claim?`<span class="dot">${claim}</span>`:''}${k==='love'&&inv?`<span class="dot">${inv}</span>`:''}</button>`).join('')}</div></nav>`;
 }
 
+/* ---------- màn hình rộng: kéo cảnh ra hai bên ---------- */
+function wideVB(w,h){const cw=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth)-2*Math.max(16,Math.min(48,innerWidth*.03));if(innerWidth<900)return `0 0 ${w} ${h}`;
+  const maxH=Math.max(320,innerHeight*.62),aspect=Math.min(3.2,Math.max(w/h,cw/maxH)),W=h*aspect,ex=(W-w)/2;return `${-ex.toFixed(1)} 0 ${W.toFixed(1)} ${h}`}
+function sideDeco(h,y1,y2){let s='';const r=seeded('side'+h);for(const side of [-1,1]){for(let i=0;i<5;i++){const x=side<0?-90-i*230-r()*80:890+i*230+r()*80;s+=tree(x,y1+40+r()*(y2-y1-80),.55+r()*.25,r()>.4)}s+=flowerDots([...Array(8)].map((_,i)=>[side<0?-60-i*140:860+i*140,y2-20-(i%3)*30,['#ff9fbe','#fff','#ffd23f','#b892f0'][i%4]]))+tufts([...Array(8)].map((_,i)=>[side<0?-120-i*150:920+i*150,y2-50-(i%2)*40]))}return s}
+let RZ=0;addEventListener('resize',()=>{clearTimeout(RZ);RZ=setTimeout(()=>{if(S.me&&S.home)renderAll()},200)});
+
 /* ---------- FARM ---------- */
 const TOOLS=[
   {k:'hand',n:'Xem',h:'Chạm vào ô đất để xem tình trạng, cây chín thì thu hoạch luôn.',ico:`<path d="M-8 13 L-11 -1 Q-13 -7 -8 -7 L-6 -1 L-6 -12 Q-6 -16 -2 -16 Q2 -16 2 -12 L2 -3 L3 -13 Q4 -17 8 -16 Q11 -15 10 -11 L9 -1 Q13 -6 16 -3 Q17 1 13 5 L7 13Z" fill="#fff4e6"${SW}/>`},
@@ -807,10 +813,10 @@ function plotSVG(i,h,t){
 function farmScene(){
   const h=S.home,t=now();
   let s=`<defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#d4f3ff"/></linearGradient></defs>`;
-  s+=`<rect width="800" height="150" fill="url(#skyg)"/><circle cx="728" cy="44" r="26" fill="#ffe066"${SW}/><g stroke="#ffd23f" stroke-width="3" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>`<path d="M${728+34*Math.cos(a*Math.PI/180)} ${44+34*Math.sin(a*Math.PI/180)} L${728+42*Math.cos(a*Math.PI/180)} ${44+42*Math.sin(a*Math.PI/180)}"/>`).join('')}</g>`;
+  s+=`<rect x="-1600" width="4000" height="150" fill="url(#skyg)"/><circle cx="728" cy="44" r="26" fill="#ffe066"${SW}/><g stroke="#ffd23f" stroke-width="3" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>`<path d="M${728+34*Math.cos(a*Math.PI/180)} ${44+34*Math.sin(a*Math.PI/180)} L${728+42*Math.cos(a*Math.PI/180)} ${44+42*Math.sin(a*Math.PI/180)}"/>`).join('')}</g>`;
   s+=cloud(120,48,1,-10)+cloud(420,30,.8,-40)+cloud(640,70,.7,-25);
-  s+=`<path d="M0 132 Q120 90 260 128 Q400 84 560 126 Q680 96 800 124 V160 H0Z" fill="#a6dd7c"${SW}/>`;
-  s+=`<rect y="140" width="800" height="360" fill="#86cf5c"/><ellipse cx="160" cy="420" rx="170" ry="40" fill="#93d76a"/><ellipse cx="660" cy="250" rx="120" ry="28" fill="#93d76a"/>`;
+  s+=[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 132 Q120 90 260 128 Q400 84 560 126 Q680 96 800 132 V160 H0Z" fill="#a6dd7c"/><path transform="translate(${dx} 0)" d="M0 132 Q120 90 260 128 Q400 84 560 126 Q680 96 800 132" fill="none"${SW}/>`).join('');
+  s+=`<rect x="-1600" y="140" width="4000" height="360" fill="#86cf5c"/>${sideDeco(500,170,480)}<ellipse cx="160" cy="420" rx="170" ry="40" fill="#93d76a"/><ellipse cx="660" cy="250" rx="120" ry="28" fill="#93d76a"/>`;
   s+=`<g transform="translate(96 196) scale(.42)">${houseSVG(h.house||1)}</g>`;
   s+=fence(150,250,800);
   s+=tree(740,236,.75);
@@ -827,7 +833,7 @@ function viewFarm(){
   const seeds=S.tool==='seed'?`<div class="seedrow">${Object.keys(CROPS).map(k=>{const n=h.seeds?.[k]||0;return `<button class="seedchip ${S.seed===k?'on':''} ${n?'':'none'}" data-act="seed" data-v="${k}"><svg viewBox="-20 -22 40 42" aria-hidden="true">${produceIcon(k)}</svg>${CROPS[k].n} ×${n}</button>`}).join('')}<button class="seedchip" data-act="shop" data-v="seeds">+ Mua hạt</button></div>`:'';
   const ripeN=[...Array(h.plotsOpen||6).keys()].filter(i=>plotInfo(h.plots?.['p'+i]).ripe).length;
   return `<div class="sec-title"><h2>Nông trại ${S.partner?'của hai đứa':'của bạn'}</h2><div class="row">${ripeN?`<button class="btn green sm" data-act="harvestall">Thu hoạch hết (${ripeN})</button>`:''}<button class="btn sm white" data-act="shop" data-v="market">Ra chợ bán</button></div></div>
-  <div class="scene" id="scene"><svg viewBox="0 0 800 500" role="img" aria-label="Cánh đồng">${farmScene()}</svg></div>
+  <div class="scene" id="scene"><svg viewBox="${wideVB(800,500)}" role="img" aria-label="Cánh đồng">${farmScene()}</svg></div>
   <div class="toolbar" role="toolbar" aria-label="Dụng cụ">${tools}</div>${seeds}
   <p class="hint">${esc(TOOLS.find(t=>t.k===S.tool).h)}</p>`;
 }
@@ -884,7 +890,7 @@ function harvestAll(){let tot=0;const h=S.home;for(let i=0;i<(h.plotsOpen||6);i+
 function fishInfo(f,t=now()){const F=FISH[f.t];const G=F.g*1000;const prog=(f.grown||0)+Math.min(Math.max(0,t-f.fAt),FLIM);return{F,mature:prog>=G,frac:Math.min(1,prog/G),hungry:prog<G&&t-f.fAt>FLIM,until:t+(G-prog)}}
 function pondScene(){
   const fish=live(S.home.fish),t=now();
-  let s=`<rect width="800" height="360" fill="#86cf5c"/>${tufts([[40,40],[760,60],[90,320],[720,320],[400,30]])}${flowerDots([[60,90,'#ff9fbe'],[740,110,'#fff'],[120,300,'#ffd23f'],[690,290,'#b892f0']])}`;
+  let s=`<rect x="-1600" width="4000" height="360" fill="#86cf5c"/>${sideDeco(360,60,340)}${tufts([[40,40],[760,60],[90,320],[720,320],[400,30]])}${flowerDots([[60,90,'#ff9fbe'],[740,110,'#fff'],[120,300,'#ffd23f'],[690,290,'#b892f0']])}`;
   s+=`<ellipse cx="400" cy="186" rx="344" ry="140" fill="#d8cbb0"${SW}/><ellipse cx="400" cy="186" rx="326" ry="126" fill="#5fb6e8"${SW}/><ellipse cx="400" cy="196" rx="300" ry="104" fill="#6cc3f0"/><path d="M180 150 q30 -8 60 0 M480 230 q30 -8 60 0 M330 110 q24 -6 48 0" stroke="#b9e6ff" stroke-width="3" fill="none" stroke-linecap="round"/>`;
   s+=[[150,200],[640,150],[560,260]].map(([x,y])=>`<path d="M${x} ${y} m-20 0 a20 11 0 1 0 40 0 a20 11 0 1 0 -40 0 M${x} ${y} L${x+20} ${y-4}" fill="#5fb43f"${SW}/>`).join('')+`<g transform="translate(640 150)"><circle r="5" fill="#ff9fbe"${SW}/></g>`;
   s+=[[96,140],[110,150],[704,230],[716,222]].map(([x,y])=>`<path d="M${x} ${y} V${y-50}" stroke="#4f9a32" stroke-width="4"/><ellipse cx="${x}" cy="${y-54}" rx="4" ry="10" fill="#8a5530"${SW}/>`).join('');
@@ -916,7 +922,7 @@ function viewPond(){
   const h=S.home,fish=live(h.fish),t=now();
   const hungry=fish.filter(([,f])=>!fishInfo(f,t).mature&&t-f.fAt>20000).length,mature=fish.filter(([,f])=>fishInfo(f,t).mature);
   return `<div class="sec-title"><h2>Ao cá nhà mình</h2><span class="tag">${fish.length}/${h.pondCap||6} con</span></div>
-  <div class="scene"><svg viewBox="0 0 800 360" role="img" aria-label="Ao cá">${pondScene()}</svg></div>
+  <div class="scene"><svg viewBox="${wideVB(800,360)}" role="img" aria-label="Ao cá">${pondScene()}</svg></div>
   <div class="row" style="margin:12px 0"><button class="btn" data-act="feedfish" ${hungry?'':'disabled'}>Cho cá ăn${hungry?` (${hungry})`:''}</button><button class="btn green" data-act="sellfishall" ${mature.length?'':'disabled'}>Vớt bán cá lớn${mature.length?` (${mature.length})`:''}</button><button class="btn white" data-act="shop" data-v="fishshop">Mua cá giống, cám, mồi</button></div>${supChips(['fishfood','bait'])}
   <div class="list">${fish.map(([id,f])=>{const I=fishInfo(f,t);return `<div class="item"><div class="ic"><svg viewBox="-30 -16 60 32">${fishShape(I.F.c,I.F.c2,I.F.spots)}</svg></div><div class="tx"><b>${I.F.n}</b><small>${I.mature?`Đã lớn · bán được ${I.F.sell} xu`:I.hungry?'Đói bụng, ngừng lớn rồi':`Đang lớn · đói lại sau <span data-until="${f.fAt+FLIM}">${fmt(f.fAt+FLIM-t)}</span>`}</small><div class="bar"><i style="width:${I.frac*100}%"></i></div></div>${I.mature?`<button class="btn sm green" data-act="sellfish" data-v="${id}">Bán</button>`:''}</div>`}).join('')}</div>
   <div class="sec-title"><h2>Câu cá ở hồ</h2><span class="muted">Câu được cá thì mang ra chợ bán</span></div>
@@ -947,7 +953,7 @@ function petInfo(p,t=now()){return{hungry:t-(p.fAt||0)>20*60000,canPat:t-(p.patA
 const isBig=c=>CHICKS[c.t]?.kind==='big';
 function coopScene(){
   const h=S.home,coop=live(h.coop).filter(([,c])=>!isBig(c)),t=now();
-  let s=`<rect width="800" height="340" fill="#9fdcf7"/><path d="M0 80 Q200 50 400 76 Q600 50 800 74 V100 H0Z" fill="#a6dd7c"${SW}/><rect y="96" width="800" height="244" fill="#86cf5c"/>${fence(110,0,800)}`;
+  let s=`<rect x="-1600" width="4000" height="340" fill="#9fdcf7"/>${[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 80 Q200 50 400 76 Q600 50 800 80 V100 H0Z" fill="#a6dd7c"/><path transform="translate(${dx} 0)" d="M0 80 Q200 50 400 76 Q600 50 800 80" fill="none"${SW}/>`).join('')}<rect x="-1600" y="96" width="4000" height="244" fill="#86cf5c"/>${sideDeco(340,150,330)}${fence(110,-1000,1800)}`;
   s+=`<g transform="translate(686 250)"><rect x="-90" y="-112" width="180" height="112" fill="#e0a45f"${SW}/>${[-90,-70,-50,-30].map(y=>`<path d="M-90 ${y} H90" stroke="#b5773f" stroke-width="2"/>`).join('')}<path d="M-110 -104 L0 -168 L110 -104Z" fill="#ef5b4c"${SW}/><path d="M-26 0 V-56 Q0 -76 26 -56 V0Z" fill="#5f3a1e"${SW}/><path d="M-12 0 L-30 32 M12 0 L30 32" stroke="#a8693a" stroke-width="5"/><ellipse cx="-56" cy="-4" rx="22" ry="8" fill="#f2cf6b"${SW}/></g>`;
   s+=`<rect x="40" y="290" width="90" height="22" rx="8" fill="#8a5530"${SW}/><rect x="46" y="292" width="78" height="10" rx="4" fill="#f2cf6b"/><rect x="150" y="292" width="70" height="20" rx="8" fill="#9fb4c8"${SW}/><rect x="156" y="294" width="58" height="8" rx="3" fill="#6cc3f0"/>`;
   s+=tufts([[300,320],[520,300],[20,150],[440,140]]);
@@ -961,11 +967,11 @@ function coopScene(){
 }
 function pastureScene(){
   const h=S.home,herd=live(h.coop).filter(([,c])=>isBig(c)),t=now();
-  let s=`<rect width="800" height="340" fill="#a9e1ff"/>${cloud(160,44,.9,-30)}<path d="M0 96 Q160 50 320 88 Q520 40 800 84 V130 H0Z" fill="#b6e48c"${SW}/><rect y="120" width="800" height="220" fill="#93d76a"/>`;
+  let s=`<rect x="-1600" width="4000" height="340" fill="#a9e1ff"/>${cloud(160,44,.9,-30)}${[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 96 Q160 50 320 88 Q520 40 800 96 V130 H0Z" fill="#b6e48c"/><path transform="translate(${dx} 0)" d="M0 96 Q160 50 320 88 Q520 40 800 96" fill="none"${SW}/>`).join('')}<rect x="-1600" y="120" width="4000" height="220" fill="#93d76a"/>${sideDeco(340,170,330)}`;
   s+=`<g transform="translate(110 236)"><rect x="-86" y="-104" width="172" height="104" fill="#d9534f"${SW}/><path d="M-100 -96 L0 -156 L100 -96Z" fill="#fff4e6"${SW}/><path d="M-100 -96 L0 -156 L100 -96" fill="none" stroke="#b5773f" stroke-width="5"/><rect x="-34" y="-72" width="68" height="72" fill="#fff4e6"${SW}/><path d="M-34 -72 L34 0 M34 -72 L-34 0" stroke="#d9534f" stroke-width="5"/><circle cx="0" cy="-122" r="10" fill="#fff4e6"${SW}/></g>`;
   s+=`<g transform="translate(250 290)"><rect x="-34" y="-30" width="68" height="30" rx="6" fill="#f2cf6b"${SW}/><path d="M-34 -18 H34" stroke="#c99a2c" stroke-width="2"/><path d="M-14 -30 V0 M14 -30 V0" stroke="#a8693a" stroke-width="3"/></g>`;
-  for(let x=0;x<=800;x+=50)s+=`<path d="M${x} 150 v-30" stroke="#a8693a" stroke-width="6" stroke-linecap="round"/>`;
-  s+=`<path d="M0 128 H800 M0 140 H800" stroke="#c98a52" stroke-width="4"/>`+tufts([[330,320],[560,300],[740,230],[420,180],[640,170]])+flowerDots([[700,300,'#fff'],[460,320,'#ffd23f'],[380,200,'#ff9fbe']]);
+  for(let x=-1000;x<=1800;x+=50)s+=`<path d="M${x} 150 v-30" stroke="#a8693a" stroke-width="6" stroke-linecap="round"/>`;
+  s+=`<path d="M-1000 128 H1800 M-1000 140 H1800" stroke="#c98a52" stroke-width="4"/>`+tufts([[330,320],[560,300],[740,230],[420,180],[640,170]])+flowerDots([[700,300,'#fff'],[460,320,'#ffd23f'],[380,200,'#ff9fbe']]);
   const two=herd.length>3,hs=two?1.75:2.4;
   herd.forEach(([id,c],i)=>{const I=chickInfo(c,t),x=(two?350:330)+(i%3)*(two?150:170),y=two?210+Math.floor(i/3)*104:300;
     s+=`<g transform="translate(${x} ${y}) scale(${hs})"><g class="${I.hungry?'':'bob'}" style="animation-delay:${-i*.5}s">${bigSVG(c.t,I.mature)}</g></g>`;
@@ -980,9 +986,9 @@ function viewCoop(){
   const hungry=all.filter(([,c])=>t-c.fAt>20000).length,prod=all.reduce((a,[,c])=>a+chickInfo(c,t).eggs,0);
   const row=([id,c])=>{const I=chickInfo(c,t),pn=ITEMS[I.D.egg].n.toLowerCase();return `<div class="item"><div class="ic"><svg viewBox="${isBig(c)?'-30 -66 80 70':'-30 -46 60 50'}">${animalSVG(c.t,I.mature)}</svg></div><div class="tx"><b>${I.mature?I.D.adult:I.D.n}</b><small>${I.hungry?'Đói rồi, '+(I.mature?'không cho '+pn:'ngừng lớn'):I.mature?`Đang cho ${pn} · ${I.eggs} chờ thu`:'Đang lớn'}</small>${I.mature?'':`<div class="bar"><i style="width:${I.frac*100}%"></i></div>`}</div>${I.mature?`<button class="btn sm white" data-act="sellchick" data-v="${id}">Bán ${I.D.sell} xu</button>`:''}</div>`};
   return `<div class="sec-title"><h2>Chuồng gà vịt</h2><span class="tag">${coop.length}/${h.coopCap||6} con</span></div>
-  <div class="scene"><svg viewBox="0 0 800 340" role="img" aria-label="Chuồng gà">${coopScene()}</svg></div>
+  <div class="scene"><svg viewBox="${wideVB(800,340)}" role="img" aria-label="Chuồng gà">${coopScene()}</svg></div>
   <div class="sec-title"><h2>Đồng cỏ bò, dê, cừu</h2><span class="tag">${herd.length}/${h.barnCap||3} con</span></div>
-  <div class="scene"><svg viewBox="0 0 800 340" role="img" aria-label="Đồng cỏ">${pastureScene()}</svg></div>
+  <div class="scene"><svg viewBox="${wideVB(800,340)}" role="img" aria-label="Đồng cỏ">${pastureScene()}</svg></div>
   <div class="row" style="margin:12px 0 0"><button class="btn" data-act="feedchick" ${hungry?'':'disabled'}>Cho cả trại ăn${hungry?` (${hungry})`:''}</button><button class="btn green" data-act="eggs" ${prod?'':'disabled'}>Thu trứng, sữa, lông${prod?` (${prod})`:''}</button><button class="btn white" data-act="shop" data-v="animals">Mua con giống, thức ăn</button></div>
   ${supChips(['grain','hay','petfood'])}
   <div class="list" style="margin-top:12px">${all.map(row).join('')}</div>
@@ -1006,14 +1012,14 @@ function petPat(id){const p=S.home.pets?.[id];if(!p||!petInfo(p).canPat)return;c
 function interiorSVG(){
   const h=S.home,lv=h.house||1,H_=HOUSES[lv];
   const wall=['','#efd9a6','#f3d9b1','#ffe4ec','#e3eeff'][lv],wall2=['','#e6cb8e','#e8c79a','#ffd3df','#cfe0fb'][lv];
-  let s=`<rect width="800" height="420" fill="${wall}"/>`;
-  if(lv===2)for(let y=20;y<250;y+=26)s+=`<path d="M0 ${y} H800" stroke="${wall2}" stroke-width="3"/>`;
-  else if(lv===3)for(let x=20;x<800;x+=40)for(let y=20;y<240;y+=40)s+=`<path d="${heartPath(x+(y/40%2)*20,y,4)}" fill="${wall2}"/>`;
-  else if(lv===4)for(let x=0;x<800;x+=48)s+=`<rect x="${x}" y="0" width="24" height="250" fill="${wall2}"/>`;
-  else for(let x=10;x<800;x+=22)s+=`<path d="M${x} 0 V250" stroke="${wall2}" stroke-width="3"/>`;
+  let s=`<rect x="-1600" width="4000" height="420" fill="${wall}"/>`;
+  if(lv===2)for(let y=20;y<250;y+=26)s+=`<path d="M-1600 ${y} H2400" stroke="${wall2}" stroke-width="3"/>`;
+  else if(lv===3)for(let x=-1580;x<2400;x+=40)for(let y=20;y<240;y+=40)s+=`<path d="${heartPath(x+(y/40%2)*20,y,4)}" fill="${wall2}"/>`;
+  else if(lv===4)for(let x=-1584;x<2400;x+=48)s+=`<rect x="${x}" y="0" width="24" height="250" fill="${wall2}"/>`;
+  else for(let x=-1594;x<2400;x+=22)s+=`<path d="M${x} 0 V250" stroke="${wall2}" stroke-width="3"/>`;
   s+=`<rect x="340" y="40" width="120" height="110" rx="10" fill="#bfe6ff"${SW}/><path d="M400 40 V150 M340 95 H460" stroke="${O}" stroke-width="3"/><circle cx="372" cy="70" r="10" fill="#fff" opacity=".8"/><path d="M330 36 Q360 100 336 156 L346 156 Q370 96 352 36Z M470 36 Q440 100 464 156 L454 156 Q430 96 448 36Z" fill="#ff9fbe"${SW}/>`;
-  s+=`<rect y="244" width="800" height="12" fill="#a8693a"${SW}/><rect y="256" width="800" height="164" fill="#d39a5e"/>`;
-  for(let y=280;y<420;y+=28)s+=`<path d="M0 ${y} H800" stroke="#b5773f" stroke-width="2"/>`;
+  s+=`<rect x="-1600" y="244" width="4000" height="12" fill="#a8693a"${SW}/><rect x="-1600" y="256" width="4000" height="164" fill="#d39a5e"/>`;
+  for(let y=280;y<420;y+=28)s+=`<path d="M-1600 ${y} H2400" stroke="#b5773f" stroke-width="2"/>`;
   const placed=live(h.furn).filter(([,f])=>f.on&&FURN[f.t]);
   const wallI=placed.filter(([,f])=>FURN[f.t].wall).slice(0,H_.wall),floorI=placed.filter(([,f])=>!FURN[f.t].wall).slice(0,H_.floor);
   wallI.forEach(([,f],i)=>{const[x,y]=WALL_SLOTS[i];s+=`<g transform="translate(${x} ${y})">${FD[f.t]()}</g>`});
@@ -1029,12 +1035,12 @@ function viewHome(){
   const h=S.home,lv=h.house||1,nx=HOUSES[lv+1];
   const furn=live(h.furn).filter(([,f])=>FURN[f.t]);
   const placedW=furn.filter(([,f])=>f.on&&FURN[f.t].wall).length,placedF=furn.filter(([,f])=>f.on&&!FURN[f.t].wall).length;
-  const ext=`<rect width="800" height="360" fill="#9fdcf7"/>${cloud(140,50,1,-20)}${cloud(560,40,.8,-50)}<path d="M0 230 Q200 190 400 222 Q600 190 800 220 V360 H0Z" fill="#86cf5c"${SW}/>${tree(90,320,.9,false)}${tree(720,316,.85)}<g transform="translate(400 318)">${houseSVG(lv)}</g><path d="M360 318 Q380 340 350 360 H450 Q420 340 440 318Z" fill="#e8d6c4"${SW}/>${placeChar(S.me,250,350,.7)}${placeChar(S.partner,560,350,.7)}<g transform="translate(190 300)"><rect x="-2" y="0" width="4" height="40" fill="#8a5530"/><rect x="-22" y="-18" width="44" height="24" rx="5" fill="#ef5b4c"${SW}/></g>`;
+  const ext=`<rect x="-1600" width="4000" height="360" fill="#9fdcf7"/>${cloud(140,50,1,-20)}${cloud(560,40,.8,-50)}${[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 230 Q200 190 400 222 Q600 190 800 230 V360 H0Z" fill="#86cf5c"/><path transform="translate(${dx} 0)" d="M0 230 Q200 190 400 222 Q600 190 800 230" fill="none"${SW}/>`).join('')}${sideDeco(360,250,350)}${tree(90,320,.9,false)}${tree(720,316,.85)}<g transform="translate(400 318)">${houseSVG(lv)}</g><path d="M360 318 Q380 340 350 360 H450 Q420 340 440 318Z" fill="#e8d6c4"${SW}/>${placeChar(S.me,250,350,.7)}${placeChar(S.partner,560,350,.7)}<g transform="translate(190 300)"><rect x="-2" y="0" width="4" height="40" fill="#8a5530"/><rect x="-22" y="-18" width="44" height="24" rx="5" fill="#ef5b4c"${SW}/></g>`;
   return `<div class="sec-title"><h2>${esc(HOUSES[lv].n)}</h2><div class="row"><button class="btn sm pink" data-act="wardrobe" data-v="me">Tủ đồ của mình</button>${S.partner?`<button class="btn sm white" data-act="wardrobe" data-v="pa">Chọn đồ cho người ấy</button>`:''}</div></div>
-  <div class="scene"><svg viewBox="0 0 800 360" role="img" aria-label="Ngôi nhà">${ext}</svg></div>
+  <div class="scene"><svg viewBox="${wideVB(800,360)}" role="img" aria-label="Ngôi nhà">${ext}</svg></div>
   <div class="panel" style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">${nx?`<div><b style="font-family:var(--display);font-size:1.1rem">Nâng cấp lên ${nx.n}</b><div class="muted">Thêm chỗ cho ${nx.floor} món đồ sàn và ${nx.wall} món treo tường${nx.married?' · cần đăng ký kết hôn trước':''}</div></div><button class="btn green" data-act="upgrade" ${(nx.married&&!h.married)?'disabled':''}>Xây ngay ${priceTag(nx.price)}</button>`:`<b style="font-family:var(--display);font-size:1.1rem">Nhà đã lên cấp cao nhất, đẹp nhất xóm rồi!</b>`}</div>
   <div class="sec-title"><h2>Bên trong nhà</h2><button class="btn sm white" data-act="shop" data-v="furniture">Mua nội thất</button></div>
-  <div class="scene"><svg viewBox="0 0 800 420" role="img" aria-label="Phòng khách">${interiorSVG()}</svg></div>
+  <div class="scene"><svg viewBox="${wideVB(800,420)}" role="img" aria-label="Phòng khách">${interiorSVG()}</svg></div>
   <p class="hint">Chỗ trống: sàn ${placedF}/${HOUSES[lv].floor} · tường ${placedW}/${HOUSES[lv].wall}. Chạm vào món đồ để bày ra hoặc cất đi.</p>
   <div class="wgrid" style="margin-top:8px">${furn.map(([id,f])=>`<button class="wcell ${f.on?'on':''}" data-act="furn" data-v="${id}" aria-pressed="${!!f.on}">${furnIcon(f.t)}${FURN[f.t].n}<small class="muted">${f.on?'Đang bày':'Trong kho'}</small></button>`).join('')||`<div class="muted">Chưa có đồ nội thất nào.</div>`}</div>`;
 }
