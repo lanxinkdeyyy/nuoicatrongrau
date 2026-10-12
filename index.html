@@ -1439,9 +1439,9 @@ function authScreen(){
   const a=S.auth,prev={g:a.g,skin:a.skin,hs:a.hs,hc:a.hc,eq:a.g==='m'?DEF_M:DEF_F};
   const prev2={g:a.g==='m'?'f':'m',skin:SKINS[1],hs:a.g==='m'?'long':'short',hc:HAIRC[0],eq:a.g==='m'?DEF_F:DEF_M};
   const scene=`<rect width="600" height="220" fill="#9fdcf7"/>${cloud(80,40,.9,-5)}${cloud(400,30,.7,-30)}<path d="M0 150 Q300 110 600 146 V220 H0Z" fill="#86cf5c"${SW}/>${tree(520,190,.6)}<g transform="translate(90 196) scale(.36)">${houseSVG(2)}</g><g id="pv">${placeChar(prev,260,212,.72)}</g>${placeChar(prev2,340,212,.72,{mood:'love'})}<g transform="translate(300 96)"><g class="bob"><path d="${heartPath(0,0,13)}" fill="#ff5e8e"${SW}/></g></g>`;
-  const note=S.mode==='cloud'?`<p class="muted" style="margin:0">Tài khoản lưu trên mạng, đăng nhập máy nào cũng chơi tiếp được. Mã PIN chỉ dùng trong game, đừng dùng mật khẩu thật nhé.</p>`:S.mode==='local'?`<p class="muted" style="margin:0">${S.onlineBlocked?'Tài khoản claude.ai này chỉ có quyền xem trang nên đang chơi trên máy này. ':''}Dữ liệu lưu trong trình duyệt của máy này.</p>`:`<p class="muted" style="margin:0">Mã PIN chỉ dùng trong game, đừng dùng mật khẩu thật nhé.</p>`;
-  const login=`<form class="list" data-form="login"><label class="f">Tên đăng nhập<input class="in" id="lg-user" autocomplete="username" maxlength="16" required></label><label class="f">Mã PIN<input class="in" id="lg-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" required></label><p class="err" id="auth-err">${esc(a.err||'')}</p><button class="btn big pink" type="submit">Vào nông trại</button></form>`;
-  const signup=`<form class="list" data-form="signup"><label class="f">Tên nhân vật<input class="in" id="su-nick" maxlength="14" placeholder="Ví dụ: Bé Na" required></label><div class="row" style="align-items:stretch"><label class="f" style="flex:1;min-width:150px">Tên đăng nhập<input class="in" id="su-user" maxlength="16" placeholder="chữ thường, số" autocomplete="username" required></label><label class="f" style="flex:1;min-width:120px">Mã PIN 4-6 số<input class="in" id="su-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" required></label></div>
+  const note=S.mode==='cloud'?`<p class="muted" style="margin:0">Tài khoản lưu trên mạng, đăng nhập máy nào cũng chơi tiếp được. Mật khẩu được mã hóa trước khi lưu. Đừng dùng lại mật khẩu Gmail hay Facebook nhé.</p>`:S.mode==='local'?`<p class="muted" style="margin:0">${S.onlineBlocked?'Tài khoản claude.ai này chỉ có quyền xem trang nên đang chơi trên máy này. ':''}Dữ liệu lưu trong trình duyệt của máy này.</p>`:`<p class="muted" style="margin:0">Mật khẩu được mã hóa trước khi lưu. Đừng dùng lại mật khẩu Gmail hay Facebook nhé.</p>`;
+  const login=`<form class="list" data-form="login"><label class="f">Tên đăng nhập<input class="in" id="lg-user" autocomplete="username" maxlength="16" required></label><label class="f">Mật khẩu<input class="in" id="lg-pin" type="password" maxlength="64" autocomplete="current-password" required></label><p class="err" id="auth-err">${esc(a.err||'')}</p><button class="btn big pink" type="submit">Vào nông trại</button></form>`;
+  const signup=`<form class="list" data-form="signup"><label class="f">Tên nhân vật<input class="in" id="su-nick" maxlength="14" placeholder="Ví dụ: Bé Na" required></label><div class="row" style="align-items:stretch"><label class="f" style="flex:1;min-width:150px">Tên đăng nhập<input class="in" id="su-user" maxlength="16" placeholder="chữ thường, số" autocomplete="username" required></label><label class="f" style="flex:1;min-width:120px">Mật khẩu (từ 6 ký tự)<input class="in" id="su-pin" type="password" maxlength="64" autocomplete="new-password" required></label></div>
     <div class="tabs"><button type="button" class="${a.g==='f'?'on':''}" data-act="ag" data-v="f">Con gái</button><button type="button" class="${a.g==='m'?'on':''}" data-act="ag" data-v="m">Con trai</button></div>
     <div class="tabs">${Object.entries(HAIRS).map(([k,n])=>`<button type="button" class="${a.hs===k?'on':''}" data-act="ahs" data-v="${k}">${n}</button>`).join('')}</div>
     <div class="row"><span class="muted" style="font-weight:800">Tóc</span><div class="swatches">${HAIRC.map(c=>`<button type="button" class="sw ${a.hc===c?'on':''}" style="background:${c}" data-act="ahc" data-v="${c}" aria-label="Màu tóc"></button>`).join('')}</div></div>
@@ -1451,18 +1451,23 @@ function authScreen(){
   <div class="scene"><svg viewBox="0 0 600 220" aria-hidden="true">${scene}</svg></div>
   <div class="panel list"><div class="tabs"><button class="${a.tab==='login'?'on':''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${a.tab==='signup'?'on':''}" data-act="atab" data-v="signup">Tạo tài khoản</button></div>${a.tab==='login'?login:signup}${note}</div></div>`;
 }
+/* mật khẩu: băm PBKDF2-SHA256 có muối, không bao giờ lưu mật khẩu gốc */
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+async function pbkdf2(pass,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:150000},k,256))}
+async function passHash(u,pass){const salt=hex(crypto.getRandomValues(new Uint8Array(16)));return{v:2,salt,h:await pbkdf2(u+':'+pass,salt)}}
+async function passOk(acc,u,pass){if(acc.v===2)return acc.h===await pbkdf2(u+':'+pass,acc.salt);return acc.h===hash(u+':'+pass)}
 const userOk=u=>/^[a-z0-9_]{3,16}$/.test(u);
 async function doLogin(){
-  const u=$('#lg-user').value.trim().toLowerCase(),pin=$('#lg-pin').value.trim();
-  if(!userOk(u)||!/^\d{4,6}$/.test(pin))return authErr('Tên đăng nhập hoặc mã PIN chưa đúng.');
-  try{const a=await DB.doc('accounts/'+u).get();if(!a.exists||a.data().h!==hash(u+':'+pin))return authErr('Tên đăng nhập hoặc mã PIN chưa đúng.');const uid=a.data().uid;LS.set(sessKey(),{uid});S.auth.err='';start(uid);renderAll()}catch(e){authErr('Không kết nối được, thử lại nhé.')}
+  const u=$('#lg-user').value.trim().toLowerCase(),pin=$('#lg-pin').value;
+  if(!userOk(u)||!pin)return authErr('Tên đăng nhập hoặc mật khẩu chưa đúng.');
+  try{const a=await DB.doc('accounts/'+u).get();if(!a.exists||!(await passOk(a.data(),u,pin)))return authErr('Tên đăng nhập hoặc mật khẩu chưa đúng.');const uid=a.data().uid;LS.set(sessKey(),{uid});S.auth.err='';start(uid);renderAll()}catch(e){authErr('Không kết nối được, thử lại nhé.')}
 }
 function newHome(uid){const plots={};for(let i=0;i<12;i++)plots['p'+i]={...EMPTY,st:i<3?'tilled':'wild'};return{members:[uid],coins:300,love:0,married:false,ring:false,house:1,plotsOpen:6,pondCap:6,coopCap:6,barnCap:3,plots,seeds:{carrot:4,cabbage:2},sup:{},inv:{},fish:{},coop:{},pets:{},furn:{u1:{t:'plant',on:true},u2:{t:'table',on:true},u3:{t:'rug',on:true}},created:now()}}
 async function doSignup(){
-  const a=S.auth,nick=$('#su-nick').value.trim(),u=$('#su-user').value.trim().toLowerCase(),pin=$('#su-pin').value.trim();
+  const a=S.auth,nick=$('#su-nick').value.trim(),u=$('#su-user').value.trim().toLowerCase(),pin=$('#su-pin').value;
   if(!nick)return authErr('Đặt tên cho nhân vật nhé.');
   if(!userOk(u))return authErr('Tên đăng nhập 3-16 ký tự: chữ thường không dấu, số hoặc dấu gạch dưới.');
-  if(!/^\d{4,6}$/.test(pin))return authErr('Mã PIN gồm 4 đến 6 chữ số.');
+  if(pin.length<6)return authErr('Mật khẩu cần ít nhất 6 ký tự.');
   try{
     const ex=await DB.doc('accounts/'+u).get();if(ex.exists)return authErr('Tên đăng nhập này đã có người dùng.');
     const uid='p'+rid()+rid();let code;for(let i=0;i<6;i++){code=String(100000+Math.floor(Math.random()*900000));const c=await DB.doc('codes/'+code).get();if(!c.exists)break}
@@ -1470,7 +1475,7 @@ async function doSignup(){
     await DB.doc('homes/'+hid).set(newHome(uid));
     await DB.doc('players/'+uid).set({nick:nick.slice(0,14),user:u,code,g:a.g,skin:a.skin,hs:a.hs,hc:a.hc,eq:{...(a.g==='m'?DEF_M:DEF_F)},owned:{},homeId:hid,partner:null,created:now()});
     await DB.doc('codes/'+code).set({uid});
-    await DB.doc('accounts/'+u).set({h:hash(u+':'+pin),uid});
+    await DB.doc('accounts/'+u).set({...(await passHash(u,pin)),uid});
     LS.set(sessKey(),{uid});S.auth.err='';start(uid);renderAll();toast(`Chào mừng ${nick} đến Nuôi Cá Trồng Rau!`,'love');
   }catch(e){if(e&&e.code==='invalid_argument'&&S.mode==='online')authErr('Tài khoản claude.ai này chỉ có quyền xem trang nên chưa tạo được nhân vật.');else authErr('Không tạo được tài khoản, thử lại nhé.')}
 }
