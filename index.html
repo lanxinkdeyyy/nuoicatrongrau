@@ -33,7 +33,7 @@ html,body{min-height:100%}
 body{background:linear-gradient(180deg,#a9e1ff 0%,#d8f4ff 34%,#e6f8d2 70%,#cdeeb0 100%) fixed;color:var(--ink);font-family:var(--body);font-size:15px;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
-.wrap{max-width:none;margin:0 auto;padding-inline:clamp(16px,3vw,48px);padding-block:0 104px}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,40px);padding-block:0 104px}
 .panel{background:var(--cream);border:3px solid var(--woodDk);border-radius:18px;box-shadow:0 5px 0 var(--woodDk);padding:14px}
 .btn{font-family:var(--display);font-weight:800;font-size:1rem;background:var(--yellow);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:.35em .95em;cursor:pointer;line-height:1.2;display:inline-flex;align-items:center;gap:6px;justify-content:center;transition:transform .06s}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
@@ -77,7 +77,7 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
 
 /* Nav */
 nav.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:repeating-linear-gradient(90deg,#e6b06a 0 60px,#dea561 60px 62px);border-top:3px solid var(--ink)}
-nav .in{display:flex;gap:2px;max-width:1200px;margin:0 auto}
+nav .in{display:flex;gap:2px;max-width:1160px;margin:0 auto}
 nav button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:0;background:none;border:0;font:700 .72rem var(--display);padding:4px 1px 2px;border-radius:12px;cursor:pointer;position:relative;white-space:nowrap}
 nav button svg{width:30px;height:30px}
 nav button.on{background:#fff3c2;box-shadow:inset 0 0 0 2.5px var(--ink)}
@@ -120,13 +120,23 @@ nav button .dot{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;
 
 /* Town */
 .town{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-.pscroll{overflow-x:auto;overflow-y:hidden;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--woodDk);background:#93d76a;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:thin;--ph:clamp(340px,66vh,700px)}
+.pscroll{overflow-x:auto;overflow-y:hidden;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--woodDk);background:#93d76a;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:thin;--ph:clamp(340px,62vh,600px)}
 .pscroll.drag{cursor:grabbing}
 .pinner{position:relative;width:max-content}
 .pbub{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bub{position:absolute;transform:translate(-50%,-100%);background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:4px 10px;font:600 .88rem var(--body);max-width:230px;width:max-content;box-shadow:0 3px 0 var(--ink);animation:bubUp 6.5s ease-out forwards;line-height:1.25;word-break:break-word}
 .bub b{font-family:var(--display);color:#c2456d}
 .bub.mine{background:#fff3c2}
+@keyframes fshake{0%,100%{transform:translate(0,0) rotate(0)}20%{transform:translate(-6px,3px) rotate(-3deg)}40%{transform:translate(5px,-4px) rotate(2deg)}60%{transform:translate(-4px,-2px) rotate(-2deg)}80%{transform:translate(6px,2px) rotate(3deg)}}
+.fshake{animation:fshake .28s linear infinite}
+@keyframes fjab{0%,100%{transform:translateX(0)}50%{transform:translateX(16px)}}
+.fjab{animation:fjab .32s ease-in-out infinite}
+@keyframes fpeek{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.fpeek{animation:fpeek .5s ease-in-out infinite}
+@keyframes fpop{0%{opacity:0;transform:scale(.3)}15%{opacity:1;transform:scale(1.25)}35%{transform:scale(1)}60%{opacity:1}75%,100%{opacity:0;transform:translateY(-20px)}}
+.fpop{opacity:0;animation:fpop 1.1s ease-out forwards;transform-box:fill-box;transform-origin:center}
+@keyframes ftw{0%,100%{opacity:.2;transform:rotate(0)}50%{opacity:1;transform:rotate(30deg)}}
+.ftw{animation:ftw .6s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes bubUp{0%{opacity:0;transform:translate(-50%,-70%)}8%{opacity:1;transform:translate(-50%,-100%)}75%{opacity:1;transform:translate(-50%,-190%)}100%{opacity:0;transform:translate(-50%,-260%)}}
 .chatbar{display:flex;gap:8px;margin-top:10px}.chatbar .in{flex:1;min-width:0}
 .chatlog{margin-top:8px;background:var(--paper);border:2.5px solid var(--ink);border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;font-size:.92rem;max-height:150px;overflow:auto}
@@ -771,8 +781,8 @@ function nav(){
 }
 
 /* ---------- màn hình rộng: kéo cảnh ra hai bên ---------- */
-function wideVB(w,h){const cw=Math.min(innerWidth,document.documentElement.clientWidth||innerWidth)-2*Math.max(16,Math.min(48,innerWidth*.03));if(innerWidth<900)return `0 0 ${w} ${h}`;
-  const maxH=Math.max(320,innerHeight*.62),aspect=Math.min(3.2,Math.max(w/h,cw/maxH)),W=h*aspect,ex=(W-w)/2;return `${-ex.toFixed(1)} 0 ${W.toFixed(1)} ${h}`}
+function wideVB(w,h){const cw=Math.min(1240,innerWidth,document.documentElement.clientWidth||innerWidth)-2*Math.max(16,Math.min(40,innerWidth*.03));if(innerWidth<900)return `0 0 ${w} ${h}`;
+  const maxH=Math.max(320,Math.min(560,innerHeight*.6)),aspect=Math.min(3.2,Math.max(w/h,cw/maxH)),W=h*aspect,ex=(W-w)/2;return `${-ex.toFixed(1)} 0 ${W.toFixed(1)} ${h}`}
 function sideDeco(h,y1,y2){let s='';const r=seeded('side'+h);for(const side of [-1,1]){for(let i=0;i<5;i++){const x=side<0?-90-i*230-r()*80:890+i*230+r()*80;s+=tree(x,y1+40+r()*(y2-y1-80),.55+r()*.25,r()>.4)}s+=flowerDots([...Array(8)].map((_,i)=>[side<0?-60-i*140:860+i*140,y2-20-(i%3)*30,['#ff9fbe','#fff','#ffd23f','#b892f0'][i%4]]))+tufts([...Array(8)].map((_,i)=>[side<0?-120-i*150:920+i*150,y2-50-(i%2)*40]))}return s}
 let RZ=0;addEventListener('resize',()=>{clearTimeout(RZ);RZ=setTimeout(()=>{if(S.me&&S.home)renderAll()},200)});
 
@@ -1284,18 +1294,21 @@ function parkScene(){
   add(O_('balloon')[1],placeObj(cartSVG(2470,'balloon'),2470,...O_('balloon'),sc('balloon')));
   // nhân vật của mình (+ người ấy nếu đang ở cùng chỗ)
   const mood=P.happy&&P.happy>t?{mood:'love'}:{};let tag=null;
+  const fights=activeFights(),fightHidden=new Set(fights.flatMap(f=>[f.a,f.b]));S.myFoot=null;
   if(P.walk){const[x,y]=walkPos(P.walkK||0),c=DS(y)*.95;add(y+1,`<g id="walkers" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${c.toFixed(3)})">${placeChar(me,-38,0,1,{},'step')}${placeChar(pa,38,4,1,{mood:'love'},'step')}</g>`)}
   else if(riding||swinging||sliding){if(sliding&&pa){const[x,y]=PSPOT.slide.c;add(y,placeChar(pa,x,y,DS(y)*.95,{mood:'love'}))}}
   else if(P.spot.startsWith('bench')){const[x,y]=PSPOT[P.spot].o,c=DS(y);add(y+1,placeChar(me,x-36*c,y,.95*c,{pose:'sit',mood:'love'},'')+placeChar(pa,x+36*c,y,.95*c,{pose:'sit',mood:'love'},'')+`<g transform="translate(${x} ${y-150*c})"><path class="rise" d="${heartPath(0,0,9)}" fill="#ff7fa6"${SW}/></g>`);tag=[x-36*c,y-150*c]}
-  else{const[x,y]=(PSPOT[P.spot]&&PSPOT[P.spot].c)||PSPOT.gate.c,c=DS(y);add(y+2,placeChar(me,x,y,.95*c,mood)+placeChar(pa,x+70*c,y+6,.95*c,{mood:'love'}));tag=[x,y-178*c*.95]}
+  else{const[x,y]=(PSPOT[P.spot]&&PSPOT[P.spot].c)||PSPOT.gate.c,c=DS(y);S.myFoot=[x,y];add(y+2,(fightHidden.has(S.uid)?'':placeChar(me,x,y,.95*c,mood))+placeChar(pa,x+70*c,y+6,.95*c,{mood:'love'}));if(!fightHidden.has(S.uid))tag=[x,y-178*c*.95]}
   // người khác đang online
-  for(const o of othersPlaced(others))add(o.y,o.svg);
+  const placed=othersPlaced(others);
+  for(const o of placed)if(!fightHidden.has(o.uid))add(o.y,o.svg);
+  for(const f of fights){const tgt=f.b===S.uid?S.myFoot:placed.find(o=>o.uid===f.b)?.foot,att=f.a===S.uid?S.myFoot:placed.find(o=>o.uid===f.a)?.foot;const at=tgt||att;if(!at)continue;add(at[1]+3,fightSVG(at[0],at[1],f))}
   items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.svg);
   S.ppos={};if(tag)S.ppos[S.uid]=[tag[0],tag[1]-6];if(P.walk){const[x,y]=walkPos(P.walkK||0);S.ppos[S.uid]=[x-38*DS(y),y-180*DS(y)]}
   if(pa&&tag)S.ppos[S.me.partner]=[tag[0]+70*DS(tag[1]+180),tag[1]];
-  for(const o of othersPlaced(others))S.ppos[o.uid]=o.head;
+  for(const o of placed)S.ppos[o.uid]=o.head;
   if(tag)s+=nameTag(tag[0],tag[1],'Bạn','#fff3c2');
-  for(const o of othersPlaced(others))if(o.tag)s+=o.tag;
+  for(const o of placed)if(o.tag&&!fightHidden.has(o.uid))s+=o.tag;
   if(P.gift&&P.gift.until>t&&pa){const sp=PSPOT[P.gift.cart]?.c||PSPOT.gate.c,c=DS(sp[1]);s+=`<g transform="translate(${sp[0]+70*c} ${sp[1]-215*c})"><g class="bob"><circle r="22" fill="#fff"${SW}/><g transform="scale(1.1)">${giftSVG(P.gift.k)}</g></g></g>`}
   return s;
 }
@@ -1304,9 +1317,9 @@ function othersPlaced(list){
   const offs=[[-150,-14],[160,10],[-235,22],[245,-20],[-320,8],[330,24],[-90,40],[100,-34]];
   for(const k in groups)groups[k].sort((a,b)=>a.uid<b.uid?-1:1).forEach((st,i)=>{
     const base=PSPOT[k].c||PSPOT[k].o,c0=DS(base[1]),o=offs[i%offs.length];const x=Math.max(40,Math.min(PW_-40,base[0]+o[0]*c0)),y=Math.min(PH_-12,base[1]+o[1]),c=DS(y);
-    const svg=placeChar({...st.look},x,y,.9*c,{},'idle');let tag='';
+    const svg=`<g data-act="pplayer" data-v="${esc(st.uid)}" style="cursor:pointer" role="button" aria-label="Người chơi">${placeChar({...st.look},x,y,.9*c,{},'idle')}</g>`;let tag='';
     if(isFriend(st.uid)){const d=st.uid===S.me.partner?S.partner:S.friendDocs[st.uid];tag=nameTag(x,y-170*c*.9-6,`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,st.uid===S.me.partner?'#ffe3ec':'#dff3ff')}
-    out.push({y,svg,tag,uid:st.uid,head:[x,y-170*c*.9-(tag?30:6)]});
+    out.push({y,svg,tag,uid:st.uid,foot:[x,y],head:[x,y-170*c*.9-(tag?30:6)]});
   });
   return out;
 }
@@ -1314,8 +1327,8 @@ function othersPlaced(list){
 function nameTag(x,y,txt,bg='#fff'){const w=Math.max(46,txt.length*8.2+20);return `<g transform="translate(${x} ${y})" pointer-events="none"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="13" fill="${bg}"${SW}/><path d="M-6 11 L0 18 L6 11Z" fill="${bg}"${SW}/><rect x="${-w/2+2}" y="-13" width="${w-4}" height="22" rx="11" fill="${bg}"/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="${O}">${esc(txt)}</text></g>`}
 const PRES={on:false,peers:[],sig:'',api:null,lastJ:''};
 function parkPeers(){return PRES.peers}
-function myParkState(){const P=S.park||{},me=S.me;return{uid:S.uid,look:{g:me.g,skin:me.skin,hs:me.hs,hc:me.hc,eq:me.eq||{}},spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now())}}
-function setPeers(list){const seen={},out=[];for(const st of list){if(!st||typeof st!=='object'||!st.uid||st.uid===S.uid||seen[st.uid]||!st.look)continue;seen[st.uid]=1;out.push({uid:String(st.uid),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride})}
+function myParkState(){const P=S.park||{},me=S.me;return{uid:S.uid,nick:me.nick,look:{g:me.g,skin:me.skin,hs:me.hs,hc:me.hc,eq:me.eq||{}},spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now())}}
+function setPeers(list){const seen={},out=[];for(const st of list){if(!st||typeof st!=='object'||!st.uid||st.uid===S.uid||seen[st.uid]||!st.look)continue;seen[st.uid]=1;out.push({uid:String(st.uid),nick:cleanText(st.nick).slice(0,14),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride})}
   const j=JSON.stringify(out);if(j===PRES.lastJ)return;PRES.lastJ=j;PRES.peers=out;if(out.some(x=>isFriend(x.uid)))ensureFriendDocs();if(S.view==='park'||S.view==='love')renderAll()}
 async function presEnter(){
   if(PRES.on)return;PRES.on=true;PRES.sig='';const st0=myParkState();PRES.sig=JSON.stringify(st0);
@@ -1336,10 +1349,46 @@ async function presEnter(){
     }
   }catch(e){console.warn(e)}
 }
+/* ---------- đấm nhau chí chóe ---------- */
+const FIGHT_MS=4600;S.fights=[];
+function fightSVG(x,y,f){x=Math.max(200,Math.min(PW_-200,x));const c=DS(y)*1.25,t=now(),looks=[f.a,f.b].map(u=>u===S.uid?S.me:(parkPeers().find(p=>p.uid===u)?.look||null));
+  const pop=(txt,dx,dy,d,col)=>`<g transform="translate(${dx} ${dy})"><text class="fpop" style="animation-delay:${d}s" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="30" fill="${col}" stroke="${O}" stroke-width="2" paint-order="stroke">${txt}</text></g>`;
+  const fist=(dx,dy,d,r)=>`<g transform="translate(${dx} ${dy}) rotate(${r})"><g class="fjab" style="animation-delay:${d}s"><rect x="-6" y="-9" width="34" height="18" rx="8" fill="${looks[0]?.skin||'#ffe2c6'}"${SW}/><circle cx="30" cy="0" r="12" fill="${looks[0]?.skin||'#ffe2c6'}"${SW}/></g></g>`;
+  const cid='fc'+f.a.slice(-4)+f.b.slice(-4);
+  const head=(lk,dx,dy,d)=>lk?`<g transform="translate(${dx} ${dy}) scale(.6)"><g class="fpeek" style="animation-delay:${d}s"><g transform="translate(-60 -60)" clip-path="url(#${cid})">${charG(lk,{noShadow:true,mood:'love'}).replace(/<path d="[^"]*" fill="#ff4f7d"[^>]*>/g,'')}</g></g></g>`:'';
+  const mine=f.a===S.uid||f.b===S.uid,other=f.a===S.uid?f.b:f.a;
+  return `<g transform="translate(${x} ${y}) scale(${(c*1.05).toFixed(3)})" ${mine?`data-act="punch" data-v="${esc(other)}" style="cursor:pointer" role="button" aria-label="Đấm tiếp"`:'pointer-events="none"'}>${mine?'<rect x="-150" y="-220" width="300" height="250" fill="transparent"/>':''}<defs><clipPath id="${cid}"><rect x="0" y="0" width="120" height="96"/></clipPath></defs><ellipse cx="0" cy="0" rx="100" ry="16" fill="#000" opacity=".12"/>
+    <g class="fshake">${[[-70,-60,46],[-20,-95,54],[40,-80,50],[78,-45,40],[0,-40,58],[-55,-20,38],[55,-15,36]].map(([a,b,r])=>`<circle cx="${a}" cy="${b}" r="${r}" fill="#f4efe6"${SW}/>`).join('')}
+    ${[[-70,-60,40],[-20,-95,48],[40,-80,44],[78,-45,34],[0,-40,52],[-55,-20,32],[55,-15,30]].map(([a,b,r])=>`<circle cx="${a}" cy="${b}" r="${r}" fill="#fffaf2"/>`).join('')}
+    ${head(looks[0],-48,-118,0)}${head(looks[1],52,-112,.35)}
+    ${fist(-30,-80,0,-30)}${fist(40,-40,.2,150)}${fist(-60,-30,.45,200)}${fist(60,-100,.6,-60)}
+    <path class="ftw" d="M-110 -120 l6 -14 l6 14 l14 6 l-14 6 l-6 14 l-6 -14 l-14 -6z" fill="#ffd23f"${SW}/><path class="ftw" style="animation-delay:.3s" d="M100 -130 l5 -12 l5 12 l12 5 l-12 5 l-5 12 l-5 -12 l-12 -5z" fill="#ffd23f"${SW}/>
+    <g transform="translate(-75 18)"><rect class="fjab" x="-8" y="-6" width="16" height="26" rx="6" fill="#4f6fb3"${SW}/></g><g transform="translate(80 14)"><rect class="fjab" style="animation-delay:.3s" x="-8" y="-6" width="16" height="26" rx="6" fill="#ff9fbe"${SW}/></g></g>
+    ${(f.hits||[]).filter(h=>t-h<1100).map(h=>{const r=seeded(String(h)),w=['BỐP!','CHÁT!','BỤP!','HỰ!','Á!','UI DA!'][Math.floor(r()*6)],col=['#ff5e5e','#ffd23f','#ff9a2e','#7cc7ff','#b892f0'][Math.floor(r()*5)];return pop(w,Math.round(-100+r()*200),Math.round(-200+r()*80),-(t-h)/1000,col)}).join('')}
+    ${mine?`<g transform="translate(0 -236)"><rect x="-92" y="-16" width="184" height="28" rx="14" fill="#fff3c2"${SW}/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="${O}">Bấm liên tục để đấm!</text></g>`:''}
+  </g>`}
+let lastPunch=0;
+const fightEnd=f=>Math.max(f.t+FIGHT_MS,(f.last||f.t)+1600);
+const activeFights=()=>{const t=now();return (S.fights||[]).filter(f=>t<fightEnd(f))};
+function startFight(target){const peer=parkPeers().find(p=>p.uid===target);if(!peer)return toast('Người này vừa rời công viên rồi.','bad');
+  const P=S.park||(S.park={spot:'gate'});if(peer.spot&&PSPOT[peer.spot]&&!peer.spot.startsWith('bench')&&peer.spot!=='swing')P.spot=peer.spot;
+  closeModal();punch(target)}
+function punch(target){const t=now();if(t-lastPunch<110)return;lastPunch=t;
+  const ex=activeFights().find(f=>(f.a===S.uid&&f.b===target)||(f.b===S.uid&&f.a===target));
+  const ev={kind:'hit',uid:S.uid,a:ex?ex.a:S.uid,b:ex?ex.b:target,nick:S.me.nick,t};if(PRES.api&&PRES.api.chat)PRES.api.chat(ev);addHit(ev);Music.sfx('pop')}
+function addHit(ev){const t=now(),a=String(ev.a),b=String(ev.b);S.fights=activeFights();let f=S.fights.find(x=>(x.a===a&&x.b===b)||(x.a===b&&x.b===a));
+  if(!f){f={a,b,t,last:t,hits:[]};S.fights.push(f);if(b===S.uid&&a!==S.uid)toast(`${cleanText(ev.nick)||'Ai đó'} lao vào đấm bạn! Bấm vào đám bụi để đánh trả!`,'bad');else if(a===S.uid&&b!==S.uid&&ev.uid!==S.uid)toast(`${cleanText(ev.nick)||'Ai đó'} đang đánh trả!`,'bad')}
+  f.last=t;f.hits=[...f.hits.filter(h=>t-h<1200),t].slice(-14);
+  if(S.view==='park')renderAll();clearTimeout(f.tm);f.tm=setTimeout(()=>{if(S.view==='park')renderAll()},fightEnd(f)-t+60)}
+const nickOf=uid=>uid===S.me?.partner?S.partner?.nick:(S.friendDocs[uid]?.nick||parkPeers().find(p=>p.uid===uid)?.nick||S.inbox.find(x=>x.with===uid)?.withNick||'Người chơi');
+function playerBody(m){const p=parkPeers().find(x=>x.uid===m.uid);if(!p)return '<p>Người này vừa rời công viên rồi.</p>';const fr=isFriend(m.uid),d=fr?(m.uid===S.me.partner?S.partner:S.friendDocs[m.uid]):null;
+  return `<div class="row"><div class="preview" style="padding:4px;flex:none"><svg viewBox="0 0 120 180" style="width:110px">${charG(p.look)}</svg></div><div style="flex:1;min-width:150px"><b style="font-family:var(--display);font-size:1.3rem">${esc(p.nick||'Người chơi')}</b><div class="muted">${fr?`Bạn bè · ID ${esc(d?.code||'')}`:'Người lạ'}</div></div></div>
+  <div class="list"><button class="btn blue" data-act="dm" data-v="${esc(m.uid)}">Nhắn tin riêng</button><button class="btn pink" data-act="fight" data-v="${esc(m.uid)}">Lao vào đấm nhau</button>${fr?'':S.sent[m.uid+'f']?'<span class="tag">Đã gửi lời kết bạn</span>':`<button class="btn white" data-act="invite" data-k="friend" data-v="${esc(m.uid)}">Kết bạn</button>`}</div>`}
+
 /* ---------- chat công khai ở công viên ---------- */
 S.bubbles=[];S.parkLog=[];S.ppos={};
 const cleanText=t=>String(t||'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g,'').trim().slice(0,80);
-function onParkChat(m){if(!m||typeof m!=='object')return;const text=cleanText(m.text),nick=cleanText(m.nick).slice(0,14);if(!text||!m.uid||m.uid===S.uid)return;addBubble(String(m.uid),nick||'Ai đó',text)}
+function onParkChat(m){if(!m||typeof m!=='object')return;if(m.kind==='fight'||m.kind==='hit'){if(m.a&&m.b&&(m.uid===m.a||m.uid===m.b)&&m.uid!==S.uid)addHit(m);return}const text=cleanText(m.text),nick=cleanText(m.nick).slice(0,14);if(!text||!m.uid||m.uid===S.uid)return;addBubble(String(m.uid),nick||'Ai đó',text)}
 function addBubble(uid,nick,text){const t=now();S.bubbles=S.bubbles.filter(b=>t-b.t<6500);S.bubbles.push({uid,nick,text,t,id:rid()});S.parkLog=[...S.parkLog,{nick,text,t,me:uid===S.uid}].slice(-6);if(S.view==='park')renderAll();setTimeout(()=>{if(S.view==='park')renderAll()},6600)}
 let lastChat=0;
 function sendParkChat(){const el=$('#pchat');if(!el)return;const text=cleanText(el.value);if(!text)return;if(now()-lastChat<1500)return toast('Chat chậm lại chút nhé.','bad');lastChat=now();el.value='';
@@ -1355,7 +1404,7 @@ function viewPark(){
   <form class="chatbar" style="margin:0 0 10px" data-form="pchat"><input class="in" id="pchat" maxlength="80" autocomplete="off" placeholder="Chat với mọi người trong công viên..." aria-label="Chat công khai"><button class="btn pink" type="submit">Gửi</button></form>
   <div class="pscroll" id="pscroll"><div class="pinner"><svg viewBox="0 0 ${PW_} ${PH_}" role="img" aria-label="Công viên Hoa">${parkScene()}</svg><div class="pbub" aria-live="polite">${bubblesHTML()}</div></div></div>
   ${S.parkLog.length?`<div class="chatlog">${S.parkLog.map(l=>`<div><b>${esc(l.nick)}:</b> ${esc(l.text)}</div>`).join('')}</div>`:''}
-  <p class="hint"><b>${parkPeers().length?`Đang có ${parkPeers().length} người khác trong công viên.`:'Hiện chưa có ai khác trong công viên.'}</b> Bạn bè sẽ hiện tên và ID trên đầu. Kéo ngang để đi hết công viên. Chạm vào ghế đá để ngồi, chạm đu quay, cầu trượt, xích đu, đài phun nước hay các xe hàng để chơi.</p>
+  <p class="hint">Chạm vào người khác để nhắn tin riêng, kết bạn hoặc lao vào đấm nhau. <b>${parkPeers().length?`Đang có ${parkPeers().length} người khác trong công viên.`:'Hiện chưa có ai khác trong công viên.'}</b> Bạn bè sẽ hiện tên và ID trên đầu. Kéo ngang để đi hết công viên. Chạm vào ghế đá để ngồi, chạm đu quay, cầu trượt, xích đu, đài phun nước hay các xe hàng để chơi.</p>
   ${pa?`<div class="row" style="margin-top:8px"><span class="tag ${S.me.dressedDay===today()?'ok':''}">${esc(S.me.nick)}: ${S.me.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span><span class="tag ${pa.dressedDay===today()?'ok':''}">${esc(pa.nick)}: ${pa.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span>${both?'<span class="tag love">Cặp đôi sành điệu</span>':''}</div>`:`<div class="panel" style="margin-top:8px">Ghép đôi với người ấy ở mục <b>Bạn bè</b> để đi chơi công viên cùng nhau và tăng tình cảm.</div>`}`;
 }
 function loveOnce(key,first,again){if(!S.partner)return 0;const f=!(S.day?.c?.[key]);const n=f?first:again;bump(key);if(n)H({love:(S.home.love||0)+n});return n}
@@ -1505,7 +1554,7 @@ function viewLove(){
     body+=`<div class="panel" style="margin-top:12px"><h3>Tìm bạn bằng ID</h3><p class="muted" style="margin:4px 0 10px">Hỏi bạn mã ID 6 số (hiện ở mục Bạn bè trong game của họ) rồi nhập vào đây để kết bạn${pa?'':' hoặc ghép đôi'}.</p><form class="row" data-form="search"><input class="in" id="srch" inputmode="numeric" maxlength="6" placeholder="Ví dụ 482913" value="${esc(S.searchCode||'')}" style="flex:1;min-width:150px" aria-label="ID của bạn ấy"><button class="btn blue" type="submit">Tìm</button></form>${S.searchMsg?`<p class="err">${esc(S.searchMsg)}</p>`:''}
     ${f?`<div class="item" style="margin-top:8px;flex-wrap:wrap"><div class="ic" style="width:64px;height:64px;border-radius:50%"><svg viewBox="18 10 84 84">${charG(f.p)}</svg></div><div class="tx"><b>${esc(f.p.nick)}</b><small>ID ${esc(f.p.code)}${f.p.partner?' · đã có đôi':''}</small></div><div class="row" style="gap:6px">${isF?'<span class="tag ok">Đã là bạn bè</span>':S.sent[f.uid+'f']?'<span class="tag">Đã gửi lời kết bạn</span>':`<button class="btn blue sm" data-act="invite" data-k="friend" data-v="${f.uid}">Kết bạn</button>`}${pa||f.p.partner?'':S.sent[f.uid]?'<span class="tag love">Đã gửi lời ghép đôi</span>':`<button class="btn pink sm" data-act="invite" data-k="pair" data-v="${f.uid}">Ghép đôi</button>`}</div></div>`:''}</div>`;
     const fl=friendIds();
-    body+=S.inbox.length?`<div class="sec-title"><h2>Chat riêng</h2>${unreadDM()?`<span class="tag bad">${unreadDM()} tin chưa đọc</span>`:''}</div><div class="list">${S.inbox.slice(0,8).map(x=>{const d=x.with===S.me.partner?S.partner:S.friendDocs[x.with];return `<button class="item" style="text-align:left;cursor:pointer;font:inherit" data-act="dm" data-v="${esc(x.with)}"><div class="tx"><b>${esc(d?.nick||'Bạn bè')}${x.unread?' <span class="tag bad">mới</span>':''}</b><small>${esc(x.last||'')}</small></div></button>`}).join('')}</div>`:'';
+    body+=S.inbox.length?`<div class="sec-title"><h2>Chat riêng</h2>${unreadDM()?`<span class="tag bad">${unreadDM()} tin chưa đọc</span>`:''}</div><div class="list">${S.inbox.slice(0,8).map(x=>{return `<button class="item" style="text-align:left;cursor:pointer;font:inherit" data-act="dm" data-v="${esc(x.with)}"><div class="tx"><b>${esc(nickOf(x.with))}${isFriend(x.with)?'':' <span class="tag">người lạ</span>'}${x.unread?' <span class="tag bad">mới</span>':''}</b><small>${esc(x.last||'')}</small></div></button>`}).join('')}</div>`:'';
     body+=`<div class="sec-title"><h2>Danh sách bạn bè</h2><span class="tag">${fl.length} người</span></div>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];const here=parkPeers().some(x=>x.uid===id);return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}${id===S.me.partner?' <span class="tag love">người ấy</span>':''}</b><small>ID ${esc(d?.code||'')}${here?' · đang ở công viên':''}</small></div><button class="btn sm white" data-act="dm" data-v="${id}">Nhắn tin${S.inbox.find(x=>x.with===id&&x.unread)?' <span class="tag bad">mới</span>':''}</button>${here?'<button class="btn sm green" data-act="go" data-v="park">Tới công viên</button>':''}</div>`}).join('')}</div>`:`<div class="panel muted">Chưa có bạn bè nào. Tìm bạn bằng ID ở trên nhé.</div>`}`;
     ensureFriendDocs();
   }
@@ -1539,13 +1588,13 @@ async function acceptFriend(inv){
 /* ---------- chat riêng ---------- */
 const cidOf=(a,b)=>[a,b].sort().join('__');
 S.inbox=[];
-function subInbox(){let first=true;sub('inbox',DB.collection('chatidx').where('to','==',S.uid),qs=>{const prev=S.inbox;S.inbox=qs.docs.map(d=>({id:d.id,...clone(d.data())})).sort((a,b)=>(b.at||0)-(a.at||0));if(!first)for(const x of S.inbox){const p=prev.find(y=>y.id===x.id);if(x.unread&&(!p||p.at!==x.at)&&!(S.modal?.t==='dm'&&S.modal.with===x.with)){const d=x.with===S.me.partner?S.partner:S.friendDocs[x.with];toast(`${d?.nick||'Bạn bè'}: ${x.last}`,'love')}else if(S.modal?.t==='dm'&&S.modal.with===x.with&&x.unread)W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+x.with).update({unread:false}))}first=false;ensureFriendDocs();renderAll()})}
+function subInbox(){let first=true;sub('inbox',DB.collection('chatidx').where('to','==',S.uid),qs=>{const prev=S.inbox;S.inbox=qs.docs.map(d=>({id:d.id,...clone(d.data())})).sort((a,b)=>(b.at||0)-(a.at||0));if(!first)for(const x of S.inbox){const p=prev.find(y=>y.id===x.id);if(x.unread&&(!p||p.at!==x.at)&&!(S.modal?.t==='dm'&&S.modal.with===x.with)){toast(`${nickOf(x.with)}: ${x.last}`,'love')}else if(S.modal?.t==='dm'&&S.modal.with===x.with&&x.unread)W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+x.with).update({unread:false}))}first=false;ensureFriendDocs();renderAll()})}
 const unreadDM=()=>S.inbox.filter(x=>x.unread).length;
-function openDM(uid){if(!isFriend(uid))return toast('Chỉ nhắn tin riêng được với bạn bè.','bad');S.modal={t:'dm',with:uid};S.dmMsgs=[];const cid=cidOf(S.uid,uid);
+function openDM(uid){if(!uid||uid===S.uid)return;if(S.modal?.t==='dm')unsub('dm');S.modal={t:'dm',with:uid};S.dmMsgs=[];const cid=cidOf(S.uid,uid);
   sub('dm',DB.collection('chats/'+cid+'/msgs'),qs=>{S.dmMsgs=qs.docs.map(d=>clone(d.data())).filter(m=>m&&m.text).sort((a,b)=>a.at-b.at).slice(-120);renderModal();const l=$('#dmlist');if(l)l.scrollTop=l.scrollHeight});
   const mine=S.inbox.find(x=>x.with===uid);if(mine&&mine.unread)W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+uid).update({unread:false}));ensureFriendDocs();renderModal()}
-function dmBody(m){const d=m.with===S.me.partner?S.partner:S.friendDocs[m.with];const fmtT=t=>{const x=new Date(t);return x.getHours()+':'+String(x.getMinutes()).padStart(2,'0')};
-  return `<div class="row"><div class="ic" style="width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);overflow:hidden;background:#eaf7ff">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div><b style="font-family:var(--display)">${esc(d?.nick||'...')}</b><div class="muted">ID ${esc(d?.code||'')}</div></div></div>
+function dmBody(m){const fr=isFriend(m.with),pe=parkPeers().find(p=>p.uid===m.with),d=fr?(m.with===S.me.partner?S.partner:S.friendDocs[m.with]):(pe?{...pe.look,nick:pe.nick}:{nick:nickOf(m.with)});const fmtT=t=>{const x=new Date(t);return x.getHours()+':'+String(x.getMinutes()).padStart(2,'0')};
+  return `<div class="row"><div class="ic" style="width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);overflow:hidden;background:#eaf7ff">${d&&d.skin?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div><b style="font-family:var(--display)">${esc(d?.nick||nickOf(m.with))}</b><div class="muted">${fr?'ID '+esc(d?.code||''):'Người lạ'}</div></div></div>
   <div class="dmlist" id="dmlist">${(S.dmMsgs||[]).map(x=>`<div class="dm ${x.from===S.uid?'me':''}">${esc(x.text)}<small>${fmtT(x.at)}</small></div>`).join('')||'<p class="muted" style="margin:10px">Chưa có tin nhắn nào. Gửi lời chào đầu tiên nhé!</p>'}</div>
   <form class="chatbar" data-form="dm"><input class="in" id="dmin" maxlength="300" autocomplete="off" placeholder="Nhắn tin..." aria-label="Nội dung tin nhắn"><button class="btn pink" type="submit">Gửi</button></form>`}
 let lastDM=0;
@@ -1553,8 +1602,8 @@ function sendDM(){const m=S.modal;if(!m||m.t!=='dm')return;const el=$('#dmin');c
   const o=m.with,cid=cidOf(S.uid,o),at=now(),id=String(at).padStart(15,'0')+'-'+rid().slice(0,4),msg={from:S.uid,text,at};
   S.dmMsgs=[...(S.dmMsgs||[]),msg];renderModal();const l=$('#dmlist');if(l)l.scrollTop=l.scrollHeight;
   W('dm',()=>DB.doc('chats/'+cid+'/msgs/'+id).set(msg));
-  W('ix',()=>DB.doc('chatidx/'+o+'__'+S.uid).set({to:o,with:S.uid,last:text.slice(0,60),at,unread:true}));
-  W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+o).set({to:S.uid,with:o,last:text.slice(0,60),at,unread:false}));}
+  W('ix',()=>DB.doc('chatidx/'+o+'__'+S.uid).set({to:o,with:S.uid,withNick:S.me.nick,last:text.slice(0,60),at,unread:true}));
+  W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+o).set({to:S.uid,with:o,withNick:nickOf(o),last:text.slice(0,60),at,unread:false}));}
 /* bạn bè */
 function friendIds(){const m=S.me?.friends||{};const ids=Object.keys(m).filter(k=>m[k]);if(S.me?.partner&&!ids.includes(S.me.partner))ids.unshift(S.me.partner);return ids}
 const isFriend=uid=>!!uid&&(uid===S.me?.partner||!!S.me?.friends?.[uid]);
@@ -1679,6 +1728,7 @@ function renderModal(){
   else if(m.t==='proposed'){title='Lời cầu hôn';body=proposedBody(m)}
   else if(m.t==='cart'){title=CARTS[m.k].n;body=cartBody(m)}
   else if(m.t==='dm'){title='Chat riêng';body=dmBody(m)}
+  else if(m.t==='player'){title='Người chơi';body=playerBody(m)}
   else if(m.t==='plot'){title='Khai hoang đất';body=`<p>Mở thêm một ô đất để trồng nhiều cây hơn.</p>${buyBtn('plot','plot',plotPrice(),'Khai hoang')}`}
   const scroll=el.querySelector('.sheet')?.scrollTop||0,ae=document.activeElement,keepId=ae&&el.contains(ae)&&ae.id,keepV={};el.querySelectorAll('input[id]').forEach(i=>{if(i.type!=='password')keepV[i.id]=i.value});const dl=$('#dmlist'),atBottom=!dl||dl.scrollHeight-dl.scrollTop-dl.clientHeight<40;
   el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-h"><h2>${esc(title)}</h2><span class="coins" style="font-size:.95rem">${coinSVG()}${coins()}</span><button class="x" data-act="close" aria-label="Đóng">×</button></div><div class="sheet-b">${body}</div></div>`;
@@ -1788,6 +1838,9 @@ document.addEventListener('click',ev=>{
     case 'bonus':bonus();break;
     case 'copyid':{const t=S.me.code;try{navigator.clipboard.writeText(t).then(()=>toast('Đã sao chép ID '+t,'good'),()=>selId())}catch(e){selId()}break}
     case 'dm':openDM(v);break;
+    case 'pplayer':if(S.dragged){S.dragged=false;break}openModal({t:'player',uid:v});break;
+    case 'fight':startFight(v);break;
+    case 'punch':punch(v);break;
     case 'invite':sendInvite(v,el.dataset.k||'pair');break;
     case 'accept':{const i=S.invites.find(x=>x.id===v);if(i)(i.kind==='friend'?acceptFriend:acceptInvite)(i);break}
     case 'decline':declineInvite(v);break;
