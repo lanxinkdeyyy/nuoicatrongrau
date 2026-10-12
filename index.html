@@ -21,7 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.APP_VERSION='20261013001631';</script>
+<script>window.APP_VERSION='20261013002149';</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -383,6 +383,12 @@ nav button.on{background:var(--yellow);box-shadow:0 1px 0 var(--ink);transform:t
 .phop{animation:phop .38s ease-in-out infinite}
 @keyframes cuddle{0%,100%{transform:rotate(-10deg) scale(1)}25%{transform:rotate(10deg) scale(1.08,.94)}50%{transform:rotate(-6deg) translateY(-6px)}75%{transform:rotate(14deg) scale(1.06,.95)}}
 .cuddle{animation:cuddle .7s ease-in-out infinite;transform-origin:0 0}
+.pa{transform-origin:0 0}.pa-walk{animation:phop .38s ease-in-out infinite}.pa-run{animation:phop .22s ease-in-out infinite}
+@keyframes pjump{0%,100%{transform:translateY(0) rotate(0)}40%{transform:translateY(-34px) rotate(-12deg)}60%{transform:translateY(-30px) rotate(-6deg)}}.pa-jump{animation:pjump .6s ease-in-out infinite}
+@keyframes pstretch{0%{transform:scale(1,1)}25%{transform:translateY(2px) scale(1.18,.68)}55%{transform:translateY(2px) scale(1.38,.58)}75%{transform:translateY(2px) scale(1.2,.66)}100%{transform:scale(1,1)}}.pa-stretch{animation:pstretch 2.6s ease-in-out infinite}
+@keyframes plick{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg) translateY(-2px)}50%{transform:rotate(4deg)}75%{transform:rotate(-7deg) translateY(-1px)}}.pa-lick{animation:plick .55s ease-in-out infinite}
+@keyframes psit{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}.pa-sit{animation:psit 1.6s ease-in-out infinite}
+@keyframes bfw{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.25)}}.bfw{animation:bfw .18s linear infinite;transform-origin:0 0}
 </style>
 
 <div id="app" class="wrap"></div>
@@ -1024,7 +1030,7 @@ function doRender(){
   S.sig=viewSig();
   {const ps=$('#pscroll');if(ps&&psl!=null)ps.scrollLeft=psl}
   if(S.view!=='boutique'&&Object.keys(S.trial).length)S.trial={};if(S.view!=='church'&&UNS.wed)unsub('wed');
-  applyParallax();presSync();lobbySync();mktSync();renderDock();syncChatWin();
+  applyParallax();petSimStart();presSync();lobbySync();mktSync();renderDock();syncChatWin();
   {const pr=S.home.proposal;if(pr&&pr.st==='pending'&&pr.to===S.uid&&S.seenProp!==pr.at&&!S.modal){S.seenProp=pr.at;S.modal={t:'proposed'}}}
   renderModal();
   restore();
@@ -1139,8 +1145,8 @@ function farmScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g}
   for(const[x,y,sc]of[[60,360,.5],[250,330,.42],[2600,350,.5],[2450,330,.42],[150,880,1.05],[1580,600,.75],[2100,880,1.05],[1100,580,.7],[2650,700,.9]])add(y,`<ellipse cx="${x+10*sc}" cy="${y+2}" rx="${60*sc}" ry="${12*sc}" fill="#2f6b1f" opacity=".18"/>`+tree(x,y,sc,x%3===0));
   add(660,`<g transform="translate(200 660) scale(${(FDS(660)*.95).toFixed(3)})">${houseSVG(h.house||1)}</g>`);
   const tags=[];placeWalkers(add,tags,'farm');if(S.partner&&!roomPeers().some(p=>p.uid===S.me.partner))add(830,placeChar(S.partner,250,830,FDS(830)*.95));
-  live(h.pets).slice(0,3).forEach(([id,p],i)=>{const x=340+i*80,y=770+i*18;add(y,`<g transform="translate(${x} ${y}) scale(${(FDS(y)*1.3).toFixed(3)})"><g class="bob">${petSVG(p.t)}</g></g>`)});
   items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  s+=petLayer('farm');
   s+=fgLayer([[40,955,'bush',1.9],[820,965,'flowers',2.2],[1460,960,'bush',1.9],[2080,965,'flowers',2.1],[2660,955,'bush',1.9]]);
   return s}
 function viewFarm(){
@@ -1321,12 +1327,6 @@ function petYardSVG(t){const P=PENG.pet,out=[],pets=live(S.home.pets);
   out.push([P.y0+170,`<g transform="translate(${pX('pet',P.y0+170,.12)} ${P.y0+170}) scale(${(LDS(P.y0+170)*1.1).toFixed(3)})" pointer-events="none"><rect x="-6" y="-80" width="12" height="80" fill="#c98a52"${SW}/><rect x="-30" y="-90" width="60" height="16" rx="6" fill="#e0a45f"${SW}/><rect x="-24" y="-46" width="48" height="12" rx="5" fill="#e0a45f"${SW}/></g>`]);
   const hungry=pets.some(([,p])=>petInfo(p,t).hungry);
   out.push([bowl[1],`<g transform="translate(${bowl[0]} ${bowl[1]}) scale(${(LDS(bowl[1])*1.4).toFixed(3)})" data-act="petbowl" style="cursor:pointer" role="button" aria-label="Bát ăn thú cưng">${hit(-30,-40,60,44)}<path d="M-24 -14 H24 L18 0 H-18Z" fill="#7cc7ff"${SW}/><ellipse cy="-14" rx="24" ry="6" fill="${hungry?'#e6f3ff':'#c98a52'}"${SW}/>${hungry?`<g transform="translate(16 -46)"><g class="bob"><circle r="13" fill="#fff"${SW}/><g transform="scale(.55)">${supSVG('petfood')}</g></g></g>`:''}</g>`]);
-  const cud=S.cuddle&&t-S.cuddle.t<3200?S.cuddle:null;
-  pets.forEach(([id,p],i)=>{const sc=LDS(petHome(i)[1])*1.6;
-    if(cud&&cud.id===id){const[x,y]=curPos('coop'),c=LDS(y)*1.6,say={cho:'Gâu gâu~ thương chủ nhất!',meo:'Meo meo~ gãi nữa đi mà!',tho:'Chụt chụt~ thích quá!'}[p.t]||'Hihi~',w=say.length*8+24;
-      out.push([y+4,`<g transform="translate(${x+58*LDS(y)} ${y+4})" pointer-events="none"><g transform="scale(${c.toFixed(3)})"><g class="cuddle">${petSVG(p.t)}</g></g>${[0,1,2].map(j=>`<g transform="translate(${(j-1)*22*LDS(y)} ${-60*c})"><path class="rise" style="animation-delay:${j*.3}s" d="${heartPath(0,0,8)}" fill="#ff5e8e"${SW}/></g>`).join('')}<g transform="translate(0 ${-78*c})"><rect x="${-w/2}" y="-30" width="${w}" height="28" rx="12" fill="#fff"${SW}/><text y="-11" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="#c2456d">${say}</text></g></g>`]);return}
-    const[hx,hy]=petHome(i),I=petInfo(p,t);
-    out.push([hy,`<g transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})" data-act="petpatg" data-v="${id}" style="cursor:pointer" role="button" aria-label="Vuốt ve ${esc(p.name)}"><g class="prun" style="animation-name:${PETRUN[i%3]};animation-duration:${8+i*1.7}s;animation-delay:${-i*2.3}s"><g transform="scale(${sc.toFixed(3)})">${hit(-30,-60,60,64)}<g class="phop" style="animation-delay:${-i*.13}s">${petSVG(p.t)}</g></g></g>${I.hungry?`<g transform="translate(0 ${-70*sc})" pointer-events="none"><text text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="${14}" fill="#c2456d" stroke="#fff" stroke-width="3" paint-order="stroke">Đói rồi!</text></g>`:''}</g>`])});
   if(!pets.length)out.push([P.y0+120,`<text x="${P.cx}" y="${P.y0+120}" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${O}" stroke-width="4" paint-order="stroke" pointer-events="none">Nhận nuôi cún, mèo, thỏ ở tiệm Gia súc gia cầm</text>`]);
   return out}
 function coopScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g}),tags=[];
@@ -1347,6 +1347,7 @@ function coopScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g}
   for(const[x,y,sc]of[[90,380,.5],[300,350,.42],[2600,370,.5],[2780,340,.42],[120,880,1.05],[980,580,.72],[1800,590,.75],[2700,720,.95]])add(y,`<ellipse cx="${x+10*sc}" cy="${y+2}" rx="${60*sc}" ry="${12*sc}" fill="#2f6b1f" opacity=".18"/>`+tree(x,y,sc,x%3===0));
   placeWalkers(add,tags,'coop');
   items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  s+=petLayer('coop');
   s+=fgLayer([[40,955,'bush',1.9],[900,965,'flowers',2.2],[1600,960,'bush',1.9],[2300,965,'flowers',2.1],[2850,955,'bush',1.9]]);
   return s}
 function viewCoop(){const h=S.home,t=now(),all=live(h.coop),hungry=all.filter(([,c])=>CHICKS[c.t]&&t-c.fAt>20000).length,prod=all.reduce((a,[,c])=>a+(CHICKS[c.t]?chickInfo(c,t).eggs:0),0);
@@ -1363,8 +1364,55 @@ function penBody(m){const k=m.k,t=now();
   <div class="row"><button class="btn" data-act="feedchick" data-v="${k}" ${hungry?'':'disabled'}>Cho ăn${hungry?` (${hungry})`:''}</button><button class="btn green" data-act="eggs" data-v="${k}" ${prod?'':'disabled'}>Thu ${pn}${prod?` (${prod})`:''}</button><button class="btn white" data-act="shop" data-v="animals">Mua con giống</button>${cap<PEN_MAX(k)?`<button class="btn white" data-act="penup" data-v="${k}" ${coins()<penUpPrice(k)?'disabled':''}>Mở rộng ${priceTag(penUpPrice(k))}</button>`:''}</div>
   <div class="list">${list.map(row).join('')||'<div class="panel muted">Trại chưa có con nào. Mua con giống ở tiệm Gia súc gia cầm nhé.</div>'}</div>`}
 function goPen(k,then){const[x,y]=gateXY(k);walkTo('coop',x,y,then||(()=>openModal({t:'pen',k})))}
-function petCuddle(id){const p=S.home.pets?.[id];if(!p)return;const i=live(S.home.pets).findIndex(([x])=>x===id),[hx,hy]=petHome(i);
-  walkTo('coop',hx-50*LDS(hy),hy+6,()=>{S.cuddle={id,t:now()};if(petInfo(p).canPat)petPat(id);else toast(`${p.name} dụi dụi vào chân bạn làm nũng!`,'love');Music.sfx('coin');renderAll();setTimeout(renderAll,3300)})}
+/* ---------- thú cưng tự do chạy khắp màn hình: bắt bướm, đuổi nhau, vươn vai, liếm láp, làm nũng ---------- */
+const PETSIM={key:null,pets:{},bf:{},raf:0,last:0};
+const PSAY={bfly:['Bắt bướm nè!','Đợi đã bướm ơi!','Hụt rồi~'],chase:['Đuổi nè!','Đứng lại!','Bắt được rồi!'],flee:['Á á!','Không bắt được đâu~'],stretch:['Oáp~ buồn ngủ quá','Vươn vai nè~'],lick:['Liếm liếm~','Tắm khô nè~','Chải lông xinh'],sit:['Hihi~','...'],love:{cho:'Gâu gâu~ thương chủ nhất!',meo:'Meo meo~ gãi nữa đi mà!',tho:'Chụt chụt~ thích quá!'},hungry:['Đói rồi!','Cho ăn đi mà~']};
+const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+function visRange(key){const R=ROOMS[key],sc=$('#pscroll'),svg=sc&&sc.querySelector('.pinner>svg');if(!sc||!svg)return[0,R.W];const w=svg.getBoundingClientRect().width;if(!w)return[0,R.W];const r=R.W/w;return[sc.scrollLeft*r,Math.min(R.W,(sc.scrollLeft+sc.clientWidth)*r)]}
+function randSpot(key){const R=ROOMS[key],[a,b]=visRange(key);return[rnd(a+60,Math.max(a+80,b-60)),rnd(R.y0+30,R.y1-10)]}
+function petSimEnsure(key){if(PETSIM.key!==key){PETSIM.key=key;PETSIM.pets={};PETSIM.bf={}}const ids=live(S.home?.pets).map(([id])=>id);
+  for(const id of Object.keys(PETSIM.pets))if(!ids.includes(id))delete PETSIM.pets[id];
+  live(S.home?.pets).forEach(([id,p],i)=>{if(PETSIM.pets[id])return;let x,y;if(key==='coop'){[x,y]=petHome(i)}else{x=360+i*90;y=780+i*20}PETSIM.pets[id]={id,t:p.t,name:p.name,x,y,tx:x,ty:y,st:'sit',until:now()+rnd(400,1800),dir:i%2?-1:1,say:'',sayUntil:0}})}
+function petSay(p,txt,ms=1700){p.say=txt;p.sayUntil=now()+ms}
+function petNext(p){const t=now(),R=ROOMS[PETSIM.key],others=Object.values(PETSIM.pets).filter(q=>q!==p&&!['love','come','flee','chase'].includes(q.st)),hungry=S.home?.pets?.[p.id]&&petInfo(S.home.pets[p.id]).hungry;
+  if(hungry&&Math.random()<.3){p.st='sit';p.until=t+2200;petSay(p,pick(PSAY.hungry));return}
+  const r=Math.random();
+  if(r<.32){p.st='walk';[p.tx,p.ty]=randSpot(PETSIM.key);p.until=t+9000}
+  else if(r<.5){p.st='bfly';p.until=t+rnd(3500,5000);const c=R.ds(p.y);PETSIM.bf[p.id]={ax:p.x+p.dir*70*c,ay:p.y,t0:t,c};petSay(p,pick(PSAY.bfly))}
+  else if(r<.64&&others.length){const v=pick(others);p.st='chase';p.target=v.id;p.until=t+3200;v.st='flee';v.until=t+3200;v.by=p.id;petSay(p,PSAY.chase[0]);petSay(v,pick(PSAY.flee))}
+  else if(r<.78){p.st='stretch';p.until=t+2600;petSay(p,pick(PSAY.stretch))}
+  else if(r<.92){p.st='lick';p.until=t+rnd(2200,3400);petSay(p,pick(PSAY.lick))}
+  else{p.st='sit';p.until=t+rnd(1200,2400);if(Math.random()<.4)petSay(p,pick(PSAY.sit))}}
+function moveToward(p,x,y,speed,dt){const R=ROOMS[PETSIM.key],c=R.ds(p.y),dx=x-p.x,dy=(y-p.y),d=Math.hypot(dx,dy*1.4);if(d<4)return true;const step=Math.min(d,speed*c*dt);p.x+=dx/d*step;p.y+=dy/d*step;if(Math.abs(dx)>2)p.dir=dx>0?1:-1;p.y=Math.max(R.y0,Math.min(R.y1,p.y));return d<10}
+function petTick(ts){if(!['coop','farm'].includes(S.view)||!S.home){PETSIM.raf=0;return}const key=S.view;if(PETSIM.key!==key)petSimEnsure(key);
+  const t=now(),dt=Math.min(.05,(t-(PETSIM.last||t))/1000);PETSIM.last=t;const R=ROOMS[key];
+  for(const p of Object.values(PETSIM.pets)){
+    if(p.st==='walk'){if(moveToward(p,p.tx,p.ty,85,dt)||t>p.until)petNext(p)}
+    else if(p.st==='bfly'){const b=PETSIM.bf[p.id];if(b){const k=(t-b.t0)/1000;b.ax+=Math.sin(k*.9)*40*b.c*dt;b.x=b.ax+Math.sin(k*2.3)*70*b.c;b.y=b.ay-60*b.c+Math.sin(k*3.7)*26*b.c;moveToward(p,b.x-p.dir*14*b.c,Math.max(R.y0,Math.min(R.y1,b.ay+Math.sin(k*1.3)*20*b.c)),150,dt);b.ay=Math.max(R.y0,Math.min(R.y1,b.ay))}if(t>p.until){if(b){b.leave=t}petSay(p,PSAY.bfly[2]);p.st='sit';p.until=t+1200}}
+    else if(p.st==='chase'){const v=PETSIM.pets[p.target];if(!v||t>p.until){p.st='sit';p.until=t+1500;petSay(p,PSAY.chase[2]);if(v&&v.st==='flee'){v.st='stretch';v.until=t+2600}continue}moveToward(p,v.x-v.dir*30*R.ds(v.y),v.y,230,dt)}
+    else if(p.st==='flee'){const c=PETSIM.pets[p.by];if(!c||t>p.until){p.st='sit';p.until=t+1000;continue}const[a,b]=visRange(key);let fx=p.x+(p.x>=c.x?1:-1)*200;if(fx<a+50||fx>b-50)fx=p.x-(p.x>=c.x?1:-1)*260;moveToward(p,Math.max(a+40,Math.min(b-40,fx)),p.y+Math.sin(t/300)*60,215,dt)}
+    else if(p.st==='come'){const[mx,my]=curPos(key),c=R.ds(my);const ok=moveToward(p,mx+52*c,my+4,240,dt);if(ok&&!S.walk){p.st='love';p.until=t+3200;p.dir=-1;const hp=S.home.pets?.[p.id];petSay(p,PSAY.love[p.t]||'Hihi~',3000);if(hp){if(petInfo(hp).canPat)petPat(p.id);else toast(`${hp.name} dụi dụi vào chân bạn làm nũng!`,'love')}}if(t>p.until)petNext(p)}
+    else if(t>p.until)petNext(p);
+  }
+  for(const[id,b]of Object.entries(PETSIM.bf)){if(b.leave){b.y-=120*b.c*dt;b.x+=60*b.c*dt;if(t-b.leave>1600)delete PETSIM.bf[id]}}
+  petDOM();PETSIM.raf=requestAnimationFrame(petTick)}
+function petSimStart(){if(!['coop','farm'].includes(S.view))return;petSimEnsure(S.view);if(!PETSIM.raf){PETSIM.last=now();PETSIM.raf=requestAnimationFrame(petTick)}}
+const PCLS={walk:'pa-walk',chase:'pa-run',flee:'pa-run',come:'pa-run',bfly:'pa-jump',stretch:'pa-stretch',lick:'pa-lick',sit:'pa-sit',love:'cuddle'};
+function petDOM(){const R=ROOMS[PETSIM.key],t=now();
+  for(const p of Object.values(PETSIM.pets)){const g=document.getElementById('pet_'+p.id);if(!g)continue;const c=R.ds(p.y)*1.6;
+    g.setAttribute('transform',`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);const sc=g.firstElementChild;sc.setAttribute('transform',`scale(${(c*p.dir).toFixed(3)} ${c.toFixed(3)})`);
+    const a=sc.firstElementChild,cls='pa '+(PCLS[p.st]||'pa-sit');if(a.getAttribute('class')!==cls)a.setAttribute('class',cls);
+    const bub=g.querySelector('.psay'),show=p.say&&t<p.sayUntil;if(bub){if(show){bub.setAttribute('transform',`translate(0 ${(-64*c).toFixed(1)})`);if(bub.dataset.t!==p.say){bub.dataset.t=p.say;const w=p.say.length*7.6+22;bub.innerHTML=`<rect x="${-w/2}" y="-24" width="${w}" height="24" rx="11" fill="#fff" stroke="${O}" stroke-width="1.8"/><text y="-7" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="13" fill="#c2456d">${esc(p.say)}</text>`}bub.style.display=''}else bub.style.display='none'}
+    const hs=g.querySelector('.phearts');if(hs)hs.style.display=p.st==='love'?'':'none'}
+  for(const[id,b]of Object.entries(PETSIM.bf)){let e=document.getElementById('bf_'+id);if(!e){const layer=document.getElementById('petlayer');if(!layer)continue;layer.insertAdjacentHTML('beforeend',bflySVG(id));e=document.getElementById('bf_'+id)}if(b.x!=null)e.setAttribute('transform',`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)}) scale(${(b.c*2).toFixed(3)})`)}
+  document.querySelectorAll('#petlayer [id^=bf_]').forEach(e=>{if(!PETSIM.bf[e.id.slice(3)])e.remove()})}
+const bflySVG=id=>`<g id="bf_${id}" pointer-events="none"><g class="bfw"><path d="M0 0 Q-16 -18 -18 -4 Q-14 8 0 2Z" fill="#ffb3d1" stroke="${O}" stroke-width="1.6"/><path d="M0 0 Q16 -18 18 -4 Q14 8 0 2Z" fill="#ffd23f" stroke="${O}" stroke-width="1.6"/></g><path d="M0 -6 V6" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/><path d="M0 -6 l-4 -6 M0 -6 l4 -6" stroke="${O}" stroke-width="1.2"/></g>`;
+function petLayer(key){if(!S.home)return '';petSimEnsure(key);const R=ROOMS[key];let s='<g id="petlayer">';
+  for(const p of Object.values(PETSIM.pets)){const c=R.ds(p.y)*1.6;s+=`<g id="pet_${p.id}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" data-act="petpatg" data-v="${p.id}" style="cursor:pointer" role="button" aria-label="Vuốt ve ${esc(p.name)}"><g transform="scale(${(c*p.dir).toFixed(3)} ${c.toFixed(3)})"><g class="pa ${PCLS[p.st]||'pa-sit'}">${hit(-30,-60,60,64)}${petSVG(p.t)}</g><ellipse cx="0" cy="0" rx="18" ry="3.5" fill="#000" opacity=".1"/></g><g class="phearts" style="display:${p.st==='love'?'':'none'}" pointer-events="none">${[0,1,2].map(j=>`<g transform="translate(${(j-1)*16} ${-48*c})"><path class="rise" style="animation-delay:${j*.3}s" d="${heartPath(0,0,7)}" fill="#ff5e8e"${SW}/></g>`).join('')}</g><g class="psay" pointer-events="none" style="display:none"></g></g>`}
+  for(const id of Object.keys(PETSIM.bf))s+=bflySVG(id);
+  return s+'</g>'}
+function petCuddle(id){const p=S.home.pets?.[id];const ps=PETSIM.pets[id];if(!p||!ps)return;const key=S.view,R=ROOMS[key];walkTo(key,ps.x-60*R.ds(ps.y),ps.y+4);ps.st='come';ps.until=now()+7000;delete PETSIM.bf[id]}
+
 function petBowl(){const P=PENG.pet;walkTo('coop',pX('pet',P.y1-40,.82)-40*LDS(P.y1),P.y1-30,()=>{const hungry=live(S.home.pets).filter(([,p])=>petInfo(p).hungry);if(!hungry.length)return toast('Các bé đều no rồi.');if(sup('petfood')<hungry.length){toast('Không đủ pate, mua ở tiệm Gia súc gia cầm nhé.','bad');return openModal({t:'shop',k:'animals'})}const pp={};hungry.forEach(([id])=>pp[id]={fAt:now()});H({pets:pp,sup:useSup('petfood',hungry.length)});toast(`Đã đổ pate cho ${hungry.length} bé ăn!`,'good')})}
 
 function feedChick(pen){
