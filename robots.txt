@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lanxinkdeyyy.github.io/nuoicatrongrau/sitemap.xml
