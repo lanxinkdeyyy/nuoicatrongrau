@@ -21,7 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.APP_VERSION='20261013000340';</script>
+<script>window.APP_VERSION='20261013001631';</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -375,6 +375,14 @@ nav button.on{background:var(--yellow);box-shadow:0 1px 0 var(--ink);transform:t
 .pscroll.fit{overflow:hidden;cursor:default;background:#fff8ec}.pscroll.fit .pinner{width:min(100%,calc(66vh * var(--ar,1.6)));margin:0 auto}.pscroll.fit .pinner>svg{width:100%;height:auto;max-height:none}
 @keyframes confetti{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(820px) rotate(540deg)}}
 .confetti{animation:confetti 3.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes prun1{0%{transform:translate(0,0) scaleX(1)}22%{transform:translate(170px,-24px) scaleX(1)}25%{transform:translate(170px,-24px) scaleX(-1)}47%{transform:translate(40px,30px) scaleX(-1)}50%{transform:translate(40px,30px) scaleX(1)}72%{transform:translate(230px,36px) scaleX(1)}75%{transform:translate(230px,36px) scaleX(-1)}100%{transform:translate(0,0) scaleX(-1)}}
+@keyframes prun2{0%{transform:translate(0,0) scaleX(-1)}22%{transform:translate(-150px,20px) scaleX(-1)}25%{transform:translate(-150px,20px) scaleX(1)}47%{transform:translate(60px,-30px) scaleX(1)}50%{transform:translate(60px,-30px) scaleX(1)}72%{transform:translate(180px,18px) scaleX(1)}75%{transform:translate(180px,18px) scaleX(-1)}100%{transform:translate(0,0) scaleX(-1)}}
+@keyframes prun3{0%{transform:translate(0,0) scaleX(1)}25%{transform:translate(200px,-40px) scaleX(1)}28%{transform:translate(200px,-40px) scaleX(-1)}50%{transform:translate(80px,-80px) scaleX(-1)}53%{transform:translate(80px,-80px) scaleX(1)}75%{transform:translate(260px,-20px) scaleX(1)}78%{transform:translate(260px,-20px) scaleX(-1)}100%{transform:translate(0,0) scaleX(-1)}}
+.prun{animation-timing-function:ease-in-out;animation-iteration-count:infinite;transform-origin:0 0}
+@keyframes phop{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.phop{animation:phop .38s ease-in-out infinite}
+@keyframes cuddle{0%,100%{transform:rotate(-10deg) scale(1)}25%{transform:rotate(10deg) scale(1.08,.94)}50%{transform:rotate(-6deg) translateY(-6px)}75%{transform:rotate(14deg) scale(1.06,.95)}}
+.cuddle{animation:cuddle .7s ease-in-out infinite;transform-origin:0 0}
 </style>
 
 <div id="app" class="wrap"></div>
@@ -1126,12 +1134,13 @@ function farmScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g}
   s+=`<g transform="translate(0 ${FHZ+20})">${fence(0,20,FW_-20).replace(/stroke-width="7"/g,'stroke-width="4"').replace(/stroke-width="3.6"/g,'stroke-width="2"')}</g>`;
   // đường đất giữa hai hàng ruộng
   s+=`<path d="M0 548 Q700 536 1350 552 Q2000 568 ${FW_} 548 L${FW_} 590 Q2000 610 1350 594 Q700 578 0 592Z" fill="#e2c89a"/><path d="M0 548 Q700 536 1350 552 Q2000 568 ${FW_} 548" fill="none" stroke="#c9a86a" stroke-width="3"/>`;
+  s+=groundRect('farm',FHZ+40);
   for(let f=NF-1;f>=0;f--){const F=FIELDS[f];add(F.y0,fieldSVG(f,h,t))}
   for(const[x,y,sc]of[[60,360,.5],[250,330,.42],[2600,350,.5],[2450,330,.42],[150,880,1.05],[1580,600,.75],[2100,880,1.05],[1100,580,.7],[2650,700,.9]])add(y,`<ellipse cx="${x+10*sc}" cy="${y+2}" rx="${60*sc}" ry="${12*sc}" fill="#2f6b1f" opacity=".18"/>`+tree(x,y,sc,x%3===0));
   add(660,`<g transform="translate(200 660) scale(${(FDS(660)*.95).toFixed(3)})">${houseSVG(h.house||1)}</g>`);
-  add(820,placeChar(S.me,150,820,FDS(820)*.95)+placeChar(S.partner,250,830,FDS(830)*.95));
+  const tags=[];placeWalkers(add,tags,'farm');if(S.partner&&!roomPeers().some(p=>p.uid===S.me.partner))add(830,placeChar(S.partner,250,830,FDS(830)*.95));
   live(h.pets).slice(0,3).forEach(([id,p],i)=>{const x=340+i*80,y=770+i*18;add(y,`<g transform="translate(${x} ${y}) scale(${(FDS(y)*1.3).toFixed(3)})"><g class="bob">${petSVG(p.t)}</g></g>`)});
-  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
   s+=fgLayer([[40,955,'bush',1.9],[820,965,'flowers',2.2],[1460,960,'bush',1.9],[2080,965,'flowers',2.1],[2660,955,'bush',1.9]]);
   return s}
 function viewFarm(){
@@ -1145,6 +1154,8 @@ function viewFarm(){
   <p class="hint">${esc(TOOLS.find(t=>t.k===S.tool).h)} Kéo ngang để xem hết các thửa ruộng.</p>`;
 }
 function harvestAll(){let tot=0;for(let i=0;i<fieldsOwned()*12;i++){const p=S.home.plots?.['p'+i];const I=plotInfo(p);if(I.ripe)tot+=harvest(i,p,I,true)}if(tot)toast(`Thu hoạch được ${tot} nông sản, mang ra chợ bán nhé!`,'good')}
+S.farmField=null;
+function farmPlotClick(i){const f=Math.floor(i/12);if(S.farmField===f&&!S.walk)return plotAct(i);const F=FIELDS[f],q=tileQuad(f,i%12),tx=(q[2][0]+q[3][0])/2,hw=fW(F.y1)/2-30;walkTo('farm',Math.max(F.cx-hw,Math.min(F.cx+hw,tx)),F.y1+26*FDS(F.y1),()=>{S.farmField=f;plotAct(i)})}
 function buyField(){const n=fieldsOwned();if(n>=NF)return toast('Đã khai hoang hết 10 thửa rồi!');const p=fieldPrice(n);if(!pay(p))return;const plots={};for(let i=0;i<12;i++)plots['p'+(n*12+i)]={...EMPTY,st:'wild'};H({coins:coins()-p,fields:n+1,plots});toast(`Đã khai hoang thửa ruộng số ${n+1}! Dùng cuốc xới đất rồi gieo hạt nhé.`,'good');
   setTimeout(()=>{const sc=$('#pscroll'),F=FIELDS[n];if(sc){const svg=sc.querySelector('svg'),r=svg.getBoundingClientRect().width/FW_;sc.scrollTo({left:Math.max(0,F.cx*r-sc.clientWidth/2),behavior:'smooth'})}},120)}
 
@@ -1274,68 +1285,88 @@ function barnSVG(k){
   if(k==='de')return `<path d="M-150 0 Q-120 -110 -40 -120 Q40 -150 120 -90 Q160 -40 150 0Z" fill="#b8b0a2"${SW}/><path d="M-90 -60 L-60 -80 M30 -100 L60 -90 M80 -50 L110 -60" stroke="#8a8274" stroke-width="3"/><rect x="-40" y="-70" width="90" height="70" fill="${col[0]}"${SW}/><path d="M-52 -64 L5 -104 L62 -64Z" fill="${col[1]}"${SW}/><rect x="-8" y="-46" width="30" height="46" fill="#6b4a3a"${SW}/>`;
   return `<rect x="-96" y="-110" width="192" height="110" fill="${col[0]}"${SW}/><path d="M-112 -102 L0 -168 L112 -102Z" fill="${col[1]}"${SW}/><path d="M-112 -102 L0 -168 L112 -102" fill="none" stroke="${shade(col[0],-.25)}" stroke-width="5"/><rect x="-36" y="-76" width="72" height="76" fill="${col[1]}"${SW}/><path d="M-36 -76 L36 0 M36 -76 L-36 0" stroke="${col[0]}" stroke-width="6"/><circle cy="-128" r="12" fill="${col[1]}"${SW}/>`+(k==='lon'?`<ellipse cx="150" cy="-6" rx="70" ry="14" fill="#8a5a34" opacity=".8"/>`:'');
 }
-function penScene(k,list){
-  const t=now(),poultry=k==='ga',mud=k==='lon';
-  const gB=mud?'#c9a070':poultry?'#e3cf8e':'#a6dd7c',gF=mud?'#a87a4c':poultry?'#d2b46a':'#7fca55';
-  const BY=196,FY=420,BL=200,BR=600,FL=20,FR=780;
-  const xl=y=>BL+(FL-BL)*(y-BY)/(FY-BY),xr=y=>BR+(FR-BR)*(y-BY)/(FY-BY),dk=y=>.5+(y-BY)/(FY-BY)*.62;
-  let s=`<defs><linearGradient id="pk${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#e6f8ff"/></linearGradient><linearGradient id="pg${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${gB}"/><stop offset="1" stop-color="${gF}"/></linearGradient><linearGradient id="ph${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".55"/></linearGradient></defs>`;
-  s+=`<rect x="-1600" width="4000" height="${BY+20}" fill="url(#pk${k})"/><circle cx="690" cy="54" r="26" fill="#ffe066"${SW}/>`+cloud(140,52,.9,-20)+cloud(480,36,.7,-45);
-  s+=[-1600,-800,0,800,1600].map(dx=>`<path transform="translate(${dx} 0)" d="M0 150 Q140 100 300 140 Q470 92 640 136 Q730 112 800 150 V${BY+10} H0Z" fill="#bfe3a8"/><path transform="translate(${dx} 0)" d="M0 172 Q180 132 360 166 Q560 128 800 172 V${BY+10} H0Z" fill="#a6d886"/>`).join('');
-  for(let i=0;i<14;i++){const x=-60+i*66,y=176+(i%2)*6;s+=tree(x,y,.32,i%4===0)}
-  s+=`<rect x="-1600" y="${BY-30}" width="4000" height="50" fill="url(#ph${k})"/>`;
-  s+=`<rect x="-1600" y="${BY-6}" width="4000" height="${470-BY+6}" fill="#86cf5c"/>${sideDeco(470,BY+20,460)}`;
-  s+=`<path d="M${BL} ${BY} L${BR} ${BY} L${FR} ${FY} L${FL} ${FY}Z" fill="url(#pg${k})"${SW}/>`;
-  for(let y=BY+10,h=10;y<FY;y+=h,h*=1.18)s+=`<path d="M${xl(y).toFixed(1)} ${y.toFixed(1)} L${xr(y).toFixed(1)} ${y.toFixed(1)}" stroke="#000" stroke-opacity=".05" stroke-width="${(h*.45).toFixed(1)}"/>`;
-  for(let i=1;i<8;i++){const xb=FL+(FR-FL)*i/8,xt=BL+(BR-BL)*i/8;s+=`<path d="M${xt} ${BY} L${xb} ${FY}" stroke="#000" stroke-opacity=".05" stroke-width="2"/>`}
-  if(mud)s+=`<ellipse cx="520" cy="300" rx="90" ry="22" fill="#7a5232" opacity=".8"/><ellipse cx="300" cy="372" rx="70" ry="16" fill="#7a5232" opacity=".7"/>`;
-  if(poultry)s+=[...Array(26)].map((_,i)=>{const r=seeded('g'+i),y=BY+20+r()*(FY-BY-30),x=xl(y)+20+r()*(xr(y)-xl(y)-40);return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(3*dk(y)).toFixed(1)}" ry="${(1.6*dk(y)).toFixed(1)}" fill="#f7e2a0"/>`}).join('');
-  else s+=tufts([...Array(10)].map((_,i)=>{const r=seeded(k+i),y=BY+30+r()*(FY-BY-40);return[xl(y)+30+r()*(xr(y)-xl(y)-60),y]}));
-  // nhà trại ở phía xa
-  s+=`<g transform="translate(${poultry?250:k==='de'?520:300} ${BY+4}) scale(.62)">${barnSVG(k)}</g>`;
-  // hàng rào sau và hai bên (xa nhỏ, gần to)
-  const post=(x,y,sc)=>`<path d="M${x-5*sc} ${y+4*sc} V${y-30*sc} L${x} ${y-36*sc} L${x+5*sc} ${y-30*sc} V${y+4*sc}Z" fill="#f2d3a0" stroke="${O}" stroke-width="${(1.8*sc+.4).toFixed(2)}" stroke-linejoin="round"/>`;
-  let fb=`<path d="M${BL} ${BY-22*dk(BY)} H${BR} M${BL} ${BY-10*dk(BY)} H${BR}" stroke="#c98a52" stroke-width="3"/>`;for(let x=BL;x<=BR;x+=36)fb+=post(x,BY,dk(BY));
-  for(const side of[0,1]){const x1=side?BR:BL,x2=side?FR:FL;fb+=`<path d="M${x1} ${BY-22*dk(BY)} L${x2} ${FY-22*dk(FY)} M${x1} ${BY-10*dk(BY)} L${x2} ${FY-10*dk(FY)}" stroke="#c98a52" stroke-width="3.4"/>`;for(let i=0;i<=7;i++){const y=BY+(FY-BY)*i/7*(i/7*.5+.5),x=x1+(x2-x1)*(y-BY)/(FY-BY);fb+=post(x,y,dk(y))}}
-  s+=fb;
-  // máng ăn, xô nước
-  const trough=(x,y)=>{const c=dk(y);return `<g transform="translate(${x} ${y}) scale(${c.toFixed(2)})"><path d="M-60 -26 H60 L50 0 H-50Z" fill="#a8693a"${SW}/><path d="M-56 -24 H56" stroke="${poultry?'#ffd23f':k==='lon'?'#e0b46a':'#9be07a'}" stroke-width="6" stroke-linecap="round"/><path d="M-46 0 v8 M46 0 v8" stroke="${O}" stroke-width="5"/></g>`};
-  const items=[];const add=(y,g)=>items.push({y,g});
-  add(372,trough(xl(372)+110,372));add(330,`<g transform="translate(${xr(330)-60} 330) scale(${dk(330).toFixed(2)})"><path d="M-22 -40 H22 L18 0 H-18Z" fill="#9fb4c8"${SW}/><ellipse cy="-40" rx="22" ry="6" fill="#6cc3f0"${SW}/></g>`);
-  if(!poultry)add(240,`<g transform="translate(${xr(240)-80} 240) scale(${dk(240).toFixed(2)})"><rect x="-34" y="-46" width="68" height="46" rx="8" fill="#f2cf6b"${SW}/><path d="M-34 -26 H34 M-34 -12 H34" stroke="#c99a2c" stroke-width="2"/><path d="M-12 -46 V0 M12 -46 V0" stroke="#a8693a" stroke-width="3"/></g>`);
-  else add(232,`<g transform="translate(${xr(232)-70} 232) scale(${dk(232).toFixed(2)})"><rect x="-50" y="-40" width="100" height="40" fill="#c98a52"${SW}/>${[-30,0,30].map(x=>`<ellipse cx="${x}" cy="-14" rx="12" ry="9" fill="#f2cf6b"${SW}/>`).join('')}</g>`);
-  // con vật
-  const rows=poultry?[[248,4],[300,4],[356,4]]:[[262,3],[346,3]],slots=[];for(const[y,n]of rows)for(let i=0;i<n;i++){const a=xl(y)+60,b=xr(y)-60;slots.push([a+(b-a)*(i+.5)/n+((i+y)%2?14:-14),y])}
+/* ---------- CHUỒNG TRẠI: một khu rộng có chiều sâu, mỗi loài một trại + khu vui chơi thú cưng ---------- */
+const LW_=2900,LH_=900,LHZ=290,LDS=y=>.32+(y-LHZ)*.00125;
+const PENG={bo:{cx:820,y0:360,y1:520,w:560},de:{cx:1480,y0:360,y1:520,w:560},cuu:{cx:2140,y0:360,y1:520,w:560},ga:{cx:620,y0:610,y1:830,w:520},lon:{cx:1320,y0:610,y1:830,w:520},pet:{cx:2120,y0:600,y1:840,w:700}};
+const pW=(k,y)=>PENG[k].w*LDS(y),pX=(k,y,t)=>PENG[k].cx+(t-.5)*pW(k,y);
+const PENSTYLE={ga:['#e8d491','#d2b46a'],bo:['#a6dd7c','#7fca55'],de:['#b8d98a','#93c06a'],cuu:['#b2e38c','#86cf5c'],lon:['#c9a070','#a87a4c'],pet:['#bdeb9a','#93d76a']};
+const gateXY=k=>{const P=PENG[k];return[P.cx,P.y1+30*LDS(P.y1)]};
+function penPost(x,y,sc){return `<path d="M${x-5*sc} ${y+4*sc} V${y-30*sc} L${x} ${y-36*sc} L${x+5*sc} ${y-30*sc} V${y+4*sc}Z" fill="#f2d3a0" stroke="${O}" stroke-width="${(1.8*sc+.4).toFixed(2)}" stroke-linejoin="round"/>`}
+function penFence(k,front){const P=PENG[k],y=front?P.y1:P.y0,c=LDS(y),l=pX(k,y,0),r=pX(k,y,1);let s='';
+  if(!front){s+=`<path d="M${l} ${y-22*c} H${r} M${l} ${y-10*c} H${r}" stroke="#c98a52" stroke-width="${(4*c+1).toFixed(1)}"/>`;for(let t=0;t<=1.001;t+=.1)s+=penPost(pX(k,y,t),y,c);
+    for(const side of[0,1]){const xa=pX(k,P.y0,side),xb=pX(k,P.y1,side),ca=LDS(P.y0),cb=LDS(P.y1);s+=`<path d="M${xa} ${P.y0-22*ca} L${xb} ${P.y1-22*cb} M${xa} ${P.y0-10*ca} L${xb} ${P.y1-10*cb}" stroke="#c98a52" stroke-width="${(4*cb+1).toFixed(1)}"/>`;for(let i=1;i<6;i++){const yy=P.y0+(P.y1-P.y0)*i/6;s+=penPost(pX(k,yy,side),yy,LDS(yy))}}
+    return s}
+  const g1=.42,g2=.58;for(const[a,b]of[[0,g1],[g2,1]]){s+=`<path d="M${pX(k,y,a)} ${y-22*c} H${pX(k,y,b)} M${pX(k,y,a)} ${y-10*c} H${pX(k,y,b)}" stroke="${O}" stroke-width="${(7*c+1).toFixed(1)}"/><path d="M${pX(k,y,a)} ${y-22*c} H${pX(k,y,b)} M${pX(k,y,a)} ${y-10*c} H${pX(k,y,b)}" stroke="#e8c088" stroke-width="${(4*c).toFixed(1)}"/>`;for(let t=a;t<=b+.001;t+=(b-a)/4)s+=penPost(pX(k,y,t),y,c)}
+  s+=`<path d="M${pX(k,y,g1)} ${y} l${-24*c} ${18*c} v${-28*c} l${24*c} ${-18*c}Z" fill="#f2d3a0" stroke="${O}" stroke-width="${(1.6*c+.4).toFixed(2)}"/>`;
+  return s}
+function penGround(k){const P=PENG[k],[a,b]=PENSTYLE[k];return `<path d="M${pX(k,P.y0,0)} ${P.y0} L${pX(k,P.y0,1)} ${P.y0} L${pX(k,P.y1,1)} ${P.y1} L${pX(k,P.y1,0)} ${P.y1}Z" fill="url(#lg_${k})" stroke="${O}" stroke-width="2"/>`+
+  (k==='lon'?`<ellipse cx="${pX(k,700,.7)}" cy="700" rx="${70*LDS(700)}" ry="${16*LDS(700)}" fill="#7a5232" opacity=".75"/><ellipse cx="${pX(k,780,.3)}" cy="780" rx="${60*LDS(780)}" ry="${14*LDS(780)}" fill="#7a5232" opacity=".7"/>`:'')+
+  (k==='ga'?[...Array(30)].map((_,i)=>{const r=seeded('gs'+i),y=P.y0+12+r()*(P.y1-P.y0-20),x=pX(k,y,.05+r()*.9);return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(3*LDS(y)).toFixed(1)}" ry="${(1.6*LDS(y)).toFixed(1)}" fill="#f7e2a0"/>`}).join(''):tufts([...Array(6)].map((_,i)=>{const r=seeded(k+i),y=P.y0+20+r()*(P.y1-P.y0-30);return[pX(k,y,.1+r()*.8),y]})))}
+function penSign(k){const P=PENG[k],y=P.y1+8,c=LDS(y)*1.1,x=pX(k,P.y1,0)-10,T=PENS.find(z=>z.k===k),n=k==='pet'?live(S.home.pets).length:penAnimals(k).length,cap=k==='pet'?3:penCap(k);
+  return `<g transform="translate(${x} ${y}) scale(${c.toFixed(3)})" data-act="pen" data-v="${k}" style="cursor:pointer"><rect x="-4" y="-50" width="8" height="52" fill="#a8693a"${SW}/><rect x="-80" y="-96" width="160" height="50" rx="10" fill="#fff8e6"${SW}/><text y="-74" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="18" fill="${O}">${T.n}</text><text y="-54" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="#c2456d">${n}/${cap} con</text></g>`}
+function penAnimalsSVG(k,t){const P=PENG[k],list=penAnimals(k),poultry=k==='ga',out=[];
+  const rows=poultry?[.28,.55,.8]:[.35,.75],per=poultry?4:3,slots=[];for(const rr of rows)for(let i=0;i<per;i++){const y=P.y0+(P.y1-P.y0)*rr;slots.push([pX(k,y,.18+.64*(i+.5)/per)+((i%2)?14:-14),y])}
   const ord=poultry?[5,10,2,8,7,0,11,4,1,9,6,3]:[4,0,2,3,5,1];
-  list.forEach(([id,c],i)=>{const I=chickInfo(c,t),[x,y]=slots[ord[i%ord.length]],sc=dk(y)*(poultry?(I.mature?1.9:2.2):(I.mature?1.55:1.75)),r=seeded(id),wd=(poultry?16:24)*(r()>.5?1:-1);
-    let g=`<g transform="translate(${x.toFixed(1)} ${y}) scale(${sc.toFixed(3)})"><g class="${I.hungry?'':'wander'}" style="--wd:${wd}px;animation-delay:${(-r()*11).toFixed(1)}s;animation-duration:${(9+r()*5).toFixed(1)}s"><g class="${I.hungry?'':'bob'}" style="animation-delay:${-i*.4}s">${animalSVG(c.t,I.mature)}</g></g></g>`;
-    if(I.hungry)g+=`<g transform="translate(${x+28*sc} ${y-(poultry?44:70)*sc})"><g class="bob"><circle r="14" fill="#fff"${SW}/><g transform="scale(.62)">${supSVG(CHICKS[c.t].feed)}</g></g></g>`;
-    for(let e=0;e<I.eggs;e++)g+=`<g transform="translate(${x-(poultry?30:40)*sc*.6+e*18*dk(y)} ${y+8}) scale(${(dk(y)*(poultry?1.5:1)).toFixed(2)})" data-act="eggs" data-v="${k}" style="cursor:pointer" role="button" aria-label="Thu hoạch">${I.D.egg==='egg'||I.D.egg==='duckegg'?eggSVG(c.t==='vit'):productSVG(I.D.egg)}</g>`;
-    add(y+1,g)});
-  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);
-  // hàng rào trước (gần nhất, che bớt chân, tạo chiều sâu)
-  let ff=`<path d="M${FL} ${FY-24*dk(FY)} H${FR} M${FL} ${FY-10*dk(FY)} H${FR}" stroke="${O}" stroke-width="9"/><path d="M${FL} ${FY-24*dk(FY)} H${FR} M${FL} ${FY-10*dk(FY)} H${FR}" stroke="#e8c088" stroke-width="5"/>`;for(let x=FL;x<=FR;x+=46)ff+=post(x,FY,dk(FY));
-  s+=ff;
-  if(!list.length)s+=`<text x="400" y="320" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="22" fill="#fff" stroke="${O}" stroke-width="4" paint-order="stroke">Trại đang trống, bấm Mua con giống nhé</text>`;
-  return s;
-}
-function viewCoop(){
-  const h=S.home,t=now(),pen=S.pen||'ga',P=PENS.find(x=>x.k===pen)||PENS[0];
-  const tabs=`<div class="pentabs" role="tablist">${PENS.map(x=>{const n=x.k==='pet'?live(h.pets).length:penAnimals(x.k).length,ready=x.k==='pet'?0:penAnimals(x.k).reduce((a,[,c])=>a+chickInfo(c,t).eggs,0);return `<button class="${pen===x.k?'on':''}" data-act="pen" data-v="${x.k}" role="tab" aria-selected="${pen===x.k}"><svg viewBox="-20 -24 40 40" aria-hidden="true">${penIcon(x.k)}</svg>${x.n}${ready?`<i>${ready}</i>`:n?` <span class="muted">${n}</span>`:''}</button>`}).join('')}</div>`;
-  if(pen==='pet'){const pets=live(h.pets);
-    return `<div class="sec-title"><h2>Chuồng trại</h2><span class="muted">Mỗi loài một trại riêng</span></div>${tabs}
-    <div class="sec-title"><h2>Thú cưng</h2><button class="btn sm white" data-act="shop" data-v="animals">Nhận nuôi</button></div>${supChips(['petfood'])}
-    ${pets.length?`<div class="grid" style="margin-top:10px">${pets.map(([id,p])=>{const I=petInfo(p,t);return `<div class="card"><div class="preview" style="padding:4px"><svg viewBox="-36 -66 72 70" style="width:120px">${petSVG(p.t)}</svg></div><b style="font-family:var(--display);font-size:1.15rem">${esc(p.name)} <span class="muted" style="font-size:.85rem">· ${PETS[p.t].n}</span></b><span class="tag ${I.hungry?'warn':'ok'}">${I.hungry?'Đói bụng rồi':'No nê, vui vẻ'}</span><div class="row"><button class="btn sm" data-act="petfeed" data-v="${id}">Cho ăn pate</button><button class="btn sm pink" data-act="petpat" data-v="${id}" ${I.canPat?'':'disabled'}>Vuốt ve</button></div></div>`}).join('')}</div>`:`<div class="panel muted" style="margin-top:10px">Chưa có bé nào. Nhận nuôi cún, mèo hoặc thỏ ở tiệm Gia súc gia cầm nhé.</div>`}`}
-  const list=penAnimals(pen),cap=penCap(pen),feed=[...new Set(P.kinds.map(x=>CHICKS[x].feed))];
+  list.forEach(([id,c],i)=>{const I=chickInfo(c,t),[x,y]=slots[ord[i%ord.length]],sc=LDS(y)*(poultry?(I.mature?1.9:2.2):(I.mature?1.55:1.75)),r=seeded(id),wd=(poultry?16:24)*(r()>.5?1:-1);
+    let g=`<g data-act="pen" data-v="${k}" style="cursor:pointer"><g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(3)})"><g class="${I.hungry?'':'wander'}" style="--wd:${wd}px;animation-delay:${(-r()*11).toFixed(1)}s;animation-duration:${(9+r()*5).toFixed(1)}s"><g class="${I.hungry?'':'bob'}" style="animation-delay:${-i*.4}s">${animalSVG(c.t,I.mature)}</g></g></g></g>`;
+    if(I.hungry)g+=`<g transform="translate(${x+28*sc} ${y-(poultry?44:70)*sc})" pointer-events="none"><g class="bob"><circle r="${13*LDS(y)*1.4}" fill="#fff"${SW}/><g transform="scale(${(.6*LDS(y)*1.4).toFixed(2)})">${supSVG(CHICKS[c.t].feed)}</g></g></g>`;
+    for(let e=0;e<I.eggs;e++)g+=`<g transform="translate(${x-(poultry?30:40)*sc*.6+e*18*LDS(y)*1.4} ${y+8}) scale(${(LDS(y)*(poultry?2:1.4)).toFixed(2)})" data-act="penc" data-v="${k}" style="cursor:pointer" role="button" aria-label="Thu hoạch">${I.D.egg==='egg'||I.D.egg==='duckegg'?eggSVG(c.t==='vit'):productSVG(I.D.egg)}</g>`;
+    out.push([y,g])});return out}
+const PETRUN=['prun1','prun2','prun3'];
+const petHome=(i)=>{const P=PENG.pet,pts=[[.18,.35],[.45,.62],[.3,.82]],[t,v]=pts[i%3],y=P.y0+(P.y1-P.y0)*v;return[pX('pet',y,t),y]};
+function petYardSVG(t){const P=PENG.pet,out=[],pets=live(S.home.pets);
+  const bowl=[pX('pet',P.y1-40,.82),P.y1-40],house=[pX('pet',P.y0+50,.78),P.y0+50];
+  out.push([house[1],`<g transform="translate(${house[0]} ${house[1]}) scale(${(LDS(house[1])*1.2).toFixed(3)})" pointer-events="none"><path d="M-46 0 V-50 L0 -86 L46 -50 V0Z" fill="#ff9fbe"${SW}/><path d="M-56 -46 L0 -96 L56 -46" fill="none" stroke="#e8505b" stroke-width="10" stroke-linecap="round"/><path d="M-18 0 V-28 Q0 -46 18 -28 V0Z" fill="#6b4a3a"${SW}/><path d="${heartPath(0,-62,6)}" fill="#fff"/></g>`]);
+  out.push([P.y0+100,`<g transform="translate(${pX('pet',P.y0+100,.62)} ${P.y0+100}) scale(${(LDS(P.y0+100)*1.1).toFixed(3)})" pointer-events="none"><circle cy="-14" r="14" fill="#ff7fa6"${SW}/><path d="M-14 -14 H14 M-6 -27 Q0 -14 -6 -1" stroke="#fff" stroke-width="3" fill="none"/></g>`]);
+  out.push([P.y0+170,`<g transform="translate(${pX('pet',P.y0+170,.12)} ${P.y0+170}) scale(${(LDS(P.y0+170)*1.1).toFixed(3)})" pointer-events="none"><rect x="-6" y="-80" width="12" height="80" fill="#c98a52"${SW}/><rect x="-30" y="-90" width="60" height="16" rx="6" fill="#e0a45f"${SW}/><rect x="-24" y="-46" width="48" height="12" rx="5" fill="#e0a45f"${SW}/></g>`]);
+  const hungry=pets.some(([,p])=>petInfo(p,t).hungry);
+  out.push([bowl[1],`<g transform="translate(${bowl[0]} ${bowl[1]}) scale(${(LDS(bowl[1])*1.4).toFixed(3)})" data-act="petbowl" style="cursor:pointer" role="button" aria-label="Bát ăn thú cưng">${hit(-30,-40,60,44)}<path d="M-24 -14 H24 L18 0 H-18Z" fill="#7cc7ff"${SW}/><ellipse cy="-14" rx="24" ry="6" fill="${hungry?'#e6f3ff':'#c98a52'}"${SW}/>${hungry?`<g transform="translate(16 -46)"><g class="bob"><circle r="13" fill="#fff"${SW}/><g transform="scale(.55)">${supSVG('petfood')}</g></g></g>`:''}</g>`]);
+  const cud=S.cuddle&&t-S.cuddle.t<3200?S.cuddle:null;
+  pets.forEach(([id,p],i)=>{const sc=LDS(petHome(i)[1])*1.6;
+    if(cud&&cud.id===id){const[x,y]=curPos('coop'),c=LDS(y)*1.6,say={cho:'Gâu gâu~ thương chủ nhất!',meo:'Meo meo~ gãi nữa đi mà!',tho:'Chụt chụt~ thích quá!'}[p.t]||'Hihi~',w=say.length*8+24;
+      out.push([y+4,`<g transform="translate(${x+58*LDS(y)} ${y+4})" pointer-events="none"><g transform="scale(${c.toFixed(3)})"><g class="cuddle">${petSVG(p.t)}</g></g>${[0,1,2].map(j=>`<g transform="translate(${(j-1)*22*LDS(y)} ${-60*c})"><path class="rise" style="animation-delay:${j*.3}s" d="${heartPath(0,0,8)}" fill="#ff5e8e"${SW}/></g>`).join('')}<g transform="translate(0 ${-78*c})"><rect x="${-w/2}" y="-30" width="${w}" height="28" rx="12" fill="#fff"${SW}/><text y="-11" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="#c2456d">${say}</text></g></g>`]);return}
+    const[hx,hy]=petHome(i),I=petInfo(p,t);
+    out.push([hy,`<g transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})" data-act="petpatg" data-v="${id}" style="cursor:pointer" role="button" aria-label="Vuốt ve ${esc(p.name)}"><g class="prun" style="animation-name:${PETRUN[i%3]};animation-duration:${8+i*1.7}s;animation-delay:${-i*2.3}s"><g transform="scale(${sc.toFixed(3)})">${hit(-30,-60,60,64)}<g class="phop" style="animation-delay:${-i*.13}s">${petSVG(p.t)}</g></g></g>${I.hungry?`<g transform="translate(0 ${-70*sc})" pointer-events="none"><text text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="${14}" fill="#c2456d" stroke="#fff" stroke-width="3" paint-order="stroke">Đói rồi!</text></g>`:''}</g>`])});
+  if(!pets.length)out.push([P.y0+120,`<text x="${P.cx}" y="${P.y0+120}" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="20" fill="#fff" stroke="${O}" stroke-width="4" paint-order="stroke" pointer-events="none">Nhận nuôi cún, mèo, thỏ ở tiệm Gia súc gia cầm</text>`]);
+  return out}
+function coopScene(){const h=S.home,t=now(),items=[],add=(y,g)=>items.push({y,g}),tags=[];
+  let s=`<defs>${FGBLUR}<linearGradient id="lsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#e3f7ff"/></linearGradient><linearGradient id="lgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7dd7a"/><stop offset="1" stop-color="#7fca55"/></linearGradient><linearGradient id="lhz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#f4fbff" stop-opacity=".7"/><stop offset="1" stop-color="#f4fbff" stop-opacity="0"/></linearGradient>${Object.entries(PENSTYLE).map(([k,[a,b]])=>`<linearGradient id="lg_${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`).join('')}</defs>`;
+  s+=`<rect width="${LW_}" height="${LH_}" fill="url(#lsk)"/>`+farLayers(LW_,LHZ-6,'coop');
+  s+=`<g class="par" data-k=".5"><path d="M0 ${LHZ-30} Q400 ${LHZ-96} 800 ${LHZ-40} Q1300 ${LHZ-104} 1800 ${LHZ-38} Q2300 ${LHZ-90} ${LW_} ${LHZ-40} V${LHZ+10} H0Z" fill="#c6eaa2"/>${[...Array(32)].map((_,i)=>tree(40+i*92,LHZ-24+(i%2)*4,.2,i%3===0)).join('')}</g>`;
+  s+=`<rect y="${LHZ}" width="${LW_}" height="${LH_-LHZ}" fill="url(#lgr)"/>`;for(let y=LHZ+8,hh=9;y<LH_;y+=hh,hh*=1.16)s+=`<rect y="${y.toFixed(1)}" width="${LW_}" height="${(hh/2).toFixed(1)}" fill="#fff" opacity=".05"/>`;
+  s+=`<rect y="${LHZ-70}" width="${LW_}" height="100" fill="url(#lhz)" pointer-events="none"/>`;
+  s+=`<path d="M0 548 Q800 534 1450 552 Q2100 570 ${LW_} 548 L${LW_} 592 Q2100 612 1450 596 Q800 578 0 592Z" fill="#e2c89a"/>`;
+  s+=groundRect('coop',LHZ+40);
+  for(const k of Object.keys(PENG)){const P=PENG[k];
+    add(P.y0-1,penFence(k,false));
+    add(P.y0,`<g data-act="pen" data-v="${k}" style="cursor:pointer">${penGround(k)}</g>`);
+    if(k!=='pet')add(P.y0+2,`<g transform="translate(${pX(k,P.y0,.2)} ${P.y0+4}) scale(${(LDS(P.y0)*.62).toFixed(3)})" data-act="pen" data-v="${k}" style="cursor:pointer">${barnSVG(k)}</g>`);
+    if(k!=='pet'){const ty=P.y1-26;add(ty,`<g transform="translate(${pX(k,ty,.78)} ${ty}) scale(${LDS(ty).toFixed(3)})" pointer-events="none"><path d="M-60 -26 H60 L50 0 H-50Z" fill="#a8693a"${SW}/><path d="M-56 -24 H56" stroke="${k==='ga'?'#ffd23f':k==='lon'?'#e0b46a':'#9be07a'}" stroke-width="6" stroke-linecap="round"/></g>`)}
+    for(const[y,g]of(k==='pet'?petYardSVG(t):penAnimalsSVG(k,t)))add(y,g);
+    add(P.y1+1,penFence(k,true));add(P.y1+9,penSign(k))}
+  for(const[x,y,sc]of[[90,380,.5],[300,350,.42],[2600,370,.5],[2780,340,.42],[120,880,1.05],[980,580,.72],[1800,590,.75],[2700,720,.95]])add(y,`<ellipse cx="${x+10*sc}" cy="${y+2}" rx="${60*sc}" ry="${12*sc}" fill="#2f6b1f" opacity=".18"/>`+tree(x,y,sc,x%3===0));
+  placeWalkers(add,tags,'coop');
+  items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.g);s+=tags.join('');
+  s+=fgLayer([[40,955,'bush',1.9],[900,965,'flowers',2.2],[1600,960,'bush',1.9],[2300,965,'flowers',2.1],[2850,955,'bush',1.9]]);
+  return s}
+function viewCoop(){const h=S.home,t=now(),all=live(h.coop),hungry=all.filter(([,c])=>CHICKS[c.t]&&t-c.fAt>20000).length,prod=all.reduce((a,[,c])=>a+(CHICKS[c.t]?chickInfo(c,t).eggs:0),0);
+  return `<div class="sec-title"><h2>Chuồng trại</h2><div class="row"><button class="btn sm white" data-act="shop" data-v="animals">Mua con giống, thức ăn</button></div></div>
+  ${sceneBox(LW_,LH_,coopScene(),'Chuồng trại',false)}
+  ${supChips(['grain','hay','bran','petfood'])}
+  <p class="hint">Chạm vào trại nào thì nhân vật sẽ đi tới cửa trại đó rồi mới mở chức năng cho ăn, thu hoạch, mở rộng. ${hungry?`<b>${hungry} con đang đói.</b> `:''}${prod?`<b>${prod} sản phẩm chờ thu.</b> `:''}Thú cưng chạy nhảy trong khu vui chơi, chạm vào bé để vuốt ve. Kéo ngang để xem hết các trại.</p>`}
+function penBody(m){const k=m.k,t=now();
+  if(k==='pet'){const pets=live(S.home.pets);return `${supChips(['petfood'])}${pets.length?`<div class="grid">${pets.map(([id,p])=>{const I=petInfo(p,t);return `<div class="card"><div class="preview" style="padding:4px"><svg viewBox="-36 -66 72 70" style="width:110px">${petSVG(p.t)}</svg></div><b style="font-family:var(--display);font-size:1.15rem">${esc(p.name)} <span class="muted" style="font-size:.85rem">· ${PETS[p.t].n}</span></b><span class="tag ${I.hungry?'warn':'ok'}">${I.hungry?'Đói bụng rồi':'No nê, vui vẻ'}</span><div class="row"><button class="btn sm" data-act="petfeed" data-v="${id}">Cho ăn pate</button></div></div>`}).join('')}</div>`:'<div class="panel muted">Chưa có bé nào.</div>'}<button class="btn white" data-act="shop" data-v="animals">Nhận nuôi thêm</button><p class="muted" style="margin:0">Muốn vuốt ve thì đóng bảng này rồi chạm thẳng vào bé đang chạy trong khu vui chơi nhé.</p>`}
+  const P=PENS.find(x=>x.k===k),list=penAnimals(k),cap=penCap(k),feed=[...new Set(P.kinds.map(x=>CHICKS[x].feed))];
   const hungry=list.filter(([,c])=>t-c.fAt>20000).length,prod=list.reduce((a,[,c])=>a+chickInfo(c,t).eggs,0),pn=[...new Set(P.kinds.map(x=>ITEMS[CHICKS[x].egg].n.toLowerCase()))].join(', ');
   const row=([id,c])=>{const I=chickInfo(c,t),p=ITEMS[I.D.egg].n.toLowerCase();return `<div class="item"><div class="ic"><svg viewBox="${isBig(c)?'-30 -66 80 70':'-30 -46 60 50'}">${animalSVG(c.t,I.mature)}</svg></div><div class="tx"><b>${I.mature?I.D.adult:I.D.n}</b><small>${I.hungry?'Đói rồi, '+(I.mature?'không cho '+p:'ngừng lớn'):I.mature?`Đang cho ${p} · ${I.eggs} chờ thu`:'Đang lớn'}</small>${I.mature?'':`<div class="bar"><i style="width:${I.frac*100}%"></i></div>`}</div>${I.mature?`<button class="btn sm white" data-act="sellchick" data-v="${id}">Bán ${I.D.sell} xu</button>`:''}</div>`};
-  return `<div class="sec-title"><h2>Chuồng trại</h2><span class="muted">Mỗi loài một trại riêng</span></div>${tabs}
-  <div class="sec-title" style="margin-top:8px"><h2>${P.n}</h2><span class="tag">${list.length}/${cap} con</span></div>
-  <div class="scene"><svg viewBox="${wideVB(800,470)}" role="img" aria-label="${P.n}">${penScene(pen,list)}</svg></div>
-  <div class="row" style="margin:12px 0 0"><button class="btn" data-act="feedchick" data-v="${pen}" ${hungry?'':'disabled'}>Cho ăn${hungry?` (${hungry})`:''}</button><button class="btn green" data-act="eggs" data-v="${pen}" ${prod?'':'disabled'}>Thu ${pn}${prod?` (${prod})`:''}</button><button class="btn white" data-act="shop" data-v="animals">Mua con giống, thức ăn</button>${cap<PEN_MAX(pen)?`<button class="btn white" data-act="penup" data-v="${pen}" ${coins()<penUpPrice(pen)?'disabled':''}>Mở rộng trại ${priceTag(penUpPrice(pen))}</button>`:''}</div>
-  ${supChips(feed)}
-  <div class="list" style="margin-top:12px">${list.map(row).join('')||'<div class="panel muted">Trại chưa có con nào.</div>'}</div>`;
-}
+  return `<div class="row"><span class="tag">${list.length}/${cap} con</span>${supChips(feed)}</div>
+  <div class="row"><button class="btn" data-act="feedchick" data-v="${k}" ${hungry?'':'disabled'}>Cho ăn${hungry?` (${hungry})`:''}</button><button class="btn green" data-act="eggs" data-v="${k}" ${prod?'':'disabled'}>Thu ${pn}${prod?` (${prod})`:''}</button><button class="btn white" data-act="shop" data-v="animals">Mua con giống</button>${cap<PEN_MAX(k)?`<button class="btn white" data-act="penup" data-v="${k}" ${coins()<penUpPrice(k)?'disabled':''}>Mở rộng ${priceTag(penUpPrice(k))}</button>`:''}</div>
+  <div class="list">${list.map(row).join('')||'<div class="panel muted">Trại chưa có con nào. Mua con giống ở tiệm Gia súc gia cầm nhé.</div>'}</div>`}
+function goPen(k,then){const[x,y]=gateXY(k);walkTo('coop',x,y,then||(()=>openModal({t:'pen',k})))}
+function petCuddle(id){const p=S.home.pets?.[id];if(!p)return;const i=live(S.home.pets).findIndex(([x])=>x===id),[hx,hy]=petHome(i);
+  walkTo('coop',hx-50*LDS(hy),hy+6,()=>{S.cuddle={id,t:now()};if(petInfo(p).canPat)petPat(id);else toast(`${p.name} dụi dụi vào chân bạn làm nũng!`,'love');Music.sfx('coin');renderAll();setTimeout(renderAll,3300)})}
+function petBowl(){const P=PENG.pet;walkTo('coop',pX('pet',P.y1-40,.82)-40*LDS(P.y1),P.y1-30,()=>{const hungry=live(S.home.pets).filter(([,p])=>petInfo(p).hungry);if(!hungry.length)return toast('Các bé đều no rồi.');if(sup('petfood')<hungry.length){toast('Không đủ pate, mua ở tiệm Gia súc gia cầm nhé.','bad');return openModal({t:'shop',k:'animals'})}const pp={};hungry.forEach(([id])=>pp[id]={fAt:now()});H({pets:pp,sup:useSup('petfood',hungry.length)});toast(`Đã đổ pate cho ${hungry.length} bé ăn!`,'good')})}
+
 function feedChick(pen){
   const t=now(),patch={},used={},left={};let n=0,need=0;const short=new Set();const kinds=pen?(PENS.find(x=>x.k===pen)?.kinds||[]):Object.keys(CHICKS);
   for(const[id,c]of live(S.home.coop)){if(!CHICKS[c.t]||!kinds.includes(c.t)||t-c.fAt<=20000)continue;need++;const f=CHICKS[c.t].feed;if(left[f]==null)left[f]=sup(f);if(left[f]<1){short.add(f);continue}left[f]--;used[f]=(used[f]||0)+1;patch[id]={grown:(c.grown||0)+Math.min(t-c.fAt,FLIM),fAt:t};n++}
@@ -1580,7 +1611,7 @@ function pathBand(pts,col,extra){let s='';const w=y=>(46+(y-280)*.2)+extra;
 function walkPos(k){let L=0;const seg=[];for(let i=0;i<PPATH.length-1;i++){const l=Math.hypot(PPATH[i+1][0]-PPATH[i][0],PPATH[i+1][1]-PPATH[i][1]);seg.push(l);L+=l}
   let d=k*L;for(let i=0;i<seg.length;i++){if(d<=seg[i]||i===seg.length-1){const f=Math.min(1,d/seg[i]);return[PPATH[i][0]+(PPATH[i+1][0]-PPATH[i][0])*f,PPATH[i][1]+(PPATH[i+1][1]-PPATH[i][1])*f]}d-=seg[i]}return PPATH[0]}
 function parkScene(){
-  const P=S.park||(S.park={spot:'gate'}),t=now(),me=S.me,peers=parkPeers(),paPeer=S.me.partner&&peers.find(x=>x.uid===S.me.partner),pa=paPeer&&paPeer.spot===(P.walk?'walk':P.spot)&&!paPeer.ride?S.partner:null,others=peers.filter(x=>!(pa&&x.uid===S.me.partner));
+  const P=S.park||(S.park={spot:'gate'}),t=now(),me=S.me,peers=parkPeers(),paPeer=S.me.partner&&peers.find(x=>x.uid===S.me.partner),pa=paPeer&&P.spot!=='free'&&paPeer.spot===(P.walk?'walk':P.spot)&&!paPeer.ride?S.partner:null,others=peers.filter(x=>!(pa&&x.uid===S.me.partner));
   const riding=P.ride&&P.ride>t,sliding=P.slide&&P.slide>t,swinging=P.spot==='swing';
   // nền: trời, đồi xa, bãi cỏ trải ra xa có các dải cắt cỏ
   let s=`<defs>${FGBLUR}<linearGradient id="phz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".72" stop-color="#f4fbff" stop-opacity=".75"/><stop offset="1" stop-color="#f4fbff" stop-opacity="0"/></linearGradient><linearGradient id="psky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#e3f7ff"/></linearGradient><linearGradient id="plawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7dd7a"/><stop offset="1" stop-color="#7fca55"/></linearGradient></defs><rect width="${PW_}" height="${PH_}" fill="url(#psky)"/>`;
@@ -1604,6 +1635,7 @@ function parkScene(){
   for(const[x,y]of beds){const sc=DS(y);add(y,`<g transform="translate(${x} ${y}) scale(${sc})"><ellipse rx="80" ry="30" fill="#8a5a34"${SW}/><ellipse cy="-4" rx="72" ry="24" fill="#6bb84a"/>${[...Array(9)].map((_,i)=>`<circle cx="${-56+i*14}" cy="${-10+(i%3)*8}" r="7" fill="${['#ff7fa6','#ffd23f','#fff','#b892f0'][i%4]}"${SW}/>`).join('')}</g>`)}
   for(const[x,y]of [[360,440],[1180,420],[1650,450],[2200,420],[60,780],[840,690],[2580,780],[1960,770]])add(y,shTree(x,y,DS(y)*1.15,x%2===0));
   for(let i=0;i<40;i++){const x=(i*157)%PW_,y=330+((i*97)%560);s+=`<g transform="translate(${x} ${y}) scale(${DS(y)})">${tufts([[0,0]])}</g>`}
+  s+=groundRect('park',300);
   // đồ chơi và xe hàng
   const O_=k=>PSPOT[k].o,sc=k=>DS(PSPOT[k].o[1]);
   const wrap=(k,label,inner)=>`<g data-act="pk" data-v="${k}" style="cursor:pointer" role="button" aria-label="${label}">${inner}</g>`;
@@ -1623,6 +1655,7 @@ function parkScene(){
   if(P.walk){const[x,y]=walkPos(P.walkK||0),c=DS(y)*.95;add(y+1,`<g id="walkers" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${c.toFixed(3)})">${placeChar(me,-38,0,1,{},'step')}${placeChar(pa,38,4,1,{mood:'love'},'step')}</g>`)}
   else if(riding||swinging||sliding){if(sliding&&pa){const[x,y]=PSPOT.slide.c;add(y,placeChar(pa,x,y,DS(y)*.95,{mood:'love'}))}}
   else if(P.spot.startsWith('bench')){const[x,y]=PSPOT[P.spot].o,c=DS(y);add(y+1,placeChar(me,x-36*c,y,.95*c,{pose:'sit',mood:'love'},'')+placeChar(pa,x+36*c,y,.95*c,{pose:'sit',mood:'love'},'')+`<g transform="translate(${x} ${y-150*c})"><path class="rise" d="${heartPath(0,0,9)}" fill="#ff7fa6"${SW}/></g>`);tag=[x-36*c,y-150*c]}
+  else if(P.spot==='free'){const[x,y]=curPos('park'),c=DS(y);S.myFoot=[x,y];if(!fightHidden.has(S.uid)){add(y+2,meSprite('park',me,x,y,c,mood));if(!S.walk)tag=[x,y-178*c*.95]}}
   else{const[x,y]=(PSPOT[P.spot]&&PSPOT[P.spot].c)||PSPOT.gate.c,c=DS(y);S.myFoot=[x,y];add(y+2,(fightHidden.has(S.uid)?'':placeChar(me,x,y,.95*c,mood))+placeChar(pa,x+70*c,y+6,.95*c,{mood:'love'}));if(!fightHidden.has(S.uid))tag=[x,y-178*c*.95]}
   // người khác đang online
   const placed=othersPlaced(others);
@@ -1639,7 +1672,7 @@ function parkScene(){
   return s;
 }
 function othersPlaced(list){
-  const groups={},out=[];for(const st of list){if(st.ride)continue;const k=PSPOT[st.spot]?st.spot:'gate';(groups[k]=groups[k]||[]).push(st)}
+  const groups={},out=[];for(const st of list){if(st.ride)continue;if(st.spot==='free'&&st.x!=null){const x=st.x,y=Math.max(300,st.y),c=DS(y);let tag='';if(isFriend(st.uid)){const d=st.uid===S.me.partner?S.partner:S.friendDocs[st.uid];tag=nameTag(x,y-170*c*.9-6,`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,st.uid===S.me.partner?'#ffe3ec':'#dff3ff')}out.push({y,svg:`<g data-act="pplayer" data-v="${esc(st.uid)}" style="cursor:pointer" role="button" aria-label="Người chơi">${placeChar({...st.look},x,y,.9*c,{},'idle')}</g>`,tag,uid:st.uid,foot:[x,y],head:[x,y-170*c*.9-(tag?30:6)]});continue}const k=PSPOT[st.spot]?st.spot:'gate';(groups[k]=groups[k]||[]).push(st)}
   const offs=[[-150,-14],[160,10],[-235,22],[245,-20],[-320,8],[330,24],[-90,40],[100,-34]];
   for(const k in groups)groups[k].sort((a,b)=>a.uid<b.uid?-1:1).forEach((st,i)=>{
     const base=PSPOT[k].c||PSPOT[k].o,c0=DS(base[1]),o=offs[i%offs.length];const x=Math.max(40,Math.min(PW_-40,base[0]+o[0]*c0)),y=Math.min(PH_-12,base[1]+o[1]),c=DS(y);
@@ -1651,7 +1684,7 @@ function othersPlaced(list){
 }
 /* ---------- ai đang ở công viên / chợ (thời gian thực) ---------- */
 function nameTag(x,y,txt,bg='#fff'){const w=Math.max(46,txt.length*8.2+20);return `<g transform="translate(${x} ${y})" pointer-events="none"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="13" fill="${bg}"${SW}/><path d="M-6 11 L0 18 L6 11Z" fill="${bg}"${SW}/><rect x="${-w/2+2}" y="-13" width="${w-4}" height="22" rx="11" fill="${bg}"/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="${O}">${esc(txt)}</text></g>`}
-const SCENES=['park','market','town','boutique','church'];
+const SCENES=['park','market','town','boutique','church','farm','coop'];
 const sceneView=()=>SCENES.includes(S.view);
 const sceneDS=y=>S.view==='park'?DS(y):S.view==='church'?CDS(y):(ROOMS[S.view]?ROOMS[S.view].ds(y):DS(y));
 const sceneW=()=>S.view==='park'?PW_:S.view==='church'?CW_:(ROOMS[S.view]?ROOMS[S.view].W:PW_);
@@ -1661,8 +1694,8 @@ const parkPeers=roomPeers;
 const lookOf=p=>({g:p.g,skin:p.skin,hs:p.hs,hc:p.hc,eq:p.eq||{}});
 function myRoomState(){const b={uid:S.uid,nick:S.me.nick,look:meLook()};
   if(S.view==='church')return{...b,seat:S.churchSeat||null};
-  if(ROOMS[S.view]){const M=S.pos[S.view];return{...b,x:Math.round(M.x),y:Math.round(M.y)}}
-  const P=S.park||{};return{...b,spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now())}}
+  if(ROOMS[S.view]&&S.view!=='park'){const M=S.pos[S.view];return{...b,x:Math.round(M.x),y:Math.round(M.y)}}
+  const P=S.park||{};return{...b,spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now()),...(P.spot==='free'?{x:Math.round(S.pos.park.x),y:Math.round(S.pos.park.y)}:{})}}
 function setPeers(list){const seen={},out=[];for(const st of list){if(!st||typeof st!=='object'||!st.uid||st.uid===S.uid||seen[st.uid]||!st.look||typeof st.look!=='object')continue;seen[st.uid]=1;
     const o={uid:String(st.uid),nick:cleanText(st.nick).slice(0,14),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride,seat:/^[LR]\d-\d$/.test(st.seat||'')?st.seat:null};
     if(Number.isFinite(+st.x)&&Number.isFinite(+st.y)&&st.x!=null&&st.y!=null){o.x=Math.max(40,Math.min(3000,+st.x));o.y=Math.max(100,Math.min(1200,+st.y))}out.push(o)}
@@ -1949,21 +1982,34 @@ function stallClose(){const st=S.myStall;if(!st)return;claimSales(st);const inv=
 const TW_=2800,TH_=1000,THZ=300,TDS=y=>.3+(y-THZ)*.0012;
 const BW_=1200,BH_=700,BHZ=300,BDS=y=>.5+(y-BHZ)*.0013;
 const CW_=1200,CH_=760,CHZ=280,CDS=y=>.64+(y-CHZ)*.0011;
-const ROOMS={market:{W:MW_,H:MH_,ds:MDS,y0:MHZ+70,y1:MH_-24},town:{W:TW_,H:TH_,ds:TDS,y0:THZ+90,y1:TH_-20},boutique:{W:BW_,H:BH_,ds:BDS,y0:BHZ+60,y1:BH_-14}};
-S.pos={market:S.mkt,town:{x:Math.round(1000+Math.random()*700),y:Math.round(860+Math.random()*90)},boutique:{x:600,y:640}};S.trial={};S.bq='fashion';
+const ROOMS={farm:{W:FW_,H:FH_,ds:FDS,y0:FHZ+70,y1:FH_-20},coop:{W:LW_,H:LH_,ds:LDS,y0:LHZ+70,y1:LH_-20},park:{W:PW_,H:PH_,ds:DS,y0:330,y1:PH_-20},market:{W:MW_,H:MH_,ds:MDS,y0:MHZ+70,y1:MH_-24},town:{W:TW_,H:TH_,ds:TDS,y0:THZ+90,y1:TH_-20},boutique:{W:BW_,H:BH_,ds:BDS,y0:BHZ+60,y1:BH_-14}};
+S.pos={farm:{x:330,y:845},coop:{x:300,y:870},park:{x:245,y:872},market:S.mkt,town:{x:Math.round(1000+Math.random()*700),y:Math.round(860+Math.random()*90)},boutique:{x:600,y:640}};S.trial={};S.bq='fashion';
 const meLook=()=>{const l=lookOf(S.me);if(S.view==='boutique'&&Object.keys(S.trial).length)l.eq={...l.eq,...S.trial};return l};
-function roomName(){if(!S.uid||!S.me)return null;if(S.view==='park'||S.view==='market'||S.view==='town')return S.view;if(S.view==='boutique')return 'shop-'+S.bq;if(S.view==='church'&&S.churchId)return 'church-'+String(S.churchId).replace(/[^a-z0-9_]/gi,'').slice(0,40);return null}
+function roomName(){if(!S.uid||!S.me)return null;if(S.view==='farm'||S.view==='coop')return S.view+'-'+String(S.me.homeId||'').replace(/[^a-z0-9_]/gi,'').slice(0,40);if(S.view==='park'||S.view==='market'||S.view==='town')return S.view;if(S.view==='boutique')return 'shop-'+S.bq;if(S.view==='church'&&S.churchId)return 'church-'+String(S.churchId).replace(/[^a-z0-9_]/gi,'').slice(0,40);return null}
 const posKey=()=>S.view;
 function tagFor(uid){if(uid===S.uid)return['Bạn','#fff3c2'];if(!isFriend(uid))return null;const d=uid===S.me.partner?S.partner:S.friendDocs[uid];return[`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,uid===S.me.partner?'#ffe3ec':'#dff3ff']}
-function placeWalkers(add,tags,key,opt={}){const R=ROOMS[key],peers=roomPeers(),fu=fightUids(),pos={},me=S.pos[key];pos[S.uid]=[me.x,me.y];
+/* ---------- bấm đâu đi đó: nhân vật bước đi tới chỗ được chạm ---------- */
+S.walk=null;
+function spotPark(){const P=S.park||{};if(P.spot==='free')return[S.pos.park.x,S.pos.park.y];const sp=PSPOT[P.spot]||PSPOT.gate;return(sp.c||sp.o).slice()}
+function curPos(key){const w=S.walk;if(w&&w.key===key){const k=Math.min(1,(now()-w.t0)/w.dur);return[w.x0+(w.x1-w.x0)*k,w.y0+(w.y1-w.y0)*k]}if(key==='park')return spotPark();const P=S.pos[key];return[P.x,P.y]}
+function walkTo(key,x,y,cb){const R=ROOMS[key];x=Math.max(50,Math.min(R.W-50,x));y=Math.max(R.y0,Math.min(R.y1,y));const[x0,y0]=curPos(key);const d=Math.hypot(x-x0,(y-y0)*1.5);
+  if(key==='park'){const P=S.park||(S.park={spot:'gate'});if(P.walk||(P.ride&&P.ride>now()))return;P.spot='free'}
+  if(d<14){S.walk=null;S.pos[key].x=x;S.pos[key].y=y;renderAll();if(cb)cb();return}
+  S.walk={key,x0,y0,x1:x,y1:y,t0:now(),dur:Math.max(220,Math.min(2600,d/.6)),cb};S.pos[key].x=x;S.pos[key].y=y;renderAll();requestAnimationFrame(walkLoop)}
+function walkLoop(){const w=S.walk;if(!w)return;if(S.view!==w.key){S.walk=null;return}const k=(now()-w.t0)/w.dur;
+  const g=document.getElementById('mewalk');if(g){const[x,y]=curPos(w.key),c=ROOMS[w.key].ds(y)*.95;g.setAttribute('transform',`translate(${(x-60*c).toFixed(1)} ${(y-168*c).toFixed(1)}) scale(${c.toFixed(3)})`)}
+  if(k>=1){S.walk=null;renderAll();if(w.cb)w.cb();return}requestAnimationFrame(walkLoop)}
+function meSprite(key,look,x,y,c,o={}){const sc=.95*c;return `<g id="mewalk" transform="translate(${(x-60*sc).toFixed(1)} ${(y-168*sc).toFixed(1)}) scale(${sc.toFixed(3)})"><g class="${S.walk&&S.walk.key===key?'step':'idle'}">${charG(look,o)}</g></g>`}
+
+function placeWalkers(add,tags,key,opt={}){const R=ROOMS[key],peers=roomPeers(),fu=fightUids(),pos={};pos[S.uid]=curPos(key);
   for(const p of peers){const r=hash(p.uid);pos[p.uid]=[p.x??Math.round(R.W*(.3+(r.charCodeAt(0)%10)/25)),p.y??(R.y1-40-(r.charCodeAt(1)%5)*20)]}
   S.ppos={};
   const placeP=(uid,look,act)=>{if(opt.custom&&opt.custom(uid,pos))return;if(fu.has(uid))return;const[x,y]=pos[uid],c=R.ds(y);
-    add(y+2,`<g ${act?`data-act="pplayer" data-v="${esc(uid)}" style="cursor:pointer" role="button" aria-label="Người chơi"`:''}>${placeChar(look,x,y,.95*c,{},'idle')}</g>`);
+    if(uid===S.uid){add(y+2,meSprite(key,look,x,y,c,opt.meMood||{}));if(S.walk&&S.walk.key===key){S.ppos[uid]=[x,y-178*c*.95-4];return}}else add(y+2,`<g ${act?`data-act="pplayer" data-v="${esc(uid)}" style="cursor:pointer" role="button" aria-label="Người chơi"`:''}>${placeChar(look,x,y,.95*c,{},'idle')}</g>`);
     const hy=y-178*c*.95,tg=tagFor(uid);if(tg)tags.push(nameTag(x,hy,tg[0],tg[1]));S.ppos[uid]=[x,hy-(tg?24:4)]};
   placeP(S.uid,meLook(),false);for(const p of peers)placeP(p.uid,p.look,true);
   addFights(add,uid=>pos[uid]||null);return pos}
-function walkGround(ev,el,key){const R=ROOMS[key];if(!R)return;const[x0,y0]=svgPt(ev,el);const x=Math.max(70,Math.min(R.W-70,x0)),y=Math.max(R.y0,Math.min(R.y1,y0));const P=S.pos[key];P.x=x;P.y=y;if(key==='market')S.mkt.pick={x,y};renderAll()}
+function walkGround(ev,el,key){const R=ROOMS[key];if(!R)return;const[x,y]=svgPt(ev,el);if(key==='farm')S.farmField=null;if(key==='market'){S.mkt.pick=null;return walkTo(key,x,y,()=>{S.mkt.pick={x:S.mkt.x,y:S.mkt.y};renderAll()})}walkTo(key,x,y)}
 const groundRect=(key,y)=>`<rect x="0" y="${y}" width="${ROOMS[key].W}" height="${ROOMS[key].H-y}" fill="transparent" data-act="ground" data-v="${key}" style="cursor:pointer"/>`;
 function sceneBox(W,H,inner,label,fit){return `<div class="pscroll ${fit?'fit':''}" id="pscroll" style="--ar:${(W/H).toFixed(4)}"><div class="pinner" id="scene"><svg viewBox="0 0 ${W} ${H}" data-w="${W}" ${fit?'':`style="width:calc(var(--ph) * ${(W/H).toFixed(4)})"`} role="img" aria-label="${label}">${inner}</svg><div class="pbub" aria-live="polite">${bubblesHTML(W,H)}</div></div></div>`}
 const chatForm=ph=>`<form class="chatbar" style="margin:0 0 10px" data-form="pchat"><input class="in" id="pchat" maxlength="80" autocomplete="off" placeholder="${ph}" aria-label="Chat công khai"><button class="btn pink" type="submit">Gửi</button></form>`;
@@ -2200,7 +2246,8 @@ function viewPark(){
   ${pa?`<div class="row" style="margin-top:8px"><span class="tag ${S.me.dressedDay===today()?'ok':''}">${esc(S.me.nick)}: ${S.me.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span><span class="tag ${pa.dressedDay===today()?'ok':''}">${esc(pa.nick)}: ${pa.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span>${both?'<span class="tag love">Cặp đôi sành điệu</span>':''}</div>`:`<div class="panel" style="margin-top:8px">Ghép đôi với người ấy ở mục <b>Bạn bè</b> để đi chơi công viên cùng nhau và tăng tình cảm.</div>`}`;
 }
 function loveOnce(key,first,again){if(!S.partner)return 0;const f=!(S.day?.c?.[key]);const n=f?first:again;bump(key);if(n)H({love:(S.home.love||0)+n});return n}
-function parkAct(v){
+function parkAct(v){const P0=S.park||(S.park={spot:'gate'});if(P0.walk||(P0.ride&&P0.ride>now()))return;const sp=PSPOT[v];if(!sp||P0.spot===v)return parkActNow(v);const[x,y]=sp.c||sp.o;walkTo('park',x,y,()=>parkActNow(v))}
+function parkActNow(v){
   const P=S.park||(S.park={spot:'gate'}),t=now();
   if(P.walk||(P.ride&&P.ride>t))return;
   if(CARTS[v]){P.spot=v;renderAll();return openModal({t:'cart',k:v})}
@@ -2776,6 +2823,7 @@ function renderModal(){
   else if(m.t==='install'){title='Tải app về máy';body=installBody()}
   else if(m.t==='stallset'){title=S.myStall?'Bày thêm hàng':'Bày sạp bán hàng';body=stallSetBody(m)}
   else if(m.t==='stall'){title='Sạp hàng';body=stallBody(m)}
+  else if(m.t==='pen'){title=m.k==='pet'?'Khu vui chơi thú cưng':PENS.find(x=>x.k===m.k).n;body=penBody(m)}
   else if(m.t==='suggest'){title='Người ấy nhờ bạn thử đồ';body=suggestBody(m)}
   else if(m.t==='churchmenu'){title='Nhà thờ Hoa Hồng';body=churchMenuBody()}
   else if(m.t==='wcards'){title='Gửi thiệp cưới';body=wcardsBody()}
@@ -2866,7 +2914,7 @@ document.addEventListener('click',ev=>{
     case 'go':S.view=v;closeModal();renderAll();try{scrollTo({top:0,behavior:'smooth'})}catch(e){}break;
     case 'tool':S.tool=v;renderAll();break;
     case 'seed':S.seed=v;renderAll();break;
-    case 'plot':if(S.dragged){S.dragged=false;break}plotAct(+el.dataset.i);break;
+    case 'plot':if(S.dragged){S.dragged=false;break}if(S.view==='farm')farmPlotClick(+el.dataset.i);else plotAct(+el.dataset.i);break;
     case 'buyplot':openModal({t:'plot'});break;
     case 'harvestall':harvestAll();break;
     case 'shop':if(S.dragged){S.dragged=false;break}if(v==='park'||v==='chomkt'){S.view=v==='park'?'park':'market';closeModal();renderAll();try{scrollTo({top:0})}catch(e){}break}if(v==='fashion'||v==='bridal'){goBoutique(v);break}if(v==='church'){openModal({t:'churchmenu'});break}openModal({t:'shop',k:v,who:'me',cat:'top'});break;
@@ -2898,7 +2946,10 @@ document.addEventListener('click',ev=>{
     case 'reel':reel();break;
     case 'feedchick':feedChick(v);break;
     case 'eggs':collectEggs(v);break;
-    case 'pen':S.pen=v;renderAll();break;
+    case 'pen':if(S.dragged){S.dragged=false;break}goPen(v);break;
+    case 'penc':if(S.dragged){S.dragged=false;break}goPen(v,()=>collectEggs(v));break;
+    case 'petpatg':if(S.dragged){S.dragged=false;break}petCuddle(v);break;
+    case 'petbowl':if(S.dragged){S.dragged=false;break}petBowl();break;
     case 'penup':penUp(v);break;
     case 'stallhere':stallHere();break;
     case 'stall':if(S.dragged){S.dragged=false;break}openModal({t:'stall',uid:v});break;
