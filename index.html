@@ -631,7 +631,7 @@ function flowerDots(list){return list.map(([x,y,c],i)=>`<g transform="translate(
 
 /* ================= state & storage ================= */
 const S={mode:'local',uid:null,me:null,home:null,partner:null,day:null,dayKey:null,invites:[],view:'farm',tool:'hand',seed:'carrot',modal:null,readOnly:false,fishing:{phase:'idle'},auth:{tab:'login',g:'f',skin:SKINS[0],hs:'bob',hc:HAIRC[1]},sent:{},found:null,searchMsg:''};
-let DB=null,USER=null;
+let DB=null,USER=null,ROOM=null;
 function makeLocalDB(){
   const KEY='ntdt_db_v1';let store={};
   const load=()=>{store=LS.get(KEY)||{}};load();
@@ -722,6 +722,7 @@ function doRender(){
   app.innerHTML=`${S.readOnly?`<div class="ro-banner">Tài khoản claude.ai đang mở trang này chỉ có quyền xem nên thao tác không lưu được. Nhờ người tạo trang mời bạn với quyền <b>Editor</b> (chỉnh sửa) nhé.</div>`:''}${hud()}<main id="view">${renderView()}</main>${nav()}`;
   S.sig=viewSig();
   {const ps=$('#pscroll');if(ps&&psl!=null)ps.scrollLeft=psl}
+  presSync();
   {const pr=S.home.proposal;if(pr&&pr.st==='pending'&&pr.to===S.uid&&S.seenProp!==pr.at&&!S.modal){S.seenProp=pr.at;S.modal={t:'proposed'}}}
   renderModal();
   restore();
@@ -1190,28 +1191,28 @@ function cartSVG(x,kind){
     <circle cx="-40" cy="-14" r="13" fill="#fff"${SW}/><circle cx="-40" cy="-14" r="4" fill="${O}"/><circle cx="40" cy="-14" r="13" fill="#fff"${SW}/><circle cx="40" cy="-14" r="4" fill="${O}"/>
     ${kind==='balloon'?goods:''}</g>`;
 }
-function ferrisSVG(cx,cy,r,riding){
+function ferrisSVG(cx,cy,r,riding,pa){
   let s=hit(cx-r-30,cy-r-30,2*r+60,GY-cy+r+30)+`<path d="M${cx} ${cy} L${cx-110} ${GY} M${cx} ${cy} L${cx+110} ${GY}" stroke="${O}" stroke-width="13" stroke-linecap="round"/><path d="M${cx} ${cy} L${cx-110} ${GY} M${cx} ${cy} L${cx+110} ${GY}" stroke="#e8505b" stroke-width="8" stroke-linecap="round"/>`;
   s+=`<g><animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="${riding?18:40}s" repeatCount="indefinite"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${O}" stroke-width="9"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#ffd23f" stroke-width="5"/><circle cx="${cx}" cy="${cy}" r="${r*.62}" fill="none" stroke="#7cc7ff" stroke-width="3"/>`;
   const cols=['#ff7fa6','#7cc7ff','#ffd23f','#9be07a','#b892f0','#ff9a2e','#56c8c0','#ef5b4c'];
   for(let i=0;i<8;i++){const a=i*Math.PI/4,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);s+=`<path d="M${cx} ${cy} L${x} ${y}" stroke="#fff" stroke-width="3"/>`}
   for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a),c=i===0&&riding?'#ff5e8e':cols[i];
     s+=`<g transform="translate(${x} ${y})"><g><animateTransform attributeName="transform" type="rotate" from="0" to="-360" dur="${riding?18:40}s" repeatCount="indefinite"/><path d="M0 0 V8" stroke="${O}" stroke-width="2.4"/>${i===0&&riding?'':`<path d="M-24 10 Q0 -2 24 10Z" fill="${c}"${SW}/>`}`
-      +(i===0&&riding?`<g transform="translate(-33 -4) scale(.38)">${charG(S.me,{mood:'love',noShadow:true})}</g>${S.partner?`<g transform="translate(-12 -4) scale(.38)">${charG(S.partner,{mood:'love',noShadow:true})}</g>`:''}<rect x="-28" y="26" width="56" height="34" rx="10" fill="${c}"${SW}/><path d="${heartPath(0,42,8)}" fill="#fff"/>`:`<rect x="-14" y="12" width="28" height="14" rx="4" fill="#dff3ff"${SW}/><rect x="-22" y="22" width="44" height="18" rx="6" fill="${c}"${SW}/>`)+`</g></g>`}
+      +(i===0&&riding?`<g transform="translate(-33 -4) scale(.38)">${charG(S.me,{mood:'love',noShadow:true})}</g>${pa?`<g transform="translate(-12 -4) scale(.38)">${charG(pa,{mood:'love',noShadow:true})}</g>`:''}<rect x="-28" y="26" width="56" height="34" rx="10" fill="${c}"${SW}/><path d="${heartPath(0,42,8)}" fill="#fff"/>`:`<rect x="-14" y="12" width="28" height="14" rx="4" fill="#dff3ff"${SW}/><rect x="-22" y="22" width="44" height="18" rx="6" fill="${c}"${SW}/>`)+`</g></g>`}
   s+=`<circle cx="${cx}" cy="${cy}" r="12" fill="#ffd23f"${SW}/></g>`;
   return s;
 }
 function slideSVG(x){return `<g transform="translate(${x} ${GY})">${hit(-84,-178,256,180)}<path d="M-70 0 V-160 M-34 0 V-160" stroke="${O}" stroke-width="7"/><path d="M-70 0 V-160 M-34 0 V-160" stroke="#7cc7ff" stroke-width="4"/>${[-20,-46,-72,-98,-124,-150].map(y=>`<path d="M-70 ${y} H-34" stroke="${O}" stroke-width="4"/>`).join('')}<rect x="-80" y="-172" width="62" height="14" rx="5" fill="#ffd23f"${SW}/><path d="M-22 -168 Q40 -160 70 -80 Q96 -14 168 -14 L168 2 Q86 4 56 -70 Q30 -146 -22 -150Z" fill="#ff7fa6"${SW}/><path d="M-20 -160 Q36 -150 62 -78 Q90 -6 166 -6" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/><path d="M70 -60 V0 M140 -10 V0" stroke="${O}" stroke-width="6"/></g>`}
 const SLIDE_PATH=(x)=>`M${x-40} ${GY-176} Q${x+30} ${GY-166} ${x+62} ${GY-86} Q${x+92} ${GY-20} ${x+168} ${GY-22}`;
-function swingSVG(x,swinging){
+function swingSVG(x,swinging,pa){
   const top=GY-176,seatY=GY-52;
   const seat=(sx,who,i)=>`<g>${swinging?`<animateTransform attributeName="transform" type="rotate" values="-20 ${sx} ${top};20 ${sx} ${top};-20 ${sx} ${top}" dur="2.4s" begin="${-i*.3}s" repeatCount="indefinite"/>`:''}<path d="M${sx-16} ${top} V${seatY} M${sx+16} ${top} V${seatY}" stroke="${O}" stroke-width="2.6"/>${who?`<g transform="translate(${sx-60*.9} ${seatY-146*.9}) scale(.9)">${charG(who,{pose:'sit',mood:'love',noShadow:true})}</g>`:''}<rect x="${sx-24}" y="${seatY-4}" width="48" height="9" rx="4" fill="#e0a45f"${SW}/></g>`;
-  return hit(x-124,top-12,248,GY-top+14)+`<path d="M${x-120} ${GY} L${x-90} ${top} L${x-60} ${GY} M${x+60} ${GY} L${x+90} ${top} L${x+120} ${GY}" stroke="${O}" stroke-width="9" fill="none" stroke-linejoin="round"/><path d="M${x-120} ${GY} L${x-90} ${top} L${x-60} ${GY} M${x+60} ${GY} L${x+90} ${top} L${x+120} ${GY}" stroke="#56b847" stroke-width="5" fill="none" stroke-linejoin="round"/><rect x="${x-100}" y="${top-8}" width="200" height="12" rx="5" fill="#ef5b4c"${SW}/>`+seat(x-42,swinging?S.me:null,0)+seat(x+42,swinging?S.partner:null,1);
+  return hit(x-124,top-12,248,GY-top+14)+`<path d="M${x-120} ${GY} L${x-90} ${top} L${x-60} ${GY} M${x+60} ${GY} L${x+90} ${top} L${x+120} ${GY}" stroke="${O}" stroke-width="9" fill="none" stroke-linejoin="round"/><path d="M${x-120} ${GY} L${x-90} ${top} L${x-60} ${GY} M${x+60} ${GY} L${x+90} ${top} L${x+120} ${GY}" stroke="#56b847" stroke-width="5" fill="none" stroke-linejoin="round"/><rect x="${x-100}" y="${top-8}" width="200" height="12" rx="5" fill="#ef5b4c"${SW}/>`+seat(x-42,swinging?S.me:null,0)+seat(x+42,swinging?pa:null,1);
 }
 function fountainSVG(x){return `<g transform="translate(${x} ${GY})">${hit(-100,-150,200,152)}<ellipse cx="0" cy="-12" rx="96" ry="22" fill="#c9d3dc"${SW}/><ellipse cx="0" cy="-16" rx="84" ry="16" fill="#6cc3f0"/><rect x="-10" y="-90" width="20" height="76" fill="#dfe6ee"${SW}/><ellipse cx="0" cy="-90" rx="44" ry="10" fill="#c9d3dc"${SW}/><ellipse cx="0" cy="-92" rx="36" ry="6" fill="#6cc3f0"/><path d="M0 -96 V-130" stroke="#9fdcff" stroke-width="6" stroke-linecap="round"/>${[-1,1].map(d=>`<path class="tw" d="M0 -128 Q${d*30} -146 ${d*44} -96 M0 -92 Q${d*56} -110 ${d*80} -20" stroke="#9fdcff" stroke-width="4" fill="none" stroke-linecap="round"/>`).join('')}<circle class="tw" cx="-30" cy="-30" r="3" fill="#fff"/><circle class="tw" style="animation-delay:.5s" cx="34" cy="-24" r="3" fill="#fff"/></g>`}
 function gateSVG(x){return `<g transform="translate(${x} ${GY})"><rect x="-90" y="-200" width="28" height="200" fill="#e0a45f"${SW}/><rect x="62" y="-200" width="28" height="200" fill="#e0a45f"${SW}/><path d="M-100 -196 Q0 -250 100 -196 L100 -176 Q0 -228 -100 -176Z" fill="#ff7fa6"${SW}/><rect x="-74" y="-232" width="148" height="34" rx="12" fill="#fff8e6"${SW}/><text x="0" y="-208" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="18" fill="#c2456d">Công viên Hoa</text>${[-76,-48,48,76].map((dx,i)=>`<circle cx="${dx}" cy="-196" r="8" fill="${['#ffd23f','#fff','#ffd23f','#fff'][i]}"${SW}/>`).join('')}</g>`}
 function parkScene(){
-  const P=S.park||(S.park={spot:'gate'}),t=now(),me=S.me,pa=S.partner;
+  const P=S.park||(S.park={spot:'gate'}),t=now(),me=S.me,peers=parkPeers(),paPeer=S.me.partner&&peers.find(x=>x.uid===S.me.partner),pa=paPeer&&paPeer.spot===(P.walk?'walk':P.spot)&&!paPeer.ride?S.partner:null,others=peers.filter(x=>!(pa&&x.uid===S.me.partner));
   const riding=P.ride&&P.ride>t,sliding=P.slide&&P.slide>t,swinging=P.spot==='swing';
   let s=`<defs><linearGradient id="psky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#dff6ff"/></linearGradient></defs><rect width="${PW_}" height="${PH_}" fill="url(#psky)"/>`;
   s+=cloud(200,60,1,-10)+cloud(760,40,.8,-30)+cloud(1400,70,1,-50)+cloud(2000,46,.9,-20)+cloud(2450,80,.7,-60);
@@ -1224,11 +1225,11 @@ function parkScene(){
   s+=gateSVG(110);
   s+=cartSVG(330,'flower');
   s+=`<g data-act="pk" data-v="bench1" style="cursor:pointer" role="button" aria-label="Ghế đá 1">${benchSVG(PARK.bench1)}</g>`;
-  s+=`<g data-act="pk" data-v="wheel" style="cursor:pointer" role="button" aria-label="Đu quay">${ferrisSVG(860,212,150,riding)}<rect x="800" y="${GY-40}" width="120" height="34" rx="8" fill="#fff8e6"${SW}/><text x="860" y="${GY-18}" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="${O}">Đu quay 40 xu</text></g>`;
+  s+=`<g data-act="pk" data-v="wheel" style="cursor:pointer" role="button" aria-label="Đu quay">${ferrisSVG(860,212,150,riding,pa)}<rect x="800" y="${GY-40}" width="120" height="34" rx="8" fill="#fff8e6"${SW}/><text x="860" y="${GY-18}" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="15" fill="${O}">Đu quay 40 xu</text></g>`;
   s+=cartSVG(1150,'candy');
   s+=`<g data-act="pk" data-v="bench2" style="cursor:pointer" role="button" aria-label="Ghế đá 2">${benchSVG(PARK.bench2)}</g>`;
   s+=`<g data-act="pk" data-v="slide" style="cursor:pointer" role="button" aria-label="Cầu trượt">${slideSVG(1540)}</g>`;
-  s+=`<g data-act="pk" data-v="swing" style="cursor:pointer" role="button" aria-label="Xích đu">${swingSVG(1880,swinging)}</g>`;
+  s+=`<g data-act="pk" data-v="swing" style="cursor:pointer" role="button" aria-label="Xích đu">${swingSVG(1880,swinging,pa)}</g>`;
   s+=`<g data-act="pk" data-v="fountain" style="cursor:pointer" role="button" aria-label="Đài phun nước">${fountainSVG(2080)}</g>`;
   s+=`<g data-act="pk" data-v="bench3" style="cursor:pointer" role="button" aria-label="Ghế đá 3">${benchSVG(PARK.bench3)}</g>`;
   s+=cartSVG(2470,'balloon');
@@ -1240,14 +1241,54 @@ function parkScene(){
   else if(swinging){}
   else if(sliding){s+=`<g><animateMotion path="${SLIDE_PATH(1540)}" dur="2.2s" fill="freeze"/><g transform="translate(${-60*.9} ${-146*.9}) scale(.9)">${charG(me,{pose:'sit',mood:'love',noShadow:true})}</g></g>`+placeChar(pa,1760,GY,.95,{mood:'love'})}
   else{const X={gate:[200,270],flower:[440,505],wheel:[1000,1066],candy:[1260,1325],slide:[1700,1766],fountain:[1980,2190],balloon:[2340,2400]}[P.spot]||[200,270];s+=placeChar(me,X[0],GY,.95,mood)+placeChar(pa,X[1],GY,.95,{mood:'love'})}
+  s+=othersSVG(others);
+  if(!P.walk&&!riding&&!swinging&&!sliding){const X={gate:200,flower:440,wheel:1000,candy:1260,slide:1700,fountain:1980,balloon:2340}[P.spot]??(PARK[P.spot]?PARK[P.spot]-36:200);s+=nameTag(X,GY-(PARK[P.spot]?150:178),'Bạn','#fff3c2')}
   if(P.gift&&P.gift.until>t&&pa){const X={flower:505,candy:1325,balloon:2400}[P.gift.cart]||270;s+=`<g transform="translate(${X} ${GY-210})"><g class="bob"><circle r="22" fill="#fff"${SW}/><g transform="scale(1.1)">${giftSVG(P.gift.k)}</g></g></g>`}
   return s;
 }
+/* ---------- ai đang ở công viên (thời gian thực) ---------- */
+const SPX={gate:200,flower:470,bench1:560,wheel:1030,candy:1290,bench2:1340,slide:1730,swing:1880,fountain:2080,bench3:2260,balloon:2370,walk:200};
+function nameTag(x,y,txt,bg='#fff'){const w=Math.max(46,txt.length*8.2+20);return `<g transform="translate(${x} ${y})" pointer-events="none"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="13" fill="${bg}"${SW}/><path d="M-6 11 L0 18 L6 11Z" fill="${bg}"${SW}/><rect x="${-w/2+2}" y="-13" width="${w-4}" height="22" rx="11" fill="${bg}"/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="${O}">${esc(txt)}</text></g>`}
+function othersSVG(list){
+  const groups={};for(const st of list){if(st.ride)continue;const k=SPX[st.spot]!=null?st.spot:'gate';(groups[k]=groups[k]||[]).push(st)}
+  const offs=[-150,150,-225,225,-300,300,-375,375];let out='';
+  for(const k in groups)groups[k].sort((a,b)=>a.uid<b.uid?-1:1).forEach((st,i)=>{
+    const x=Math.max(40,Math.min(PW_-40,SPX[k]+offs[i%offs.length]+(i>=offs.length?20:0)));const look={...st.look};
+    out+=placeChar(look,x,GY+(i%2?8:0),.88,{},'idle');
+    if(isFriend(st.uid)){const d=st.uid===S.me.partner?S.partner:S.friendDocs[st.uid];out+=nameTag(x,GY-170,`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,st.uid===S.me.partner?'#ffe3ec':'#dff3ff')}
+  });
+  return out;
+}
+const PRES={on:false,peers:[],sig:'',api:null,lastJ:''};
+function parkPeers(){return PRES.peers}
+function myParkState(){const P=S.park||{},me=S.me;return{uid:S.uid,look:{g:me.g,skin:me.skin,hs:me.hs,hc:me.hc,eq:me.eq||{}},spot:P.walk?'walk':(P.spot||'gate'),ride:!!(P.ride&&P.ride>now())}}
+function setPeers(list){const seen={},out=[];for(const st of list){if(!st||typeof st!=='object'||!st.uid||st.uid===S.uid||seen[st.uid]||!st.look)continue;seen[st.uid]=1;out.push({uid:String(st.uid),look:st.look,spot:String(st.spot||'gate'),ride:!!st.ride})}
+  const j=JSON.stringify(out);if(j===PRES.lastJ)return;PRES.lastJ=j;PRES.peers=out;if(out.some(x=>isFriend(x.uid)))ensureFriendDocs();if(S.view==='park'||S.view==='love')renderAll()}
+async function presEnter(){
+  if(PRES.on)return;PRES.on=true;PRES.sig='';const st0=myParkState();PRES.sig=JSON.stringify(st0);
+  try{
+    if(S.mode==='cloud'&&SB){const ch=SB.channel('ncr-park',{config:{presence:{key:S.uid}}});let ready=false;
+      ch.on('presence',{event:'sync'},()=>{const all=ch.presenceState();setPeers(Object.values(all).flat())});
+      ch.subscribe(async status=>{if(status==='SUBSCRIBED'){ready=true;try{await ch.track(myParkState())}catch(e){}}});
+      PRES.api={update:st=>{if(ready)ch.track(st)},leave:()=>{try{ch.untrack();SB.removeChannel(ch)}catch(e){}}};
+    }else if(S.mode==='online'&&ROOM){const r=await ROOM.join('park');if(!PRES.on){r.leave();return}
+      r.presence({st:myParkState()}).catch(()=>{});const un=r.onPeers(c=>setPeers(c.peers.filter(p=>!p.sameTab).map(p=>p.presence&&p.presence.st)),()=>{});
+      PRES.api={update:st=>r.presence({st}).catch(()=>{}),leave:()=>{try{un();r.leave()}catch(e){}}};
+    }else{const K='ntdt_pres';const read=()=>{const all=LS.get(K)||{};setPeers(Object.values(all).filter(x=>x&&now()-x.ts<8000).map(x=>x.st))};
+      const beat=()=>{const all=LS.get(K)||{};all[S.uid]={st:myParkState(),ts:now()};for(const k in all)if(now()-all[k].ts>20000)delete all[k];LS.set(K,all);read()};
+      const onS=e=>{if(e.key===K)read()};addEventListener('storage',onS);const iv=setInterval(beat,2000);beat();
+      PRES.api={update:beat,leave:()=>{clearInterval(iv);removeEventListener('storage',onS);const all=LS.get(K)||{};delete all[S.uid];LS.set(K,all)}};
+    }
+  }catch(e){console.warn(e)}
+}
+function presLeave(){if(!PRES.on)return;PRES.on=false;try{PRES.api&&PRES.api.leave()}catch(e){}PRES.api=null;PRES.peers=[];PRES.lastJ=''}
+function presSync(){if(S.view==='park'&&S.uid&&S.me){if(!PRES.on)return presEnter();const st=myParkState(),j=JSON.stringify(st);if(j!==PRES.sig){PRES.sig=j;PRES.api&&PRES.api.update(st)}}else presLeave()}
+addEventListener('pagehide',presLeave);
 function viewPark(){
   const pa=S.partner,both=pa&&S.me.dressedDay===today()&&pa.dressedDay===today();
   return `<div class="sec-title"><h2>Công viên Hoa</h2><div class="row"><button class="btn sm white" data-act="go" data-v="town">Về khu phố</button><button class="btn sm white" data-act="wardrobe" data-v="me">Thay đồ</button>${pa?`<button class="btn sm white" data-act="wardrobe" data-v="pa">Chọn đồ cho ${esc(pa.nick)}</button>`:''}<button class="btn sm pink" data-act="parkwalk" ${S.park?.walk?'disabled':''}>Dạo một vòng</button></div></div>
   <div class="pscroll" id="pscroll"><svg viewBox="0 0 ${PW_} ${PH_}" role="img" aria-label="Công viên Hoa">${parkScene()}</svg></div>
-  <p class="hint">Kéo ngang để đi hết công viên. Chạm vào ghế đá để ngồi, chạm đu quay, cầu trượt, xích đu, đài phun nước hay các xe hàng để chơi.</p>
+  <p class="hint"><b>${parkPeers().length?`Đang có ${parkPeers().length} người khác trong công viên.`:'Hiện chưa có ai khác trong công viên.'}</b> Bạn bè sẽ hiện tên và ID trên đầu. Kéo ngang để đi hết công viên. Chạm vào ghế đá để ngồi, chạm đu quay, cầu trượt, xích đu, đài phun nước hay các xe hàng để chơi.</p>
   ${pa?`<div class="row" style="margin-top:8px"><span class="tag ${S.me.dressedDay===today()?'ok':''}">${esc(S.me.nick)}: ${S.me.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span><span class="tag ${pa.dressedDay===today()?'ok':''}">${esc(pa.nick)}: ${pa.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span>${both?'<span class="tag love">Cặp đôi sành điệu</span>':''}</div>`:`<div class="panel" style="margin-top:8px">Ghép đôi với người ấy ở mục <b>Bạn bè</b> để đi chơi công viên cùng nhau và tăng tình cảm.</div>`}`;
 }
 function loveOnce(key,first,again){if(!S.partner)return 0;const f=!(S.day?.c?.[key]);const n=f?first:again;bump(key);if(n)H({love:(S.home.love||0)+n});return n}
@@ -1392,16 +1433,19 @@ function viewLove(){
   let body='';
   if(pa){
     body=`<div class="panel"><div class="row" style="justify-content:space-between"><div><b style="font-family:var(--display);font-size:1.25rem">${esc(me.nick)} &amp; ${esc(pa.nick)}</b><div class="muted">${loveLabel(h)} · ${h.love||0} tình cảm · ghép đôi ${pairDays()} ngày${h.married?' · đã kết hôn '+fmtDate(h.marriedAt):h.engaged?' · đã đính hôn':''}</div></div><div class="row"><button class="btn sm white" data-act="wardrobe" data-v="pa">Chọn đồ cho người ấy</button>${!h.married&&(proposerOK()||h.proposal?.st==='pending')?`<button class="btn sm white" data-act="${h.proposal?.st==='pending'&&h.proposal.to===S.uid?'propview':'propose'}">${h.engaged?'Đã đính hôn':h.proposal?.st==='pending'&&h.proposal.to===S.uid?'Xem lời cầu hôn':'Cầu hôn'}</button>`:''}<button class="btn sm white" data-act="go" data-v="park">Đi công viên</button><button class="btn sm pink" data-act="shop" data-v="${h.married||h.engaged?'civil':'cafe'}">${h.married?'Xem giấy kết hôn':h.engaged?'Tới Cục Dân Chính':'Đi hẹn hò'}</button></div></div></div>`;
-  }else{
-    const f=S.found;
-    body=`<div class="panel"><h3>Tìm người ấy bằng ID</h3><p class="muted" style="margin:4px 0 10px">Hỏi người ấy mã ID 6 số (hiện ở mục Bạn bè trong game của họ) rồi nhập vào đây.</p><form class="row" data-form="search"><input class="in" id="srch" inputmode="numeric" maxlength="6" placeholder="Ví dụ 482913" value="${esc(S.searchCode||'')}" style="flex:1;min-width:150px" aria-label="ID người ấy"><button class="btn blue" type="submit">Tìm</button></form>${S.searchMsg?`<p class="err">${esc(S.searchMsg)}</p>`:''}
-    ${f?`<div class="item" style="margin-top:8px"><div class="ic" style="width:64px;height:64px;border-radius:50%"><svg viewBox="18 10 84 84">${charG(f.p)}</svg></div><div class="tx"><b>${esc(f.p.nick)}</b><small>ID ${esc(f.p.code)}${f.p.partner?' · đã có đôi':''}</small></div>${f.p.partner?'':S.sent[f.uid]?'<span class="tag love">Đã gửi lời mời</span>':`<button class="btn pink sm" data-act="invite" data-v="${f.uid}">Gửi lời mời ghép đôi</button>`}</div>`:''}</div>`;
   }
-  const invs=S.invites.filter(i=>!pa);
+  {const f=S.found,isF=f&&isFriend(f.uid);
+    body+=`<div class="panel" style="margin-top:12px"><h3>Tìm bạn bằng ID</h3><p class="muted" style="margin:4px 0 10px">Hỏi bạn mã ID 6 số (hiện ở mục Bạn bè trong game của họ) rồi nhập vào đây để kết bạn${pa?'':' hoặc ghép đôi'}.</p><form class="row" data-form="search"><input class="in" id="srch" inputmode="numeric" maxlength="6" placeholder="Ví dụ 482913" value="${esc(S.searchCode||'')}" style="flex:1;min-width:150px" aria-label="ID của bạn ấy"><button class="btn blue" type="submit">Tìm</button></form>${S.searchMsg?`<p class="err">${esc(S.searchMsg)}</p>`:''}
+    ${f?`<div class="item" style="margin-top:8px;flex-wrap:wrap"><div class="ic" style="width:64px;height:64px;border-radius:50%"><svg viewBox="18 10 84 84">${charG(f.p)}</svg></div><div class="tx"><b>${esc(f.p.nick)}</b><small>ID ${esc(f.p.code)}${f.p.partner?' · đã có đôi':''}</small></div><div class="row" style="gap:6px">${isF?'<span class="tag ok">Đã là bạn bè</span>':S.sent[f.uid+'f']?'<span class="tag">Đã gửi lời kết bạn</span>':`<button class="btn blue sm" data-act="invite" data-k="friend" data-v="${f.uid}">Kết bạn</button>`}${pa||f.p.partner?'':S.sent[f.uid]?'<span class="tag love">Đã gửi lời ghép đôi</span>':`<button class="btn pink sm" data-act="invite" data-k="pair" data-v="${f.uid}">Ghép đôi</button>`}</div></div>`:''}</div>`;
+    const fl=friendIds();
+    body+=`<div class="sec-title"><h2>Danh sách bạn bè</h2><span class="tag">${fl.length} người</span></div>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];const here=parkPeers().some(x=>x.uid===id);return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}${id===S.me.partner?' <span class="tag love">người ấy</span>':''}</b><small>ID ${esc(d?.code||'')}${here?' · đang ở công viên':''}</small></div>${here?'<button class="btn sm green" data-act="go" data-v="park">Tới công viên</button>':''}</div>`}).join('')}</div>`:`<div class="panel muted">Chưa có bạn bè nào. Tìm bạn bằng ID ở trên nhé.</div>`}`;
+    ensureFriendDocs();
+  }
+  const invs=S.invites.filter(i=>i.kind==='friend'?!isFriend(i.from):!pa);
   return `<div class="sec-title"><h2>Bạn bè</h2><button class="btn sm white" data-act="logout">Đăng xuất</button></div>
   <div class="scene" style="background:#ffe3ec"><svg viewBox="0 0 600 250" role="img" aria-label="Cặp đôi">${scene}</svg></div>
   <div class="idcard" style="margin:14px 0"><div style="flex:1;min-width:140px"><div class="muted" style="font-weight:800">ID của bạn</div><div class="num" id="myid">${esc(me.code)}</div><small class="muted">${S.mode==='cloud'?'Gmail: '+esc(S.authUser?.email||''):'Tên đăng nhập: '+esc(me.user||'')}</small></div><button class="btn sm" data-act="copyid">Sao chép ID</button></div>
-  ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời ghép đôi</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>ID ${esc(i.fromCode)} muốn cùng bạn xây tổ ấm</small></div><button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button><button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div><p class="muted" style="margin:8px 0 0">Khi đồng ý, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p></div>`:''}
+  ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>ID ${esc(i.fromCode)} ${i.kind==='friend'?'muốn kết bạn với bạn':'muốn ghép đôi, cùng bạn xây tổ ấm'}</small></div><button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button><button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div>${invs.some(i=>i.kind!=='friend')?'<p class="muted" style="margin:8px 0 0">Khi đồng ý ghép đôi, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p>':''}</div>`:''}
   ${body}
   ${S.mode==='local'?`<p class="muted" style="margin-top:12px">Đang chơi trên máy này: dữ liệu lưu trong trình duyệt. Có thể tạo thêm tài khoản thứ hai trên cùng máy để thử ghép đôi.</p>`:''}`;
 }
@@ -1412,10 +1456,23 @@ async function doSearch(code){
   try{const c=await DB.doc('codes/'+code).get();if(!c.exists){S.searchMsg='Không tìm thấy ai có ID này.';return renderAll()}const uid=c.data().uid;const p=await DB.doc('players/'+uid).get();if(!p.exists){S.searchMsg='Không tìm thấy ai có ID này.';return renderAll()}S.found={uid,p:p.data()}}catch(e){S.searchMsg='Không tìm được, thử lại nhé.'}
   renderAll();
 }
-function sendInvite(uid){
-  if(S.me.partner)return;const mine=S.invites.find(i=>i.from===uid);if(mine)return acceptInvite(mine);
-  W('x',()=>DB.doc('invites/'+S.uid+'__'+uid).set({from:S.uid,to:uid,fromNick:S.me.nick,fromCode:S.me.code,at:now(),st:'pending'})).then(()=>{S.sent[uid]=true;toast('Đã gửi lời mời. Chờ người ấy đồng ý nhé!','love');renderAll()});
+function sendInvite(uid,kind){
+  const fr=kind==='friend';
+  if(fr){if(isFriend(uid))return;const mine=S.invites.find(i=>i.from===uid&&i.kind==='friend');if(mine)return acceptFriend(mine);
+    return W('x',()=>DB.doc('invites/'+S.uid+'__'+uid+'__f').set({from:S.uid,to:uid,kind:'friend',fromNick:S.me.nick,fromCode:S.me.code,at:now(),st:'pending'})).then(()=>{S.sent[uid+'f']=true;toast('Đã gửi lời kết bạn!','good');renderAll()})}
+  if(S.me.partner)return;const mine=S.invites.find(i=>i.from===uid&&i.kind!=='friend');if(mine)return acceptInvite(mine);
+  W('x',()=>DB.doc('invites/'+S.uid+'__'+uid).set({from:S.uid,to:uid,kind:'pair',fromNick:S.me.nick,fromCode:S.me.code,at:now(),st:'pending'})).then(()=>{S.sent[uid]=true;toast('Đã gửi lời mời ghép đôi. Chờ người ấy đồng ý nhé!','love');renderAll()});
 }
+async function acceptFriend(inv){
+  try{await DB.doc('players/'+S.uid).update({friends:{[inv.from]:true}});S.me=deepMerge(S.me,{friends:{[inv.from]:true}});
+    await DB.doc('players/'+inv.from).update({friends:{[S.uid]:true}});
+    await DB.doc('invites/'+inv.id).update({st:'ok'});toast(`Bạn và ${inv.fromNick} đã là bạn bè!`,'good');renderAll()}catch(e){onWriteErr(e)}
+}
+/* bạn bè */
+function friendIds(){const m=S.me?.friends||{};const ids=Object.keys(m).filter(k=>m[k]);if(S.me?.partner&&!ids.includes(S.me.partner))ids.unshift(S.me.partner);return ids}
+const isFriend=uid=>!!uid&&(uid===S.me?.partner||!!S.me?.friends?.[uid]);
+S.friendDocs={};
+function ensureFriendDocs(){for(const id of friendIds()){if(id in S.friendDocs)continue;S.friendDocs[id]=null;DB.doc('players/'+id).get().then(d=>{if(d.exists){S.friendDocs[id]=clone(d.data());renderAll()}},()=>{delete S.friendDocs[id]})}}
 async function acceptInvite(inv){
   if(S.me.partner)return toast('Bạn đã có người ấy rồi.');
   try{
@@ -1425,8 +1482,8 @@ async function acceptInvite(inv){
     const hd=hs.data(),mine=coins();
     const myPets=Object.fromEntries(live(S.home?.pets).slice(0,Math.max(0,3-live(hd.pets).length)));
     await DB.doc('homes/'+hid).update({members:[A,S.uid],coins:(hd.coins||0)+mine,love:(hd.love||0)+10,pets:myPets,pairedAt:now()});
-    await DB.doc('players/'+A).update({partner:S.uid});
-    await DB.doc('players/'+S.uid).update({partner:A,homeId:hid,oldHome:S.me.homeId});
+    await DB.doc('players/'+A).update({partner:S.uid,friends:{[S.uid]:true}});
+    await DB.doc('players/'+S.uid).update({partner:A,homeId:hid,oldHome:S.me.homeId,friends:{[A]:true}});
     await DB.doc('invites/'+inv.id).update({st:'ok'});
     toast(`Bạn và ${pd.nick} đã thành một đôi!`,'love');
   }catch(e){onWriteErr(e)}
@@ -1520,7 +1577,7 @@ async function doSignup(){
   }catch(e){if(e&&e.code==='invalid_argument'&&S.mode==='online')authErr('Tài khoản claude.ai này chỉ có quyền xem trang nên chưa tạo được nhân vật.');else authErr('Không tạo được tài khoản, thử lại nhé.')}
 }
 function authErr(m){S.auth.err=m;const el=$('#auth-err');if(el)el.textContent=m}
-function logout(){if(S.mode==='cloud'&&SB){try{SB.auth.signOut()}catch(e){}S.authUser=null}unsubAll();LS.del(sessKey());S.auth.tab='login';S.auth.err='';S.auth.info='';Object.assign(S,{uid:null,me:null,home:null,partner:null,day:null,invites:[],view:'farm',modal:null,found:null,searchMsg:'',sent:{}});renderAll()}
+function logout(){presLeave();if(S.mode==='cloud'&&SB){try{SB.auth.signOut()}catch(e){}S.authUser=null}unsubAll();LS.del(sessKey());S.auth.tab='login';S.auth.err='';S.auth.info='';Object.assign(S,{uid:null,me:null,home:null,partner:null,day:null,invites:[],view:'farm',modal:null,found:null,searchMsg:'',sent:{}});renderAll()}
 
 /* ================= modal & toasts ================= */
 function openModal(m){S.modal=m;renderModal()}
@@ -1641,8 +1698,8 @@ document.addEventListener('click',ev=>{
     case 'claim':claim(v);break;
     case 'bonus':bonus();break;
     case 'copyid':{const t=S.me.code;try{navigator.clipboard.writeText(t).then(()=>toast('Đã sao chép ID '+t,'good'),()=>selId())}catch(e){selId()}break}
-    case 'invite':sendInvite(v);break;
-    case 'accept':{const i=S.invites.find(x=>x.id===v);if(i)acceptInvite(i);break}
+    case 'invite':sendInvite(v,el.dataset.k||'pair');break;
+    case 'accept':{const i=S.invites.find(x=>x.id===v);if(i)(i.kind==='friend'?acceptFriend:acceptInvite)(i);break}
     case 'decline':declineInvite(v);break;
     case 'logout':logout();break;
     case 'atab':S.auth.tab=v;S.auth.err='';renderAll();break;
@@ -1695,7 +1752,7 @@ setInterval(()=>{
 async function boot(){
   $('#app').innerHTML=loadingScreen('Đang tải game...');
   let db=null,user=null;
-  if(window.claude&&typeof window.claude.use==='function'){try{[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(e){}}
+  if(window.claude&&typeof window.claude.use==='function'){try{[db,user,ROOM]=await Promise.all([window.claude.use('db'),window.claude.use('user'),window.claude.use('room')])}catch(e){}}
   let canW=null;if(user){try{canW=await user.can('data.write')}catch(e){}}
   if(db&&canW!==false){DB=db;S.mode='online'}
   else if(!db&&window.supabase&&window.supabase.createClient){try{SB=window.supabase.createClient(SUPA.url,SUPA.key);DB=makeSupaDB(SB);S.mode='cloud'}catch(e){DB=makeLocalDB();S.mode='local'}}
