@@ -16,10 +16,16 @@ drop policy if exists "ncr_read" on public.ncr_docs;
 drop policy if exists "ncr_insert" on public.ncr_docs;
 drop policy if exists "ncr_update" on public.ncr_docs;
 drop policy if exists "ncr_delete" on public.ncr_docs;
-create policy "ncr_read"   on public.ncr_docs for select to authenticated using (true);
-create policy "ncr_insert" on public.ncr_docs for insert to authenticated with check (true);
-create policy "ncr_update" on public.ncr_docs for update to authenticated using (true) with check (true);
-create policy "ncr_delete" on public.ncr_docs for delete to authenticated using (true);
+-- Tin nhắn riêng (chats/..., chatidx/...) chỉ hai người trong cuộc đọc và ghi được
+create policy "ncr_read"   on public.ncr_docs for select to authenticated
+  using (not (path like 'chats/%' or path like 'chatidx/%') or strpos(path, auth.uid()::text) > 0);
+create policy "ncr_insert" on public.ncr_docs for insert to authenticated
+  with check (not (path like 'chats/%' or path like 'chatidx/%') or strpos(path, auth.uid()::text) > 0);
+create policy "ncr_update" on public.ncr_docs for update to authenticated
+  using (not (path like 'chats/%' or path like 'chatidx/%') or strpos(path, auth.uid()::text) > 0)
+  with check (not (path like 'chats/%' or path like 'chatidx/%') or strpos(path, auth.uid()::text) > 0);
+create policy "ncr_delete" on public.ncr_docs for delete to authenticated
+  using (not (path like 'chats/%' or path like 'chatidx/%') or strpos(path, auth.uid()::text) > 0);
 
 -- Gộp dữ liệu ngay trên máy chủ để hai người chơi cùng lúc không ghi đè lên nhau
 create or replace function public.ncr_jsonb_merge(a jsonb, b jsonb)

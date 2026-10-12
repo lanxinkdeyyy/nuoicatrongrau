@@ -120,8 +120,20 @@ nav button .dot{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;
 
 /* Town */
 .town{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-.pscroll{overflow-x:auto;overflow-y:hidden;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--woodDk);background:#93d76a;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:thin;--ph:clamp(340px,74vh,720px)}
+.pscroll{overflow-x:auto;overflow-y:hidden;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--woodDk);background:#93d76a;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:thin;--ph:clamp(340px,66vh,700px)}
 .pscroll.drag{cursor:grabbing}
+.pinner{position:relative;width:max-content}
+.pbub{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bub{position:absolute;transform:translate(-50%,-100%);background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:4px 10px;font:600 .88rem var(--body);max-width:230px;width:max-content;box-shadow:0 3px 0 var(--ink);animation:bubUp 6.5s ease-out forwards;line-height:1.25;word-break:break-word}
+.bub b{font-family:var(--display);color:#c2456d}
+.bub.mine{background:#fff3c2}
+@keyframes bubUp{0%{opacity:0;transform:translate(-50%,-70%)}8%{opacity:1;transform:translate(-50%,-100%)}75%{opacity:1;transform:translate(-50%,-190%)}100%{opacity:0;transform:translate(-50%,-260%)}}
+.chatbar{display:flex;gap:8px;margin-top:10px}.chatbar .in{flex:1;min-width:0}
+.chatlog{margin-top:8px;background:var(--paper);border:2.5px solid var(--ink);border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;font-size:.92rem;max-height:150px;overflow:auto}
+.chatlog b{font-family:var(--display);color:#c2456d}
+.dmlist{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);overflow:auto;padding:4px 2px;background:#fffaf0;border:2.5px solid var(--ink);border-radius:14px}
+.dm{align-self:flex-start;max-width:78%;padding:6px 11px;border-radius:14px;border:2px solid var(--ink);background:#fff;word-break:break-word;line-height:1.3;margin:0 8px}
+.dm.me{align-self:flex-end;background:#ffe3ec}.dm small{display:block;color:var(--muted);font-size:.72rem}
 .pscroll svg{display:block;height:var(--ph);width:calc(var(--ph) * 2.826);max-width:none}
 .shopcard{background:linear-gradient(#bfe9ff 0 62%,#9fd776 62%);border:3px solid var(--ink);border-radius:18px;padding:8px 8px 10px;cursor:pointer;box-shadow:0 4px 0 var(--ink);text-align:center;display:flex;flex-direction:column;gap:2px;transition:transform .12s}
 .shopcard:hover{transform:translateY(-3px)}
@@ -704,6 +716,7 @@ function start(uid){
     if(!first&&d.dressedBy&&d.dressedBy===d.partner&&d.dressedAt>(LS.get('ntdt_seen_dress')||0)){LS.set('ntdt_seen_dress',d.dressedAt);toast(`${S.partner?.nick||'Người ấy'} vừa chọn cho bạn một bộ đồ mới!`,'love')}
     renderAll();
   });
+  subInbox();
   sub('inv',DB.collection('invites').where('to','==',uid),qs=>{S.invites=qs.docs.map(d=>({id:d.id,...clone(d.data())})).filter(x=>x.st==='pending');renderAll()});
 }
 function subHome(hid){S.home=null;sub('home',DB.doc('homes/'+hid),s=>{if(s.exists){const d=clone(s.data());if(JSON.stringify(d)===JSON.stringify(S.home))return;const prev=S.home;S.home=d;homeEvents(prev,d);renderAll()}});subDay()}
@@ -753,7 +766,7 @@ const NAVI={
 };
 function nav(){
   const items=[['farm','Nông trại'],['pond','Ao cá'],['coop','Chuồng trại'],['home','Nhà'],['town','Phố'],['tasks','Nhiệm vụ'],['love','Bạn bè']];
-  const claim=claimable(),inv=S.invites.length;
+  const claim=claimable(),inv=S.invites.length+unreadDM();
   return `<nav class="nav" aria-label="Khu vực"><div class="in">${items.map(([k,n])=>`<button class="${S.view===k?'on':''}" data-act="go" data-v="${k}" aria-current="${S.view===k?'page':'false'}"><svg viewBox="-17 -17 34 34" aria-hidden="true">${NAVI[k]}</svg>${n}${k==='tasks'&&claim?`<span class="dot">${claim}</span>`:''}${k==='love'&&inv?`<span class="dot">${inv}</span>`:''}</button>`).join('')}</div></nav>`;
 }
 
@@ -1278,6 +1291,9 @@ function parkScene(){
   // người khác đang online
   for(const o of othersPlaced(others))add(o.y,o.svg);
   items.sort((a,b)=>a.y-b.y).forEach(o=>s+=o.svg);
+  S.ppos={};if(tag)S.ppos[S.uid]=[tag[0],tag[1]-6];if(P.walk){const[x,y]=walkPos(P.walkK||0);S.ppos[S.uid]=[x-38*DS(y),y-180*DS(y)]}
+  if(pa&&tag)S.ppos[S.me.partner]=[tag[0]+70*DS(tag[1]+180),tag[1]];
+  for(const o of othersPlaced(others))S.ppos[o.uid]=o.head;
   if(tag)s+=nameTag(tag[0],tag[1],'Bạn','#fff3c2');
   for(const o of othersPlaced(others))if(o.tag)s+=o.tag;
   if(P.gift&&P.gift.until>t&&pa){const sp=PSPOT[P.gift.cart]?.c||PSPOT.gate.c,c=DS(sp[1]);s+=`<g transform="translate(${sp[0]+70*c} ${sp[1]-215*c})"><g class="bob"><circle r="22" fill="#fff"${SW}/><g transform="scale(1.1)">${giftSVG(P.gift.k)}</g></g></g>`}
@@ -1290,7 +1306,7 @@ function othersPlaced(list){
     const base=PSPOT[k].c||PSPOT[k].o,c0=DS(base[1]),o=offs[i%offs.length];const x=Math.max(40,Math.min(PW_-40,base[0]+o[0]*c0)),y=Math.min(PH_-12,base[1]+o[1]),c=DS(y);
     const svg=placeChar({...st.look},x,y,.9*c,{},'idle');let tag='';
     if(isFriend(st.uid)){const d=st.uid===S.me.partner?S.partner:S.friendDocs[st.uid];tag=nameTag(x,y-170*c*.9-6,`${d?.nick||'Bạn bè'} · ID ${d?.code||'...'}`,st.uid===S.me.partner?'#ffe3ec':'#dff3ff')}
-    out.push({y,svg,tag});
+    out.push({y,svg,tag,uid:st.uid,head:[x,y-170*c*.9-(tag?30:6)]});
   });
   return out;
 }
@@ -1306,25 +1322,39 @@ async function presEnter(){
   try{
     if(S.mode==='cloud'&&SB){const ch=SB.channel('ncr-park',{config:{presence:{key:S.uid}}});let ready=false;
       ch.on('presence',{event:'sync'},()=>{const all=ch.presenceState();setPeers(Object.values(all).flat())});
+      ch.on('broadcast',{event:'chat'},m=>onParkChat(m&&m.payload));
       ch.subscribe(async status=>{if(status==='SUBSCRIBED'){ready=true;try{await ch.track(myParkState())}catch(e){}}});
-      PRES.api={update:st=>{if(ready)ch.track(st)},leave:()=>{try{ch.untrack();SB.removeChannel(ch)}catch(e){}}};
+      PRES.api={update:st=>{if(ready)ch.track(st)},chat:msg=>{if(ready)ch.send({type:'broadcast',event:'chat',payload:msg})},leave:()=>{try{ch.untrack();SB.removeChannel(ch)}catch(e){}}};
     }else if(S.mode==='online'&&ROOM){const r=await ROOM.join('park');if(!PRES.on){r.leave();return}
       r.presence({st:myParkState()}).catch(()=>{});const un=r.onPeers(c=>setPeers(c.peers.filter(p=>!p.sameTab).map(p=>p.presence&&p.presence.st)),()=>{});
-      PRES.api={update:st=>r.presence({st}).catch(()=>{}),leave:()=>{try{un();r.leave()}catch(e){}}};
+      const unc=r.on('chat',m=>{if(!m.sameTab)onParkChat(m.data)},()=>{});
+      PRES.api={update:st=>r.presence({st}).catch(()=>{}),chat:msg=>r.emit('chat',msg).catch(()=>{}),leave:()=>{try{un();unc();r.leave()}catch(e){}}};
     }else{const K='ntdt_pres';const read=()=>{const all=LS.get(K)||{};setPeers(Object.values(all).filter(x=>x&&now()-x.ts<8000).map(x=>x.st))};
       const beat=()=>{const all=LS.get(K)||{};all[S.uid]={st:myParkState(),ts:now()};for(const k in all)if(now()-all[k].ts>20000)delete all[k];LS.set(K,all);read()};
-      const onS=e=>{if(e.key===K)read()};addEventListener('storage',onS);const iv=setInterval(beat,2000);beat();
-      PRES.api={update:beat,leave:()=>{clearInterval(iv);removeEventListener('storage',onS);const all=LS.get(K)||{};delete all[S.uid];LS.set(K,all)}};
+      const onS=e=>{if(e.key===K)read();if(e.key==='ntdt_chat'&&e.newValue)try{onParkChat(JSON.parse(e.newValue).m)}catch(x){}};addEventListener('storage',onS);const iv=setInterval(beat,2000);beat();
+      PRES.api={update:beat,chat:msg=>LS.set('ntdt_chat',{m:msg,n:Math.random()}),leave:()=>{clearInterval(iv);removeEventListener('storage',onS);const all=LS.get(K)||{};delete all[S.uid];LS.set(K,all)}};
     }
   }catch(e){console.warn(e)}
 }
+/* ---------- chat công khai ở công viên ---------- */
+S.bubbles=[];S.parkLog=[];S.ppos={};
+const cleanText=t=>String(t||'').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g,'').trim().slice(0,80);
+function onParkChat(m){if(!m||typeof m!=='object')return;const text=cleanText(m.text),nick=cleanText(m.nick).slice(0,14);if(!text||!m.uid||m.uid===S.uid)return;addBubble(String(m.uid),nick||'Ai đó',text)}
+function addBubble(uid,nick,text){const t=now();S.bubbles=S.bubbles.filter(b=>t-b.t<6500);S.bubbles.push({uid,nick,text,t,id:rid()});S.parkLog=[...S.parkLog,{nick,text,t,me:uid===S.uid}].slice(-6);if(S.view==='park')renderAll();setTimeout(()=>{if(S.view==='park')renderAll()},6600)}
+let lastChat=0;
+function sendParkChat(){const el=$('#pchat');if(!el)return;const text=cleanText(el.value);if(!text)return;if(now()-lastChat<1500)return toast('Chat chậm lại chút nhé.','bad');lastChat=now();el.value='';
+  const msg={uid:S.uid,nick:S.me.nick,text,t:now()};if(PRES.api&&PRES.api.chat)PRES.api.chat(msg);addBubble(S.uid,S.me.nick,text)}
+function bubblesHTML(){const t=now();const seen={};return S.bubbles.filter(b=>t-b.t<6500).map(b=>{const pos=S.ppos[b.uid];if(!pos)return '';const k=seen[b.uid]=(seen[b.uid]||0)+1;
+  return `<div class="bub ${b.uid===S.uid?'mine':''}" style="left:clamp(120px,${(pos[0]/PW_*100).toFixed(2)}%,calc(100% - 120px));top:${((pos[1]-26)/PH_*100).toFixed(2)}%;animation-delay:${-(t-b.t)}ms"><b>${esc(b.nick)}:</b> ${esc(b.text)}</div>`}).join('')}
 function presLeave(){if(!PRES.on)return;PRES.on=false;try{PRES.api&&PRES.api.leave()}catch(e){}PRES.api=null;PRES.peers=[];PRES.lastJ=''}
 function presSync(){if(S.view==='park'&&S.uid&&S.me){if(!PRES.on)return presEnter();const st=myParkState(),j=JSON.stringify(st);if(j!==PRES.sig){PRES.sig=j;PRES.api&&PRES.api.update(st)}}else presLeave()}
 addEventListener('pagehide',presLeave);
 function viewPark(){
   const pa=S.partner,both=pa&&S.me.dressedDay===today()&&pa.dressedDay===today();
   return `<div class="sec-title"><h2>Công viên Hoa</h2><div class="row"><button class="btn sm white" data-act="go" data-v="town">Về khu phố</button><button class="btn sm white" data-act="wardrobe" data-v="me">Thay đồ</button>${pa?`<button class="btn sm white" data-act="wardrobe" data-v="pa">Chọn đồ cho ${esc(pa.nick)}</button>`:''}<button class="btn sm pink" data-act="parkwalk" ${S.park?.walk?'disabled':''}>Dạo một vòng</button></div></div>
-  <div class="pscroll" id="pscroll"><svg viewBox="0 0 ${PW_} ${PH_}" role="img" aria-label="Công viên Hoa">${parkScene()}</svg></div>
+  <form class="chatbar" style="margin:0 0 10px" data-form="pchat"><input class="in" id="pchat" maxlength="80" autocomplete="off" placeholder="Chat với mọi người trong công viên..." aria-label="Chat công khai"><button class="btn pink" type="submit">Gửi</button></form>
+  <div class="pscroll" id="pscroll"><div class="pinner"><svg viewBox="0 0 ${PW_} ${PH_}" role="img" aria-label="Công viên Hoa">${parkScene()}</svg><div class="pbub" aria-live="polite">${bubblesHTML()}</div></div></div>
+  ${S.parkLog.length?`<div class="chatlog">${S.parkLog.map(l=>`<div><b>${esc(l.nick)}:</b> ${esc(l.text)}</div>`).join('')}</div>`:''}
   <p class="hint"><b>${parkPeers().length?`Đang có ${parkPeers().length} người khác trong công viên.`:'Hiện chưa có ai khác trong công viên.'}</b> Bạn bè sẽ hiện tên và ID trên đầu. Kéo ngang để đi hết công viên. Chạm vào ghế đá để ngồi, chạm đu quay, cầu trượt, xích đu, đài phun nước hay các xe hàng để chơi.</p>
   ${pa?`<div class="row" style="margin-top:8px"><span class="tag ${S.me.dressedDay===today()?'ok':''}">${esc(S.me.nick)}: ${S.me.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span><span class="tag ${pa.dressedDay===today()?'ok':''}">${esc(pa.nick)}: ${pa.dressedDay===today()?'đã diện đồ mới':'chưa thay đồ'}</span>${both?'<span class="tag love">Cặp đôi sành điệu</span>':''}</div>`:`<div class="panel" style="margin-top:8px">Ghép đôi với người ấy ở mục <b>Bạn bè</b> để đi chơi công viên cùng nhau và tăng tình cảm.</div>`}`;
 }
@@ -1475,7 +1505,8 @@ function viewLove(){
     body+=`<div class="panel" style="margin-top:12px"><h3>Tìm bạn bằng ID</h3><p class="muted" style="margin:4px 0 10px">Hỏi bạn mã ID 6 số (hiện ở mục Bạn bè trong game của họ) rồi nhập vào đây để kết bạn${pa?'':' hoặc ghép đôi'}.</p><form class="row" data-form="search"><input class="in" id="srch" inputmode="numeric" maxlength="6" placeholder="Ví dụ 482913" value="${esc(S.searchCode||'')}" style="flex:1;min-width:150px" aria-label="ID của bạn ấy"><button class="btn blue" type="submit">Tìm</button></form>${S.searchMsg?`<p class="err">${esc(S.searchMsg)}</p>`:''}
     ${f?`<div class="item" style="margin-top:8px;flex-wrap:wrap"><div class="ic" style="width:64px;height:64px;border-radius:50%"><svg viewBox="18 10 84 84">${charG(f.p)}</svg></div><div class="tx"><b>${esc(f.p.nick)}</b><small>ID ${esc(f.p.code)}${f.p.partner?' · đã có đôi':''}</small></div><div class="row" style="gap:6px">${isF?'<span class="tag ok">Đã là bạn bè</span>':S.sent[f.uid+'f']?'<span class="tag">Đã gửi lời kết bạn</span>':`<button class="btn blue sm" data-act="invite" data-k="friend" data-v="${f.uid}">Kết bạn</button>`}${pa||f.p.partner?'':S.sent[f.uid]?'<span class="tag love">Đã gửi lời ghép đôi</span>':`<button class="btn pink sm" data-act="invite" data-k="pair" data-v="${f.uid}">Ghép đôi</button>`}</div></div>`:''}</div>`;
     const fl=friendIds();
-    body+=`<div class="sec-title"><h2>Danh sách bạn bè</h2><span class="tag">${fl.length} người</span></div>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];const here=parkPeers().some(x=>x.uid===id);return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}${id===S.me.partner?' <span class="tag love">người ấy</span>':''}</b><small>ID ${esc(d?.code||'')}${here?' · đang ở công viên':''}</small></div>${here?'<button class="btn sm green" data-act="go" data-v="park">Tới công viên</button>':''}</div>`}).join('')}</div>`:`<div class="panel muted">Chưa có bạn bè nào. Tìm bạn bằng ID ở trên nhé.</div>`}`;
+    body+=S.inbox.length?`<div class="sec-title"><h2>Chat riêng</h2>${unreadDM()?`<span class="tag bad">${unreadDM()} tin chưa đọc</span>`:''}</div><div class="list">${S.inbox.slice(0,8).map(x=>{const d=x.with===S.me.partner?S.partner:S.friendDocs[x.with];return `<button class="item" style="text-align:left;cursor:pointer;font:inherit" data-act="dm" data-v="${esc(x.with)}"><div class="tx"><b>${esc(d?.nick||'Bạn bè')}${x.unread?' <span class="tag bad">mới</span>':''}</b><small>${esc(x.last||'')}</small></div></button>`}).join('')}</div>`:'';
+    body+=`<div class="sec-title"><h2>Danh sách bạn bè</h2><span class="tag">${fl.length} người</span></div>${fl.length?`<div class="list">${fl.map(id=>{const d=S.friendDocs[id];const here=parkPeers().some(x=>x.uid===id);return `<div class="item"><div class="ic" style="border-radius:50%">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div class="tx"><b>${esc(d?.nick||'...')}${id===S.me.partner?' <span class="tag love">người ấy</span>':''}</b><small>ID ${esc(d?.code||'')}${here?' · đang ở công viên':''}</small></div><button class="btn sm white" data-act="dm" data-v="${id}">Nhắn tin${S.inbox.find(x=>x.with===id&&x.unread)?' <span class="tag bad">mới</span>':''}</button>${here?'<button class="btn sm green" data-act="go" data-v="park">Tới công viên</button>':''}</div>`}).join('')}</div>`:`<div class="panel muted">Chưa có bạn bè nào. Tìm bạn bằng ID ở trên nhé.</div>`}`;
     ensureFriendDocs();
   }
   const invs=S.invites.filter(i=>i.kind==='friend'?!isFriend(i.from):!pa);
@@ -1505,6 +1536,25 @@ async function acceptFriend(inv){
     await DB.doc('players/'+inv.from).update({friends:{[S.uid]:true}});
     await DB.doc('invites/'+inv.id).update({st:'ok'});toast(`Bạn và ${inv.fromNick} đã là bạn bè!`,'good');renderAll()}catch(e){onWriteErr(e)}
 }
+/* ---------- chat riêng ---------- */
+const cidOf=(a,b)=>[a,b].sort().join('__');
+S.inbox=[];
+function subInbox(){let first=true;sub('inbox',DB.collection('chatidx').where('to','==',S.uid),qs=>{const prev=S.inbox;S.inbox=qs.docs.map(d=>({id:d.id,...clone(d.data())})).sort((a,b)=>(b.at||0)-(a.at||0));if(!first)for(const x of S.inbox){const p=prev.find(y=>y.id===x.id);if(x.unread&&(!p||p.at!==x.at)&&!(S.modal?.t==='dm'&&S.modal.with===x.with)){const d=x.with===S.me.partner?S.partner:S.friendDocs[x.with];toast(`${d?.nick||'Bạn bè'}: ${x.last}`,'love')}else if(S.modal?.t==='dm'&&S.modal.with===x.with&&x.unread)W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+x.with).update({unread:false}))}first=false;ensureFriendDocs();renderAll()})}
+const unreadDM=()=>S.inbox.filter(x=>x.unread).length;
+function openDM(uid){if(!isFriend(uid))return toast('Chỉ nhắn tin riêng được với bạn bè.','bad');S.modal={t:'dm',with:uid};S.dmMsgs=[];const cid=cidOf(S.uid,uid);
+  sub('dm',DB.collection('chats/'+cid+'/msgs'),qs=>{S.dmMsgs=qs.docs.map(d=>clone(d.data())).filter(m=>m&&m.text).sort((a,b)=>a.at-b.at).slice(-120);renderModal();const l=$('#dmlist');if(l)l.scrollTop=l.scrollHeight});
+  const mine=S.inbox.find(x=>x.with===uid);if(mine&&mine.unread)W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+uid).update({unread:false}));ensureFriendDocs();renderModal()}
+function dmBody(m){const d=m.with===S.me.partner?S.partner:S.friendDocs[m.with];const fmtT=t=>{const x=new Date(t);return x.getHours()+':'+String(x.getMinutes()).padStart(2,'0')};
+  return `<div class="row"><div class="ic" style="width:46px;height:46px;border-radius:50%;border:2px solid var(--ink);overflow:hidden;background:#eaf7ff">${d?`<svg viewBox="18 10 84 84">${charG(d)}</svg>`:''}</div><div><b style="font-family:var(--display)">${esc(d?.nick||'...')}</b><div class="muted">ID ${esc(d?.code||'')}</div></div></div>
+  <div class="dmlist" id="dmlist">${(S.dmMsgs||[]).map(x=>`<div class="dm ${x.from===S.uid?'me':''}">${esc(x.text)}<small>${fmtT(x.at)}</small></div>`).join('')||'<p class="muted" style="margin:10px">Chưa có tin nhắn nào. Gửi lời chào đầu tiên nhé!</p>'}</div>
+  <form class="chatbar" data-form="dm"><input class="in" id="dmin" maxlength="300" autocomplete="off" placeholder="Nhắn tin..." aria-label="Nội dung tin nhắn"><button class="btn pink" type="submit">Gửi</button></form>`}
+let lastDM=0;
+function sendDM(){const m=S.modal;if(!m||m.t!=='dm')return;const el=$('#dmin');const text=String(el.value||'').replace(/[\u0000-\u0009\u000b-\u001f]/g,'').trim().slice(0,300);if(!text)return;if(now()-lastDM<800)return;lastDM=now();el.value='';
+  const o=m.with,cid=cidOf(S.uid,o),at=now(),id=String(at).padStart(15,'0')+'-'+rid().slice(0,4),msg={from:S.uid,text,at};
+  S.dmMsgs=[...(S.dmMsgs||[]),msg];renderModal();const l=$('#dmlist');if(l)l.scrollTop=l.scrollHeight;
+  W('dm',()=>DB.doc('chats/'+cid+'/msgs/'+id).set(msg));
+  W('ix',()=>DB.doc('chatidx/'+o+'__'+S.uid).set({to:o,with:S.uid,last:text.slice(0,60),at,unread:true}));
+  W('ix',()=>DB.doc('chatidx/'+S.uid+'__'+o).set({to:S.uid,with:o,last:text.slice(0,60),at,unread:false}));}
 /* bạn bè */
 function friendIds(){const m=S.me?.friends||{};const ids=Object.keys(m).filter(k=>m[k]);if(S.me?.partner&&!ids.includes(S.me.partner))ids.unshift(S.me.partner);return ids}
 const isFriend=uid=>!!uid&&(uid===S.me?.partner||!!S.me?.friends?.[uid]);
@@ -1618,7 +1668,7 @@ function logout(){presLeave();if(S.mode==='cloud'&&SB){try{SB.auth.signOut()}cat
 
 /* ================= modal & toasts ================= */
 function openModal(m){S.modal=m;renderModal()}
-function closeModal(){if(S.civSeat){S.civSeat=false;H({wed:{here:{[S.uid]:0}}})}S.modal=null;closeModalDom()}
+function closeModal(){if(S.modal?.t==='dm')unsub('dm');if(S.civSeat){S.civSeat=false;H({wed:{here:{[S.uid]:0}}})}S.modal=null;closeModalDom()}
 function closeModalDom(){const el=$('#modal');el.hidden=true;el.innerHTML=''}
 function renderModal(){
   const el=$('#modal'),m=S.modal;if(!m||!S.me||!S.home){closeModalDom();return}
@@ -1628,10 +1678,12 @@ function renderModal(){
   else if(m.t==='propose'){title='Cầu hôn';body=proposeBody(m)}
   else if(m.t==='proposed'){title='Lời cầu hôn';body=proposedBody(m)}
   else if(m.t==='cart'){title=CARTS[m.k].n;body=cartBody(m)}
+  else if(m.t==='dm'){title='Chat riêng';body=dmBody(m)}
   else if(m.t==='plot'){title='Khai hoang đất';body=`<p>Mở thêm một ô đất để trồng nhiều cây hơn.</p>${buyBtn('plot','plot',plotPrice(),'Khai hoang')}`}
-  const scroll=el.querySelector('.sheet')?.scrollTop||0;
+  const scroll=el.querySelector('.sheet')?.scrollTop||0,ae=document.activeElement,keepId=ae&&el.contains(ae)&&ae.id,keepV={};el.querySelectorAll('input[id]').forEach(i=>{if(i.type!=='password')keepV[i.id]=i.value});const dl=$('#dmlist'),atBottom=!dl||dl.scrollHeight-dl.scrollTop-dl.clientHeight<40;
   el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-h"><h2>${esc(title)}</h2><span class="coins" style="font-size:.95rem">${coinSVG()}${coins()}</span><button class="x" data-act="close" aria-label="Đóng">×</button></div><div class="sheet-b">${body}</div></div>`;
   el.hidden=false;const sh=el.querySelector('.sheet');if(sh)sh.scrollTop=scroll;drawSig();
+  for(const id in keepV){const i=document.getElementById(id);if(i&&!i.value)i.value=keepV[id]}if(keepId){const i=document.getElementById(keepId);if(i)i.focus()}{const l=$('#dmlist');if(l&&atBottom)l.scrollTop=l.scrollHeight}
 }
 function toast(msg,kind=''){if(kind==='good'||kind==='love')Music.sfx('coin');const box=$('#toasts');const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;box.appendChild(d);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>d.remove(),2800)}
 
@@ -1735,6 +1787,7 @@ document.addEventListener('click',ev=>{
     case 'claim':claim(v);break;
     case 'bonus':bonus();break;
     case 'copyid':{const t=S.me.code;try{navigator.clipboard.writeText(t).then(()=>toast('Đã sao chép ID '+t,'good'),()=>selId())}catch(e){selId()}break}
+    case 'dm':openDM(v);break;
     case 'invite':sendInvite(v,el.dataset.k||'pair');break;
     case 'accept':{const i=S.invites.find(x=>x.id===v);if(i)(i.kind==='friend'?acceptFriend:acceptInvite)(i);break}
     case 'decline':declineInvite(v);break;
@@ -1753,7 +1806,7 @@ function authPreview(){
 }
 document.addEventListener('submit',ev=>{
   const f=ev.target.closest('[data-form]');if(!f)return;ev.preventDefault();
-  const k=f.dataset.form;if(k==='clogin')cloudLogin();else if(k==='csignup')cloudSignup();else if(k==='cforgot')cloudForgot();else if(k==='cnewpass')cloudNewPass();else if(k==='ccreate')cloudCreate();else if(k==='login')doLogin();else if(k==='signup')doSignup();else if(k==='search')doSearch($('#srch').value);
+  const k=f.dataset.form;if(k==='pchat')return sendParkChat();if(k==='dm')return sendDM();if(k==='clogin')cloudLogin();else if(k==='csignup')cloudSignup();else if(k==='cforgot')cloudForgot();else if(k==='cnewpass')cloudNewPass();else if(k==='ccreate')cloudCreate();else if(k==='login')doLogin();else if(k==='signup')doSignup();else if(k==='search')doSearch($('#srch').value);
 });
 document.addEventListener('input',ev=>{if(ev.target.id==='srch')S.searchCode=ev.target.value});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&S.modal)closeModal()});
