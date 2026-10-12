@@ -21,6 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>window.APP_VERSION='20261012224123';</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -239,10 +240,10 @@ input.in{font:600 1rem var(--body);padding:9px 12px;border:3px solid var(--ink);
   nav button{font-size:.64rem}
   nav button svg{width:26px;height:26px}
 }
+.updbar{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;background:var(--paper);border:3px solid var(--woodDk);border-radius:999px;padding:6px 6px 6px 16px;box-shadow:0 6px 0 rgba(90,50,20,.25);font-family:var(--display);font-weight:700;color:var(--ink);white-space:nowrap;max-width:calc(100vw - 24px)}
+.updbar button{font:inherit;font-weight:800;border:0;border-radius:999px;padding:6px 14px;background:var(--green);color:#fff;cursor:pointer}
 </style>
 
-</head>
-<body>
 <div id="app" class="wrap"></div>
 <div id="modal" hidden></div>
 <div id="toasts" aria-live="polite"></div>
@@ -1760,46 +1761,69 @@ function renderModal(){
 function toast(msg,kind=''){if(kind==='good'||kind==='love')Music.sfx('coin');const box=$('#toasts');const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;box.appendChild(d);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>d.remove(),2800)}
 
 /* ================= music ================= */
-/* Nhạc nền được dựng sẵn thành một đoạn âm thanh rồi phát lặp vô tận, không phụ thuộc bộ đếm giờ nên không bị ngắt khi đổi tab. */
+/* Nhạc nền được dựng sẵn thành file âm thanh rồi phát lặp bằng trình phát nhạc của máy:
+   chạy cả khi iPhone gạt im lặng, không bị ngắt khi đổi tab. Tiếng hiệu ứng dùng WebAudio riêng. */
 const Music={
-  ctx:null,master:null,src:null,buf:null,building:false,
+  ctx:null,master:null,el:null,url:null,building:false,touched:false,
   MEL:[72,0,76,79,81,79,76,0,74,76,72,0,69,72,74,0,72,0,76,79,81,84,81,79,76,74,72,74,76,0,0,0,
        77,0,81,84,81,79,77,0,76,79,84,0,81,79,76,0,74,76,77,79,76,72,74,76,72,0,67,0,72,0,0,0],
   BASS:[48,45,50,43,48,41,43,48,41,48,45,45,50,48,43,48],
   CH:[[64,67],[64,69],[65,69],[62,67],[64,67],[65,69],[62,67],[64,67],[65,69],[64,67],[64,69],[64,69],[65,69],[64,67],[62,67],[64,67]],
   hz:m=>440*Math.pow(2,(m-69)/12),
-  init(){if(this.ctx)return true;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=.9;this.master.connect(this.ctx.destination);this.ctx.onstatechange=()=>{if(this.ctx.state!=='running'&&this.ctx.state!=='closed')this.kick()};return true}catch(e){return false}},
   voice(c,out,m,t,d,type,vol){const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=this.hz(m);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.015);g.gain.exponentialRampToValueAtTime(.0008,t+d);o.connect(g);g.connect(out);o.start(t);o.stop(t+d+.05)},
-  async build(){
-    const dur=60/112/2,steps=64,len=steps*dur,sr=this.ctx.sampleRate;
-    const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    const oc=new OAC(1,Math.ceil(len*sr),sr);
-    for(let i=0;i<steps;i++){const t=i*dur,m=this.MEL[i];
-      if(m)this.voice(oc,oc.destination,m,t,Math.min(dur*1.6,len-t-.06),'triangle',.11);
-      if(i%4===0)this.voice(oc,oc.destination,this.BASS[(i/4)%16],t,dur*1.8,'sine',.16);
-      if(i%4===2)for(const n of this.CH[Math.floor(i/4)%16])this.voice(oc,oc.destination,n,t,dur*.9,'square',.018);
-    }
-    return await oc.startRendering();
+  async prepare(){
+    if(this.url||this.building)return;this.building=true;
+    try{const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OAC)return;
+      const sr=22050,dur=60/112/2,steps=64,len=steps*dur,oc=new OAC(1,Math.ceil(len*sr),sr),mg=oc.createGain();mg.gain.value=1.6;mg.connect(oc.destination);
+      for(let i=0;i<steps;i++){const t=i*dur,m=this.MEL[i];
+        if(m)this.voice(oc,mg,m,t,Math.min(dur*1.6,len-t-.06),'triangle',.11);
+        if(i%4===0)this.voice(oc,mg,this.BASS[(i/4)%16],t,dur*1.8,'sine',.16);
+        if(i%4===2)for(const n of this.CH[Math.floor(i/4)%16])this.voice(oc,mg,n,t,dur*.9,'square',.018)}
+      const buf=await new Promise((res,rej)=>{const r=oc.startRendering();if(r&&r.then)r.then(res,rej);else oc.oncomplete=e=>res(e.renderedBuffer)});
+      this.url=URL.createObjectURL(this.wav(buf));
+      if(this.el){const was=!this.el.paused||this.touched;this.el.src=this.url;this.el.loop=true;if(was)this.el.play().catch(()=>{})}
+    }catch(e){console.warn(e)}finally{this.building=false;updMusicBtn()}
   },
-  async play(){
-    if(this.src||this.building)return;this.building=true;
-    try{if(!this.buf)this.buf=await this.build();const s=this.ctx.createBufferSource();s.buffer=this.buf;s.loop=true;s.connect(this.master);s.start(this.ctx.currentTime+.05);this.src=s}catch(e){console.warn(e)}
-    this.building=false;updMusicBtn();
-  },
-  running(){return !!this.ctx&&this.ctx.state==='running'&&!!this.src},
+  wav(buf){const d=buf.getChannelData(0),n=d.length,ab=new ArrayBuffer(44+n*2),v=new DataView(ab),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+    w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,buf.sampleRate,true);v.setUint32(28,buf.sampleRate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+    for(let i=0;i<n;i++){const x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7fff,true)}return new Blob([ab],{type:'audio/wav'})},
+  ensureEl(){if(this.el)return;const a=new Audio();a.loop=true;a.preload='auto';a.volume=.75;a.setAttribute('playsinline','');
+    a.src=this.url||'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=';this.el=a;a.addEventListener('playing',updMusicBtn);a.addEventListener('pause',updMusicBtn)},
+  initCtx(){if(this.ctx)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=.9;this.master.connect(this.ctx.destination)}catch(e){}},
   kick(){
-    if(!this.init())return;
-    if(this.ctx.state!=='running'){try{const b=this.ctx.createBuffer(1,1,22050),x=this.ctx.createBufferSource();x.buffer=b;x.connect(this.ctx.destination);x.start(0)}catch(e){}
-      try{const pr=this.ctx.resume();if(pr&&pr.then)pr.then(()=>updMusicBtn(),()=>{})}catch(e){}}
-    this.play();updMusicBtn();
+    this.touched=true;this.ensureEl();
+    try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+    if(this.el.paused){const p=this.el.play();if(p&&p.catch)p.catch(()=>{})}
+    this.initCtx();if(this.ctx&&this.ctx.state!=='running'){try{this.ctx.resume()}catch(e){}}
+    if(!this.url)this.prepare();updMusicBtn();
   },
+  running(){return !!this.el&&!this.el.paused&&!!this.url},
   sfx(kind){if(!this.ctx||this.ctx.state!=='running')return;const t=this.ctx.currentTime;if(kind==='coin'){this.voice(this.ctx,this.master,88,t,.12,'square',.05);this.voice(this.ctx,this.master,93,t+.08,.22,'square',.05)}else{this.voice(this.ctx,this.master,79,t,.1,'triangle',.12);this.voice(this.ctx,this.master,84,t+.05,.12,'triangle',.1)}}
 };
 LS.del('ntdt_music');
+Music.prepare();
 ['pointerdown','pointerup','click','touchstart','touchend','keydown'].forEach(t=>document.addEventListener(t,()=>{if(!Music.running())Music.kick()},{capture:true,passive:true}));
-['visibilitychange','focus','pageshow'].forEach(t=>addEventListener(t,()=>{if(Music.ctx&&!document.hidden)Music.kick()}));
-setInterval(()=>{if(Music.ctx&&Music.ctx.state!=='running')Music.kick()},2000);
-function updMusicBtn(){document.querySelectorAll('.mbtn').forEach(b=>b.classList.toggle('wait',!Music.running()))}
+['visibilitychange','focus','pageshow'].forEach(t=>addEventListener(t,()=>{if(Music.touched&&!document.hidden&&Music.el&&Music.el.paused)Music.el.play().catch(()=>{})}));
+setInterval(()=>{if(Music.touched&&!document.hidden&&Music.el&&Music.el.paused&&Music.url)Music.el.play().catch(()=>{})},2000);
+/* ================= tự cập nhật bản mới ================= */
+const APP_VER=window.APP_VERSION||'';let NEW_VER=null,HID_AT=0;
+async function checkUpdate(){
+  if(!APP_VER||!/^https?:/.test(location.protocol))return;
+  try{if(navigator.serviceWorker)navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})}catch(e){}
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    if(j&&j.v&&j.v!==APP_VER){NEW_VER=j.v;showUpd()}}catch(e){}
+}
+function doUpdate(){try{Music.el&&Music.el.pause()}catch(e){}location.reload()}
+function showUpd(){if(document.querySelector('.updbar'))return;const d=document.createElement('div');d.className='updbar';d.setAttribute('role','status');
+  d.innerHTML='<span>Đã có bản mới!</span><button type="button">Cập nhật</button>';d.querySelector('button').onclick=doUpdate;document.body.appendChild(d)}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){HID_AT=Date.now();return}
+  if(NEW_VER&&HID_AT&&Date.now()-HID_AT>3000)return doUpdate(); // quay lại app sau khi rời đi: tự lên bản mới
+  checkUpdate();
+});
+setTimeout(checkUpdate,8000);setInterval(checkUpdate,120000);
+
+function updMusicBtn(){document.querySelectorAll('.mbtn[data-act=music]').forEach(b=>b.classList.toggle('wait',!Music.running()))}
 const musicBtn=()=>`<button class="mbtn ${Music.running()?'':'wait'}" data-act="music" aria-label="Phát nhạc nền" title="${Music.running()?'Nhạc nền đang phát':'Chạm để phát nhạc'}"><svg viewBox="-14 -14 28 28" aria-hidden="true"><path d="M-4 6 V-9 L8 -12 V3" fill="none" stroke="${O}" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="-7" cy="6" rx="4" ry="3.2" fill="${O}"/><ellipse cx="5" cy="3" rx="4" ry="3.2" fill="${O}"/></svg></button>`;
 
 /* ================= events ================= */
