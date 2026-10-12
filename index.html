@@ -648,8 +648,7 @@ function makeLocalDB(){
 }
 /* ---------- Supabase store (bản công khai trên web) ---------- */
 const SUPA={url:'https://wxtkadxcoqssaoustjga.supabase.co',key:'sb_publishable_Pt8lW1WAzLwM8cLDy4TQtA_uv_CEwzA',table:'ncr_docs'};
-function makeSupaDB(){
-  const sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:false}});
+function makeSupaDB(sb){
   const T=SUPA.table,cache={},subs=new Set();
   const parent=p=>p.split('/').slice(0,-1).join('/');
   const err=(e)=>({code:'unavailable',message:e&&e.message||String(e)});
@@ -1401,7 +1400,7 @@ function viewLove(){
   const invs=S.invites.filter(i=>!pa);
   return `<div class="sec-title"><h2>Bạn bè</h2><button class="btn sm white" data-act="logout">Đăng xuất</button></div>
   <div class="scene" style="background:#ffe3ec"><svg viewBox="0 0 600 250" role="img" aria-label="Cặp đôi">${scene}</svg></div>
-  <div class="idcard" style="margin:14px 0"><div style="flex:1;min-width:140px"><div class="muted" style="font-weight:800">ID của bạn</div><div class="num" id="myid">${esc(me.code)}</div><small class="muted">Tên đăng nhập: ${esc(me.user)}</small></div><button class="btn sm" data-act="copyid">Sao chép ID</button></div>
+  <div class="idcard" style="margin:14px 0"><div style="flex:1;min-width:140px"><div class="muted" style="font-weight:800">ID của bạn</div><div class="num" id="myid">${esc(me.code)}</div><small class="muted">${S.mode==='cloud'?'Gmail: '+esc(S.authUser?.email||''):'Tên đăng nhập: '+esc(me.user||'')}</small></div><button class="btn sm" data-act="copyid">Sao chép ID</button></div>
   ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời ghép đôi</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>ID ${esc(i.fromCode)} muốn cùng bạn xây tổ ấm</small></div><button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button><button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div><p class="muted" style="margin:8px 0 0">Khi đồng ý, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p></div>`:''}
   ${body}
   ${S.mode==='local'?`<p class="muted" style="margin-top:12px">Đang chơi trên máy này: dữ liệu lưu trong trình duyệt. Có thể tạo thêm tài khoản thứ hai trên cùng máy để thử ghép đôi.</p>`:''}`;
@@ -1442,15 +1441,56 @@ function authScreen(){
   const note=S.mode==='cloud'?`<p class="muted" style="margin:0">Tài khoản lưu trên mạng, đăng nhập máy nào cũng chơi tiếp được. Mật khẩu được mã hóa trước khi lưu. Đừng dùng lại mật khẩu Gmail hay Facebook nhé.</p>`:S.mode==='local'?`<p class="muted" style="margin:0">${S.onlineBlocked?'Tài khoản claude.ai này chỉ có quyền xem trang nên đang chơi trên máy này. ':''}Dữ liệu lưu trong trình duyệt của máy này.</p>`:`<p class="muted" style="margin:0">Mật khẩu được mã hóa trước khi lưu. Đừng dùng lại mật khẩu Gmail hay Facebook nhé.</p>`;
   const login=`<form class="list" data-form="login"><label class="f">Tên đăng nhập<input class="in" id="lg-user" autocomplete="username" maxlength="16" required></label><label class="f">Mật khẩu<input class="in" id="lg-pin" type="password" maxlength="64" autocomplete="current-password" required></label><p class="err" id="auth-err">${esc(a.err||'')}</p><button class="btn big pink" type="submit">Vào nông trại</button></form>`;
   const signup=`<form class="list" data-form="signup"><label class="f">Tên nhân vật<input class="in" id="su-nick" maxlength="14" placeholder="Ví dụ: Bé Na" required></label><div class="row" style="align-items:stretch"><label class="f" style="flex:1;min-width:150px">Tên đăng nhập<input class="in" id="su-user" maxlength="16" placeholder="chữ thường, số" autocomplete="username" required></label><label class="f" style="flex:1;min-width:120px">Mật khẩu (từ 6 ký tự)<input class="in" id="su-pin" type="password" maxlength="64" autocomplete="new-password" required></label></div>
-    <div class="tabs"><button type="button" class="${a.g==='f'?'on':''}" data-act="ag" data-v="f">Con gái</button><button type="button" class="${a.g==='m'?'on':''}" data-act="ag" data-v="m">Con trai</button></div>
-    <div class="tabs">${Object.entries(HAIRS).map(([k,n])=>`<button type="button" class="${a.hs===k?'on':''}" data-act="ahs" data-v="${k}">${n}</button>`).join('')}</div>
-    <div class="row"><span class="muted" style="font-weight:800">Tóc</span><div class="swatches">${HAIRC.map(c=>`<button type="button" class="sw ${a.hc===c?'on':''}" style="background:${c}" data-act="ahc" data-v="${c}" aria-label="Màu tóc"></button>`).join('')}</div></div>
-    <div class="row"><span class="muted" style="font-weight:800">Da</span><div class="swatches">${SKINS.map(c=>`<button type="button" class="sw ${a.skin===c?'on':''}" style="background:${c}" data-act="askin" data-v="${c}" aria-label="Màu da"></button>`).join('')}</div></div>
+    ${charFields(a)}
     <p class="err" id="auth-err">${esc(a.err||'')}</p><button class="btn big pink" type="submit">Tạo nhân vật</button></form>`;
+  const body=S.mode==='cloud'?cloudAuth(a):`<div class="tabs"><button class="${a.tab==='login'?'on':''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${a.tab==='signup'?'on':''}" data-act="atab" data-v="signup">Tạo tài khoản</button></div>${a.tab==='signup'?signup:login}${note}`;
   return `<div class="auth"><div class="logo"><h1>Nuôi Cá Trồng Rau</h1><p>Cùng nhau trồng rau, nuôi cá, xây tổ ấm</p><div class="row" style="justify-content:center;margin-top:8px">${musicBtn()}<span class="muted" style="font-weight:700">Nhạc nền</span></div></div>
   <div class="scene"><svg viewBox="0 0 600 220" aria-hidden="true">${scene}</svg></div>
-  <div class="panel list"><div class="tabs"><button class="${a.tab==='login'?'on':''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${a.tab==='signup'?'on':''}" data-act="atab" data-v="signup">Tạo tài khoản</button></div>${a.tab==='login'?login:signup}${note}</div></div>`;
+  <div class="panel list">${body}</div></div>`;
 }
+function charFields(a){return `<div class="tabs"><button type="button" class="${a.g==='f'?'on':''}" data-act="ag" data-v="f">Con gái</button><button type="button" class="${a.g==='m'?'on':''}" data-act="ag" data-v="m">Con trai</button></div>
+    <div class="tabs">${Object.entries(HAIRS).map(([k,n])=>`<button type="button" class="${a.hs===k?'on':''}" data-act="ahs" data-v="${k}">${n}</button>`).join('')}</div>
+    <div class="row"><span class="muted" style="font-weight:800">Tóc</span><div class="swatches">${HAIRC.map(c=>`<button type="button" class="sw ${a.hc===c?'on':''}" style="background:${c}" data-act="ahc" data-v="${c}" aria-label="Màu tóc"></button>`).join('')}</div></div>
+    <div class="row"><span class="muted" style="font-weight:800">Da</span><div class="swatches">${SKINS.map(c=>`<button type="button" class="sw ${a.skin===c?'on':''}" style="background:${c}" data-act="askin" data-v="${c}" aria-label="Màu da"></button>`).join('')}</div></div>`}
+/* ---------- đăng nhập bằng email (bản trên mạng, dùng Supabase Auth) ---------- */
+let SB=null;
+const HERE=()=>location.origin+location.pathname;
+const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+function cloudAuth(a){
+  const err=`<p class="err" id="auth-err">${esc(a.err||'')}</p>`,info=a.info?`<div class="tag ok" style="white-space:normal;padding:8px 12px;border-radius:12px;font-size:.92rem">${esc(a.info)}</div>`:'';
+  const tabs=`<div class="tabs"><button class="${a.tab==='login'?'on':''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${a.tab==='signup'?'on':''}" data-act="atab" data-v="signup">Tạo tài khoản</button></div>`;
+  const mail=(id,auto)=>`<label class="f">Gmail<input class="in" id="${id}" type="email" inputmode="email" autocomplete="${auto}" maxlength="120" placeholder="ban@gmail.com" value="${esc(a.email||'')}" required></label>`;
+  switch(a.tab){
+    case 'signup':return tabs+info+`<form class="list" data-form="csignup">${mail('ce-mail','email')}<label class="f">Mật khẩu (từ 6 ký tự)<input class="in" id="ce-pass" type="password" maxlength="72" autocomplete="new-password" required></label><label class="f">Nhập lại mật khẩu<input class="in" id="ce-pass2" type="password" maxlength="72" autocomplete="new-password" required></label>${err}<button class="btn big pink" type="submit">Tạo tài khoản</button></form><p class="muted" style="margin:0">Game sẽ gửi một thư xác nhận vào Gmail của bạn. Quên mật khẩu thì đặt lại qua Gmail này.</p>`;
+    case 'forgot':return `<h3>Quên mật khẩu</h3>${info}<form class="list" data-form="cforgot">${mail('ce-mail','email')}${err}<button class="btn big pink" type="submit">Gửi link đặt lại mật khẩu</button></form><button class="btn white sm" data-act="atab" data-v="login">Quay lại đăng nhập</button>`;
+    case 'newpass':return `<h3>Đặt mật khẩu mới</h3>${info}<form class="list" data-form="cnewpass"><label class="f">Mật khẩu mới (từ 6 ký tự)<input class="in" id="ce-pass" type="password" maxlength="72" autocomplete="new-password" required></label><label class="f">Nhập lại mật khẩu mới<input class="in" id="ce-pass2" type="password" maxlength="72" autocomplete="new-password" required></label>${err}<button class="btn big pink" type="submit">Lưu mật khẩu mới</button></form>`;
+    case 'create':return `<h3>Tạo nhân vật</h3><p class="muted" style="margin:0">Đăng nhập bằng ${esc(S.authUser?.email||'')}</p><form class="list" data-form="ccreate"><label class="f">Tên nhân vật<input class="in" id="su-nick" maxlength="14" placeholder="Ví dụ: Bé Na" required></label>${charFields(a)}${err}<button class="btn big pink" type="submit">Tạo nhân vật</button></form><button class="btn white sm" data-act="logout">Đăng xuất</button>`;
+    default:return tabs+info+`<form class="list" data-form="clogin">${mail('ce-mail','email')}<label class="f">Mật khẩu<input class="in" id="ce-pass" type="password" maxlength="72" autocomplete="current-password" required></label>${err}<button class="btn big pink" type="submit">Vào nông trại</button></form><button class="btn white sm" data-act="atab" data-v="forgot">Quên mật khẩu?</button>`;
+  }
+}
+const authInfo=m=>{S.auth.info=m;S.auth.err='';renderAll()};
+function authMsg(e){const m=(e&&e.message||'').toLowerCase();if(m.includes('invalid login'))return 'Gmail hoặc mật khẩu chưa đúng.';if(m.includes('not confirmed'))return 'Bạn chưa xác nhận email. Mở Gmail, bấm link trong thư xác nhận rồi đăng nhập lại.';if(m.includes('already registered')||m.includes('already been registered'))return 'Gmail này đã có tài khoản, hãy đăng nhập.';if(m.includes('rate limit')||m.includes('security purposes'))return 'Bạn thao tác hơi nhanh, chờ một lát rồi thử lại nhé.';if(m.includes('password')&&m.includes('characters'))return 'Mật khẩu cần ít nhất 6 ký tự.';if(m.includes('same')&&m.includes('password'))return 'Mật khẩu mới phải khác mật khẩu cũ.';return 'Có lỗi: '+(e&&e.message||'không kết nối được, thử lại nhé.')}
+async function cloudLogin(){const email=$('#ce-mail').value.trim().toLowerCase(),password=$('#ce-pass').value;S.auth.email=email;if(!emailOk(email)||!password)return authErr('Nhập Gmail và mật khẩu nhé.');authErr('Đang đăng nhập...');const{data,error}=await SB.auth.signInWithPassword({email,password});if(error)return authErr(authMsg(error));S.auth.err='';afterAuth(data.user)}
+async function cloudSignup(){const email=$('#ce-mail').value.trim().toLowerCase(),p1=$('#ce-pass').value,p2=$('#ce-pass2').value;S.auth.email=email;if(!emailOk(email))return authErr('Gmail chưa đúng định dạng.');if(p1.length<6)return authErr('Mật khẩu cần ít nhất 6 ký tự.');if(p1!==p2)return authErr('Hai lần nhập mật khẩu chưa giống nhau.');authErr('Đang tạo tài khoản...');
+  const{data,error}=await SB.auth.signUp({email,password:p1,options:{emailRedirectTo:HERE()}});if(error)return authErr(authMsg(error));
+  if(data.user&&Array.isArray(data.user.identities)&&!data.user.identities.length)return authErr('Gmail này đã có tài khoản, hãy đăng nhập.');
+  if(data.session)return afterAuth(data.user);
+  S.auth.tab='login';authInfo(`Đã gửi thư xác nhận tới ${email}. Mở Gmail, bấm link trong thư rồi quay lại đây đăng nhập. Không thấy thư thì xem trong mục Spam.`)}
+async function cloudForgot(){const email=$('#ce-mail').value.trim().toLowerCase();S.auth.email=email;if(!emailOk(email))return authErr('Gmail chưa đúng định dạng.');authErr('Đang gửi...');const{error}=await SB.auth.resetPasswordForEmail(email,{redirectTo:HERE()});if(error)return authErr(authMsg(error));authInfo(`Nếu ${email} đã đăng ký, link đặt lại mật khẩu đã được gửi tới đó. Mở Gmail, bấm link trong thư (xem cả mục Spam).`)}
+async function cloudNewPass(){const p1=$('#ce-pass').value,p2=$('#ce-pass2').value;if(p1.length<6)return authErr('Mật khẩu cần ít nhất 6 ký tự.');if(p1!==p2)return authErr('Hai lần nhập mật khẩu chưa giống nhau.');authErr('Đang lưu...');const{data,error}=await SB.auth.updateUser({password:p1});if(error)return authErr(authMsg(error));S.recovery=false;toast('Đã đổi mật khẩu mới!','good');afterAuth(data.user)}
+async function afterAuth(user){
+  if(!user)return;S.authUser=user;S.auth.info='';S.auth.err='';
+  try{const p=await DB.doc('players/'+user.id).get();if(p.exists){start(user.id);return renderAll()}S.auth.tab='create';renderAll()}
+  catch(e){S.auth.tab='login';authInfo('');authErr('Chưa kết nối được dữ liệu game. Chủ game cần chạy file supabase-setup.sql trong Supabase.')}
+}
+async function cloudCreate(){const a=S.auth,nick=$('#su-nick').value.trim();if(!nick)return authErr('Đặt tên cho nhân vật nhé.');if(!S.authUser)return;authErr('Đang tạo nhân vật...');
+  try{const uid=S.authUser.id;let code;for(let i=0;i<6;i++){code=String(100000+Math.floor(Math.random()*900000));const c=await DB.doc('codes/'+code).get();if(!c.exists)break}
+    const hid='h'+uid.replace(/-/g,'');
+    await DB.doc('homes/'+hid).set(newHome(uid));
+    await DB.doc('players/'+uid).set({nick:nick.slice(0,14),code,g:a.g,skin:a.skin,hs:a.hs,hc:a.hc,eq:{...(a.g==='m'?DEF_M:DEF_F)},owned:{},homeId:hid,partner:null,created:now()});
+    await DB.doc('codes/'+code).set({uid});
+    S.auth.err='';start(uid);renderAll();toast(`Chào mừng ${nick} đến Nuôi Cá Trồng Rau!`,'love')}
+  catch(e){authErr('Không tạo được nhân vật, thử lại nhé.')}}
 /* mật khẩu: băm PBKDF2-SHA256 có muối, không bao giờ lưu mật khẩu gốc */
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 async function pbkdf2(pass,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:150000},k,256))}
@@ -1480,7 +1520,7 @@ async function doSignup(){
   }catch(e){if(e&&e.code==='invalid_argument'&&S.mode==='online')authErr('Tài khoản claude.ai này chỉ có quyền xem trang nên chưa tạo được nhân vật.');else authErr('Không tạo được tài khoản, thử lại nhé.')}
 }
 function authErr(m){S.auth.err=m;const el=$('#auth-err');if(el)el.textContent=m}
-function logout(){unsubAll();LS.del(sessKey());S.auth.tab='login';S.auth.err='';Object.assign(S,{uid:null,me:null,home:null,partner:null,day:null,invites:[],view:'farm',modal:null,found:null,searchMsg:'',sent:{}});renderAll()}
+function logout(){if(S.mode==='cloud'&&SB){try{SB.auth.signOut()}catch(e){}S.authUser=null}unsubAll();LS.del(sessKey());S.auth.tab='login';S.auth.err='';S.auth.info='';Object.assign(S,{uid:null,me:null,home:null,partner:null,day:null,invites:[],view:'farm',modal:null,found:null,searchMsg:'',sent:{}});renderAll()}
 
 /* ================= modal & toasts ================= */
 function openModal(m){S.modal=m;renderModal()}
@@ -1619,7 +1659,7 @@ function authPreview(){
 }
 document.addEventListener('submit',ev=>{
   const f=ev.target.closest('[data-form]');if(!f)return;ev.preventDefault();
-  const k=f.dataset.form;if(k==='login')doLogin();else if(k==='signup')doSignup();else if(k==='search')doSearch($('#srch').value);
+  const k=f.dataset.form;if(k==='clogin')cloudLogin();else if(k==='csignup')cloudSignup();else if(k==='cforgot')cloudForgot();else if(k==='cnewpass')cloudNewPass();else if(k==='ccreate')cloudCreate();else if(k==='login')doLogin();else if(k==='signup')doSignup();else if(k==='search')doSearch($('#srch').value);
 });
 document.addEventListener('input',ev=>{if(ev.target.id==='srch')S.searchCode=ev.target.value});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&S.modal)closeModal()});
@@ -1658,9 +1698,16 @@ async function boot(){
   if(window.claude&&typeof window.claude.use==='function'){try{[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(e){}}
   let canW=null;if(user){try{canW=await user.can('data.write')}catch(e){}}
   if(db&&canW!==false){DB=db;S.mode='online'}
-  else if(!db&&window.supabase&&window.supabase.createClient){try{DB=makeSupaDB();S.mode='cloud'}catch(e){DB=makeLocalDB();S.mode='local'}}
+  else if(!db&&window.supabase&&window.supabase.createClient){try{SB=window.supabase.createClient(SUPA.url,SUPA.key);DB=makeSupaDB(SB);S.mode='cloud'}catch(e){DB=makeLocalDB();S.mode='local'}}
   else{DB=makeLocalDB();S.mode='local';S.onlineBlocked=!!db&&canW===false}
   USER=user;
+  if(S.mode==='cloud'){
+    if(/type=recovery/.test(location.hash+location.search))S.recovery=true;
+    SB.auth.onAuthStateChange((ev,sess)=>{if(ev==='PASSWORD_RECOVERY'){S.recovery=true;unsubAll();Object.assign(S,{uid:null,me:null,home:null});S.authUser=sess?.user||null;S.auth.tab='newpass';S.auth.info='Nhập mật khẩu mới cho tài khoản '+(sess?.user?.email||'')+'.';renderAll()}});
+    try{const{data}=await SB.auth.getSession();const u=data?.session?.user;if(S.recovery){S.auth.tab='newpass';S.authUser=u||null;S.auth.info=u?'Nhập mật khẩu mới cho tài khoản '+u.email+'.':''}else if(u)await afterAuth(u)}catch(e){}
+    if(location.hash&&/access_token|type=/.test(location.hash))try{history.replaceState(null,'',HERE())}catch(e){}
+    return renderAll();
+  }
   const sess=LS.get(sessKey());
   if(sess&&sess.uid)start(sess.uid);
   renderAll();
