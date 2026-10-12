@@ -15,6 +15,13 @@
 <meta name="theme-color" content="#86cf5c">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-20 -20 40 40'%3E%3Cpath d='M-12 -5 Q-13 15 0 15 Q13 15 12 -5Z' fill='%23ff8a2b' stroke='%235b3a24' stroke-width='2'/%3E%3Cpath d='M0 -6 Q-8 -18 -2 -18 M0 -6 Q6 -18 9 -14' stroke='%233f9a35' stroke-width='3.5' fill='none'/%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
@@ -740,7 +747,7 @@ function doRender(){
   const app=$('#app');
   const psl=$('#pscroll')?.scrollLeft;
   const ae=document.activeElement,aid=ae&&ae.id,sel=aid&&ae.selectionStart!=null?[ae.selectionStart,ae.selectionEnd]:null;
-  if(!S.uid){app.innerHTML=authScreen();closeModalDom();restore();return}
+  if(!S.uid){app.innerHTML=authScreen();if(S.modal?.t==='install')renderModal();else closeModalDom();restore();return}
   if(!S.me||!S.home){app.innerHTML=loadingScreen('Đang mở nông trại...');return}
   app.innerHTML=`${S.readOnly?`<div class="ro-banner">Tài khoản claude.ai đang mở trang này chỉ có quyền xem nên thao tác không lưu được. Nhờ người tạo trang mời bạn với quyền <b>Editor</b> (chỉnh sửa) nhé.</div>`:''}${hud()}<main id="view">${renderView()}</main>${nav()}`;
   S.sig=viewSig();
@@ -855,7 +862,7 @@ function viewFarm(){
   const tools=TOOLS.map(t=>`<button class="tool ${S.tool===t.k?'on':''}" data-act="tool" data-v="${t.k}" aria-pressed="${S.tool===t.k}"><svg viewBox="-20 -20 40 40" aria-hidden="true">${t.ico}</svg>${t.n}${t.k==='fert'?`<i>${sup('fert')}</i>`:''}${t.k==='seed'?`<i>${Object.values(h.seeds||{}).reduce((a,b)=>a+(b||0),0)}</i>`:''}</button>`).join('');
   const seeds=S.tool==='seed'?`<div class="seedrow">${Object.keys(CROPS).map(k=>{const n=h.seeds?.[k]||0;return `<button class="seedchip ${S.seed===k?'on':''} ${n?'':'none'}" data-act="seed" data-v="${k}"><svg viewBox="-20 -22 40 42" aria-hidden="true">${produceIcon(k)}</svg>${CROPS[k].n} ×${n}</button>`}).join('')}<button class="seedchip" data-act="shop" data-v="seeds">+ Mua hạt</button></div>`:'';
   const ripeN=[...Array(h.plotsOpen||6).keys()].filter(i=>plotInfo(h.plots?.['p'+i]).ripe).length;
-  return `<div class="sec-title"><h2>Nông trại ${S.partner?'của hai đứa':'của bạn'}</h2><div class="row">${ripeN?`<button class="btn green sm" data-act="harvestall">Thu hoạch hết (${ripeN})</button>`:''}<button class="btn sm white" data-act="shop" data-v="market">Ra chợ bán</button></div></div>
+  return `<div class="sec-title"><h2>Nông trại ${S.partner?'của hai đứa':'của bạn'}</h2><div class="row">${installBtn('btn sm white')}${ripeN?`<button class="btn green sm" data-act="harvestall">Thu hoạch hết (${ripeN})</button>`:''}<button class="btn sm white" data-act="shop" data-v="market">Ra chợ bán</button></div></div>
   <div class="scene" id="scene"><svg viewBox="${wideVB(800,500)}" role="img" aria-label="Cánh đồng">${farmScene()}</svg></div>
   <div class="toolbar" role="toolbar" aria-label="Dụng cụ">${tools}</div>${seeds}
   <p class="hint">${esc(TOOLS.find(t=>t.k===S.tool).h)}</p>`;
@@ -1559,7 +1566,7 @@ function viewLove(){
     ensureFriendDocs();
   }
   const invs=S.invites.filter(i=>i.kind==='friend'?!isFriend(i.from):!pa);
-  return `<div class="sec-title"><h2>Bạn bè</h2><button class="btn sm white" data-act="logout">Đăng xuất</button></div>
+  return `<div class="sec-title"><h2>Bạn bè</h2><div class="row">${installBtn()}<button class="btn sm white" data-act="logout">Đăng xuất</button></div></div>
   <div class="scene" style="background:#ffe3ec"><svg viewBox="0 0 600 250" role="img" aria-label="Cặp đôi">${scene}</svg></div>
   <div class="idcard" style="margin:14px 0"><div style="flex:1;min-width:140px"><div class="muted" style="font-weight:800">ID của bạn</div><div class="num" id="myid">${esc(me.code)}</div><small class="muted">${S.mode==='cloud'?'Gmail: '+esc(S.authUser?.email||''):'Tên đăng nhập: '+esc(me.user||'')}</small></div><button class="btn sm" data-act="copyid">Sao chép ID</button></div>
   ${invs.length?`<div class="panel" style="margin-bottom:14px;background:var(--pinkLt)"><h3>Lời mời</h3><div class="list" style="margin-top:8px">${invs.map(i=>`<div class="item"><div class="tx"><b>${esc(i.fromNick)}</b><small>ID ${esc(i.fromCode)} ${i.kind==='friend'?'muốn kết bạn với bạn':'muốn ghép đôi, cùng bạn xây tổ ấm'}</small></div><button class="btn sm pink" data-act="accept" data-v="${esc(i.id)}">Đồng ý</button><button class="btn sm white" data-act="decline" data-v="${esc(i.id)}">Từ chối</button></div>`).join('')}</div>${invs.some(i=>i.kind!=='friend')?'<p class="muted" style="margin:8px 0 0">Khi đồng ý ghép đôi, bạn sẽ chuyển về ở chung nông trại của người ấy, mang theo toàn bộ xu và thú cưng.</p>':''}</div>`:''}
@@ -1637,7 +1644,7 @@ function authScreen(){
     ${charFields(a)}
     <p class="err" id="auth-err">${esc(a.err||'')}</p><button class="btn big pink" type="submit">Tạo nhân vật</button></form>`;
   const body=S.mode==='cloud'?cloudAuth(a):`<div class="tabs"><button class="${a.tab==='login'?'on':''}" data-act="atab" data-v="login">Đăng nhập</button><button class="${a.tab==='signup'?'on':''}" data-act="atab" data-v="signup">Tạo tài khoản</button></div>${a.tab==='signup'?signup:login}${note}`;
-  return `<div class="auth"><div class="logo"><h1>Nuôi Cá Trồng Rau</h1><p>Cùng nhau trồng rau, nuôi cá, xây tổ ấm</p><div class="row" style="justify-content:center;margin-top:8px">${musicBtn()}<span class="muted" style="font-weight:700">Nhạc nền</span></div></div>
+  return `<div class="auth"><div class="logo"><h1>Nuôi Cá Trồng Rau</h1><p>Cùng nhau trồng rau, nuôi cá, xây tổ ấm</p><div class="row" style="justify-content:center;margin-top:8px">${musicBtn()}<span class="muted" style="font-weight:700">Nhạc nền</span>${installBtn()}</div></div>
   <div class="scene"><svg viewBox="0 0 600 220" aria-hidden="true">${scene}</svg></div>
   <div class="panel list">${body}</div></div>`;
 }
@@ -1715,12 +1722,26 @@ async function doSignup(){
 function authErr(m){S.auth.err=m;const el=$('#auth-err');if(el)el.textContent=m}
 function logout(){presLeave();if(S.mode==='cloud'&&SB){try{SB.auth.signOut()}catch(e){}S.authUser=null}unsubAll();LS.del(sessKey());S.auth.tab='login';S.auth.err='';S.auth.info='';Object.assign(S,{uid:null,me:null,home:null,partner:null,day:null,invites:[],view:'farm',modal:null,found:null,searchMsg:'',sent:{}});renderAll()}
 
+/* ================= cài app (PWA) ================= */
+let DEFERRED=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEFERRED=e;renderAll()});
+addEventListener('appinstalled',()=>{DEFERRED=null;toast('Đã cài app Nuôi Cá Trồng Rau!','good');renderAll()});
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const canInstall=()=>S.mode==='cloud'&&!isStandalone();
+const installBtn=(cls='btn sm green')=>canInstall()?`<button class="${cls}" data-act="install">Tải app về máy</button>`:'';
+function installApp(){if(DEFERRED){const d=DEFERRED;d.prompt();d.userChoice.finally(()=>{DEFERRED=null;renderAll()})}else openModal({t:'install'})}
+function installBody(){const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  return `<div class="row" style="align-items:center"><img src="icon-192.png" alt="" width="72" height="72" style="border-radius:18px;border:3px solid var(--ink)"><div><b style="font-family:var(--display);font-size:1.2rem">Nuôi Cá Trồng Rau</b><div class="muted">Cài một lần, lần sau bấm biểu tượng trên màn hình là vào chơi, không cần mở trình duyệt.</div></div></div>
+  <div class="panel ${ios?'':'muted'}"><b>iPhone / iPad (Safari)</b><ol style="margin:6px 0 0;padding-left:20px;line-height:1.6"><li>Mở game bằng <b>Safari</b></li><li>Bấm nút <b>Chia sẻ</b> (hình vuông có mũi tên lên) ở thanh dưới</li><li>Chọn <b>Thêm vào Màn hình chính</b> rồi bấm <b>Thêm</b></li></ol></div>
+  <div class="panel ${ios?'muted':''}"><b>Android (Chrome)</b><ol style="margin:6px 0 0;padding-left:20px;line-height:1.6"><li>Mở game bằng <b>Chrome</b></li><li>Bấm nút <b>⋮</b> ở góc trên bên phải</li><li>Chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b></li></ol></div>
+  <div class="panel muted"><b>Máy tính (Chrome, Edge)</b><div>Bấm biểu tượng cài đặt (màn hình có mũi tên) ở cuối thanh địa chỉ, rồi chọn <b>Cài đặt</b>.</div></div>`}
+
 /* ================= modal & toasts ================= */
 function openModal(m){S.modal=m;renderModal()}
 function closeModal(){if(S.modal?.t==='dm')unsub('dm');if(S.civSeat){S.civSeat=false;H({wed:{here:{[S.uid]:0}}})}S.modal=null;closeModalDom()}
 function closeModalDom(){const el=$('#modal');el.hidden=true;el.innerHTML=''}
 function renderModal(){
-  const el=$('#modal'),m=S.modal;if(!m||!S.me||!S.home){closeModalDom();return}
+  const el=$('#modal'),m=S.modal;if(!m||((!S.me||!S.home)&&m.t!=='install')){closeModalDom();return}
   let title='',body='';
   if(m.t==='shop'){const s=SHOPS.find(x=>x.k===m.k);title=s.n;body=shopBody(m)}
   else if(m.t==='ward'){title='Tủ quần áo';body=wardrobeBody(m)}
@@ -1729,9 +1750,10 @@ function renderModal(){
   else if(m.t==='cart'){title=CARTS[m.k].n;body=cartBody(m)}
   else if(m.t==='dm'){title='Chat riêng';body=dmBody(m)}
   else if(m.t==='player'){title='Người chơi';body=playerBody(m)}
+  else if(m.t==='install'){title='Tải app về máy';body=installBody()}
   else if(m.t==='plot'){title='Khai hoang đất';body=`<p>Mở thêm một ô đất để trồng nhiều cây hơn.</p>${buyBtn('plot','plot',plotPrice(),'Khai hoang')}`}
   const scroll=el.querySelector('.sheet')?.scrollTop||0,ae=document.activeElement,keepId=ae&&el.contains(ae)&&ae.id,keepV={};el.querySelectorAll('input[id]').forEach(i=>{if(i.type!=='password')keepV[i.id]=i.value});const dl=$('#dmlist'),atBottom=!dl||dl.scrollHeight-dl.scrollTop-dl.clientHeight<40;
-  el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-h"><h2>${esc(title)}</h2><span class="coins" style="font-size:.95rem">${coinSVG()}${coins()}</span><button class="x" data-act="close" aria-label="Đóng">×</button></div><div class="sheet-b">${body}</div></div>`;
+  el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-h"><h2>${esc(title)}</h2>${S.home?`<span class="coins" style="font-size:.95rem">${coinSVG()}${coins()}</span>`:''}<button class="x" data-act="close" aria-label="Đóng">×</button></div><div class="sheet-b">${body}</div></div>`;
   el.hidden=false;const sh=el.querySelector('.sheet');if(sh)sh.scrollTop=scroll;drawSig();
   for(const id in keepV){const i=document.getElementById(id);if(i&&!i.value)i.value=keepV[id]}if(keepId){const i=document.getElementById(keepId);if(i)i.focus()}{const l=$('#dmlist');if(l&&atBottom)l.scrollTop=l.scrollHeight}
 }
@@ -1838,6 +1860,7 @@ document.addEventListener('click',ev=>{
     case 'bonus':bonus();break;
     case 'copyid':{const t=S.me.code;try{navigator.clipboard.writeText(t).then(()=>toast('Đã sao chép ID '+t,'good'),()=>selId())}catch(e){selId()}break}
     case 'dm':openDM(v);break;
+    case 'install':installApp();break;
     case 'pplayer':if(S.dragged){S.dragged=false;break}openModal({t:'player',uid:v});break;
     case 'fight':startFight(v);break;
     case 'punch':punch(v);break;
