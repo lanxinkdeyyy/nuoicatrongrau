@@ -21,7 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nuôi Cá Trồng Rau">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>window.APP_VERSION='20261013193650';</script>
+<script>window.APP_VERSION='20261013200733';</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -390,6 +390,8 @@ nav button.on{background:var(--yellow);box-shadow:0 1px 0 var(--ink);transform:t
 @keyframes psit{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}.pa-sit{animation:psit 1.6s ease-in-out infinite}
 @keyframes bfw{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.25)}}.bfw{animation:bfw .18s linear infinite;transform-origin:0 0}
 
+/* ===== nhân vật kiểu búp bê ===== */
+.chr [stroke="#5b3a24"][stroke-width="2.2"]{stroke:#6e4836;stroke-width:1.7px}
 /* ===== khung game 2 map ===== */
 @keyframes mill{to{transform:rotate(360deg)}}
 .mill{animation:mill 8s linear infinite}
@@ -466,6 +468,14 @@ body.chat-open #chatpanel{display:flex;flex:0 0 25%;min-width:280px}
 <div id="app" class="wrap"></div>
 <div id="modal" hidden></div>
 <div id="toasts" aria-live="polite"></div>
+<svg id="chrdefs" width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="gFace" cx=".4" cy=".34" r=".72"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".48" stop-color="#fff" stop-opacity="0"/><stop offset=".82" stop-color="#b0603a" stop-opacity=".08"/><stop offset="1" stop-color="#8a3f20" stop-opacity=".26"/></radialGradient>
+<linearGradient id="gVol" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset=".68" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient>
+<linearGradient id="gHair" x1=".1" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".36"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".26"/></linearGradient>
+<linearGradient id="gIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a140a"/><stop offset=".5" stop-color="#6b3418"/><stop offset="1" stop-color="#d9914a"/></linearGradient>
+<radialGradient id="gBlush"><stop offset="0" stop-color="#ff7d95" stop-opacity=".7"/><stop offset=".6" stop-color="#ff8fa5" stop-opacity=".3"/><stop offset="1" stop-color="#ff9fb0" stop-opacity="0"/></radialGradient>
+<clipPath id="cHead" clipPathUnits="userSpaceOnUse"><path d="M60 21.5 C83 21.5 95.5 36 95.5 57 C95.5 78 81 90 60 90 C39 90 24.5 78 24.5 57 C24.5 36 37 21.5 60 21.5Z"/></clipPath>
+</defs></svg>
 <aside id="dock" aria-label="Bạn bè và tin nhắn"></aside>
 <section id="chatwin" aria-label="Cửa sổ chat"></section>
 
@@ -534,7 +544,7 @@ const CATCH=[{k:'f_ro',p:.48},{k:'f_tre',p:.22},{k:'f_loc',p:.11},{k:'f_chep',p:
 const HOUSES=[null,{n:'Túp lều tranh',floor:4,wall:1},{n:'Nhà gỗ ấm áp',price:800,floor:6,wall:2},{n:'Nhà ngói đỏ',price:2500,floor:8,wall:3},{n:'Biệt thự hoa',price:6000,floor:10,wall:4,married:true}];
 const SKINS=['#ffe2c6','#f7cfa6','#e8b285','#c98d63'];
 const HAIRC=['#3a2a24','#7a4a2a','#b5793f','#f0c35a','#ff9cc2','#6aa8e8'];
-const HAIRS={short:'Tóc ngắn',spiky:'Tóc dựng',bob:'Tóc bob',long:'Tóc dài',buns:'Búi hai bên',pony:'Đuôi ngựa'};
+const HAIRS={bowl:'Tóc nấm',short:'Tóc ngắn',spiky:'Tóc dựng',bob:'Tóc bob',long:'Tóc dài',braids:'Tết hai bím',twin:'Buộc hai bên',buns:'Búi hai bên',pony:'Đuôi ngựa'};
 const CLOTH={
   t_tee_pink:{n:'Áo phông hồng',s:'top',k:'tee',c:'#ff9fbe',p:0},
   t_tee_blue:{n:'Áo phông xanh',s:'top',k:'tee',c:'#7cc4ff',p:0},
@@ -883,28 +893,36 @@ function hairBack(hs,hc){
     case 'long':return `<path d="M22 56 Q18 14 60 14 Q102 14 98 56 L103 120 Q93 128 84 119 L36 119 Q27 128 17 120Z" fill="${hc}"${SW}/>`;
     case 'buns':return `<circle cx="29" cy="25" r="13" fill="${hc}"${SW}/><circle cx="91" cy="25" r="13" fill="${hc}"${SW}/><path d="M22 58 Q18 16 60 16 Q102 16 98 58 L98 80 Q90 86 84 78 L36 78 Q30 86 22 80Z" fill="${hc}"${SW}/>`;
     case 'pony':return `<path d="M86 34 Q122 40 112 98 Q104 104 98 92 Q104 62 90 50Z" fill="${hc}"${SW}/><circle cx="92" cy="36" r="5" fill="#ff6f9c"${SW}/>`;
+    case 'braids':case 'twin':case 'bowl':return `<path d="M21 62 Q17 15 60 15 Q103 15 99 62 L97 76 Q60 84 23 76Z" fill="${hc}"${SW}/>`;
   }
   return '';
 }
 function hairFront(hs,hc){return hairFront0(hs,hc)+`<path d="M38 31 Q50 23.5 66 25.5" stroke="#fff" stroke-opacity=".34" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M71 27 Q76 28.5 79 31" stroke="#fff" stroke-opacity=".3" stroke-width="3" fill="none" stroke-linecap="round"/>`}
+function hairSide(hs,hc){const dk=shade(hc,-.22);
+  if(hs==='braids'){let s='';for(const[x,d]of[[22,-1],[98,1]]){for(let i=0;i<5;i++){const y=74+i*10.5,xx=x+d*(i*.8);s+=`<ellipse cx="${f1(xx)}" cy="${y}" rx="${7.4-i*.5}" ry="6.6" fill="${hc}"${SW}/><path d="M${f1(xx-5)} ${y-2} Q${f1(xx)} ${y+3} ${f1(xx+5)} ${y-2}" stroke="${dk}" stroke-width="1.3" fill="none"/>`}const ex=x+d*4.5;s+=`<rect x="${f1(ex-5)}" y="124" width="10" height="5" rx="2.5" fill="#e8505b"${SW}/><path d="M${f1(ex-5)} 129 Q${f1(ex)} 142 ${f1(ex+5)} 129Z" fill="${hc}"${SW}/>`}return s}
+  if(hs==='twin')return [[20,-1],[100,1]].map(([x,d])=>`<path d="M${x-d*2} 66 Q${x+d*14} 72 ${x+d*10} 96 Q${x+d*4} 104 ${x-d*2} 96 Q${x+d*4} 84 ${x-d*4} 72Z" fill="${hc}"${SW}/><circle cx="${x+d*1}" cy="68" r="4" fill="#e8505b"${SW}/>`).join('');
+  return ''}
 function hairFront0(hs,hc){
   if(hs==='short')return `<path d="M25 62 Q19 16 60 17 Q101 16 95 62 Q93 44 85 39 Q72 49 58 40 Q46 50 34 41 Q28 48 25 62Z" fill="${hc}"${SW}/>`;
   if(hs==='spiky')return `<path d="M24 60 Q20 28 32 22 L32 8 L44 17 L52 3 L61 16 L72 4 L76 18 L90 11 L88 25 Q101 33 96 60 Q91 44 81 41 Q70 50 60 43 Q48 52 40 42 Q31 48 24 60Z" fill="${hc}"${SW}/>`;
+  if(hs==='bowl')return `<path d="M22 68 Q15 17 60 16 Q105 17 98 68 Q96 60 92 56 Q86 52 80 53.5 Q74 49.5 67 51.5 Q60 48.5 53 51.5 Q46 49.5 40 53.5 Q34 52 28 56 Q24 60 22 68Z" fill="${hc}"${SW}/><path d="M40 53 Q41 46 44 42 M53 51 Q53 44 55 39 M67 51 Q67 44 65 39 M80 53 Q79 46 76 42" stroke="${shade(hc,-.25)}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
   return `<path d="M23 60 Q21 19 60 19 Q99 19 97 60 Q90 44 80 40 Q73 50 62 44 Q50 52 42 41 Q31 47 23 60Z" fill="${hc}"${SW}/><path d="M24 58 Q22 70 26 80 M96 58 Q98 70 94 80" stroke="${hc}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
 }
-function headBase(skin){const sd=shade(skin,-.09),sd2=shade(skin,-.2);
-  return `<ellipse cx="60" cy="92" rx="14" ry="4.2" fill="${sd2}" opacity=".5"/><circle cx="25.5" cy="62" r="5.6" fill="${skin}"${SW}/><circle cx="26" cy="62.4" r="2.6" fill="${sd}"/><circle cx="94.5" cy="62" r="5.6" fill="${skin}"${SW}/><circle cx="94" cy="62.4" r="2.6" fill="${sd}"/>`
-  +`<path d="M60 21.5 C83 21.5 95.5 36 95.5 57 C95.5 78 81 90 60 90 C39 90 24.5 78 24.5 57 C24.5 36 37 21.5 60 21.5Z" fill="${skin}"${SW}/><path d="M29 66 C33 81 47 87.5 60 87.5 C73 87.5 87 81 91 66 C85 77 73 83.5 60 83.5 C47 83.5 35 77 29 66Z" fill="${sd}" opacity=".7"/><ellipse cx="44" cy="40" rx="9" ry="4.6" fill="#fff" opacity=".2" transform="rotate(-28 44 40)"/>`}
-function faceBig(g,mood){
-  let s='';
-  const blush=(op=.55)=>`<ellipse cx="37.5" cy="72.5" rx="7" ry="4" fill="#ff8fab" opacity="${op}"/><ellipse cx="82.5" cy="72.5" rx="7" ry="4" fill="#ff8fab" opacity="${op}"/><path d="M34.5 72 l2 -2.2 M38 72.6 l2 -2.2 M80.5 72 l2 -2.2 M84 72.6 l2 -2.2" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".75"/>`;
-  if(mood==='hurt')return `<path d="M41 58 L50 63 L41 68 M79 58 L70 63 L79 68" stroke="${O}" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${blush(.7)}<ellipse cx="60" cy="77.5" rx="5" ry="6" fill="#c2456d"${SW}/><path d="M93 38 q5 7 0 11 q-5 -4 0 -11z" fill="#9fdcff"${SW}/>`;
-  const eye=(x,c='#2b1a12',ir='#8a5532')=>`<ellipse cx="${x}" cy="63.4" rx="5.5" ry="7" fill="${c}"/><ellipse cx="${x}" cy="67" rx="4" ry="3" fill="${ir}"/><circle cx="${x+1.9}" cy="60.4" r="2.4" fill="#fff"/><circle cx="${x-2}" cy="67.4" r="1.1" fill="#fff" opacity=".9"/>`;
-  if(mood==='angry')return `<path d="M38 51 L54 57.5 M82 51 L66 57.5" stroke="${O}" stroke-width="3.6" stroke-linecap="round"/>${eye(47)}${eye(73)}${blush(.75).replace(/#ff8fab/g,'#ff6f6f')}<path d="M52 74 Q60 70 68 74 L67 79 Q60 76 53 79Z" fill="#fff"${SW}/><path d="M56 73 V78 M60 72 V77 M64 73 V78" stroke="${O}" stroke-width="1"/>`;
-  if(mood==='love')s+=`<path d="${heartPath(47,63,5.4)}" fill="#ff4f7d"${SW}/><path d="${heartPath(73,63,5.4)}" fill="#ff4f7d"${SW}/>`;
-  else s+=eye(46.5)+eye(73.5)+(g==='f'?`<path d="M41.2 58.2 Q46.5 54.2 51.6 57.4 M68.4 57.4 Q73.5 54.2 78.8 58.2" stroke="${O}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M41.4 58 l-2.8 -1.2 M78.6 58 l2.8 -1.2" stroke="${O}" stroke-width="1.7" stroke-linecap="round"/>`:'');
-  s+=blush()+`<ellipse cx="60" cy="70.6" rx="2.3" ry="1.5" fill="#000" opacity=".13"/><path d="M55.5 75 Q60 ${mood==='love'?81:79.5} 64.5 75" fill="${mood==='love'?'#ff6f8f':'none'}" stroke="${O}" stroke-width="2" stroke-linecap="round"/>`;
-  return s;
+function vol(svg,g='gVol'){return svg?`<g pointer-events="none">${svg.replace(/<defs>[\s\S]*?<\/defs>/g,'').replace(/<text[\s\S]*?<\/text>/g,'').replace(/ stroke(-width|-linejoin|-linecap|-opacity|-dasharray)?="[^"]*"/g,'').replace(/fill="(?!none)[^"]*"/g,`fill="url(#${g})"`).replace(/ opacity="[^"]*"/g,'')}</g>`:''}
+const HEADP='M60 21.5 C83 21.5 95.5 36 95.5 57 C95.5 78 81 90 60 90 C39 90 24.5 78 24.5 57 C24.5 36 37 21.5 60 21.5Z';
+function headBase(skin){const sd=shade(skin,-.12);
+  return `<ellipse cx="60" cy="92" rx="14" ry="4.2" fill="${shade(skin,-.28)}" opacity=".45"/><circle cx="25.5" cy="63" r="6" fill="${skin}"${SW}/><circle cx="26.2" cy="63.4" r="2.8" fill="${sd}"/><circle cx="94.5" cy="63" r="6" fill="${skin}"${SW}/><circle cx="93.8" cy="63.4" r="2.8" fill="${sd}"/><path d="${HEADP}" fill="${skin}"${SW}/><path d="${HEADP}" fill="url(#gFace)"/>`}
+function faceBig(g,mood,hc='#5b3a24'){
+  const bc=shade(hc,-.15),ink='#2b160c';
+  const blush=(c='url(#gBlush)')=>`<ellipse cx="35" cy="74.5" rx="8.6" ry="5.4" fill="${c}"/><ellipse cx="85" cy="74.5" rx="8.6" ry="5.4" fill="${c}"/>`;
+  const brow=(x,ang=0)=>`<path d="M${x-4.6} ${51.6+ang} Q${x} ${49.4} ${x+4.6} ${51.4-ang}" stroke="${bc}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  const eye=(x)=>`<ellipse cx="${x}" cy="65.2" rx="6.7" ry="7.7" fill="#fff"/><ellipse cx="${x}" cy="65.6" rx="6.1" ry="7.3" fill="url(#gIris)"/><ellipse cx="${x}" cy="65" rx="3.1" ry="3.9" fill="#160904"/><path d="M${x-3.8} 70 Q${x} 72.6 ${x+3.8} 70" stroke="#ffd59a" stroke-width="1.3" fill="none" opacity=".85"/><circle cx="${x+2.4}" cy="61.8" r="2.5" fill="#fff"/><circle cx="${x-2.5}" cy="68.3" r="1.1" fill="#fff" opacity=".9"/><path d="M${x-7.4} 62.6 Q${x-6} 56.4 ${x} 56.8 Q${x+6} 56.4 ${x+7.6} 62" stroke="${ink}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  const lash=(x,d)=>g==='f'?`<path d="M${x+d*7} 61.4 l${d*3} -1.8 M${x+d*6} 59 l${d*2.4} -2.4" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/>`:'';
+  const nose=`<path d="M58.6 72.4 Q60 73.6 61.4 72.4" stroke="#b8705a" stroke-width="1.4" fill="none" opacity=".75" stroke-linecap="round"/>`;
+  if(mood==='hurt')return `<path d="M40 60 L49 65 L40 70 M80 60 L71 65 L80 70" stroke="${ink}" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${blush()}${nose}<ellipse cx="60" cy="78.5" rx="4.6" ry="5.4" fill="#b8404f"/><path d="M93 38 q5 7 0 11 q-5 -4 0 -11z" fill="#9fdcff"${SW}/>`;
+  if(mood==='angry')return `<path d="M38 52 L52 57.5 M82 52 L68 57.5" stroke="${bc}" stroke-width="3.4" stroke-linecap="round"/>${eye(45.5)}${eye(74.5)}${blush()}${nose}<path d="M53 76 Q60 72.5 67 76 L66 80.5 Q60 78 54 80.5Z" fill="#fff" stroke="${ink}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  if(mood==='love')return `${brow(45.5)}${brow(74.5)}<path d="${heartPath(45.5,65,6.4)}" fill="#ff4f7d" stroke="${ink}" stroke-width="1.4"/><path d="${heartPath(74.5,65,6.4)}" fill="#ff4f7d" stroke="${ink}" stroke-width="1.4"/><circle cx="43.6" cy="62.6" r="1.6" fill="#fff"/><circle cx="72.6" cy="62.6" r="1.6" fill="#fff"/>${blush()}${nose}<path d="M55.4 76.2 Q60 82.6 64.6 76.2Z" fill="#c94a5a" stroke="${ink}" stroke-width="1.4" stroke-linejoin="round"/>`;
+  return `${brow(45.5)}${brow(74.5)}${eye(45.5)}${eye(74.5)}${lash(45.5,-1)}${lash(74.5,1)}${blush()}${nose}<path d="M56.6 77.2 Q60 79.8 63.4 77.2" stroke="#7a3226" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
 }
 function drawAccBack(it){return it.k==='veil'?`<path d="M26 30 Q6 96 20 158 L100 158 Q114 96 94 30Z" fill="#ffffff" opacity=".6" stroke="#e6dbee" stroke-width="2"/>`:''}
 function drawAcc(it){
@@ -934,40 +952,42 @@ function drawAcc(it){
 const RINGBOX=`<g><rect x="-9" y="-2" width="18" height="11" rx="2.5" fill="#e8505b"${SW}/><path d="M-9 -2 L-7 -12 L7 -12 L9 -2Z" fill="#c43d48"${SW}/><ellipse cx="0" cy="-2" rx="7" ry="2" fill="#fff3f5"/><circle cy="-5" r="4.6" fill="none" stroke="#ffd23f" stroke-width="2.4"/><path d="M-2.6 -10 L0 -14 L2.6 -10 L0 -7.6Z" fill="#cdeeff"${SW}/><path class="tw" d="M10 -16 l1.6 -4 l1.6 4 l4 1.6 l-4 1.6 l-1.6 4 l-1.6 -4 l-4 -1.6z" fill="#fff36b"/></g>`;
 function charG(p,o={}){
   if(!p)return '';
-  const g=p.g||'f',skin=p.skin||SKINS[0],hc=p.hc||HAIRC[0],hs=p.hs||(g==='m'?'short':'bob'),eq=p.eq||{};
+  const g=p.g||'f',skin=p.skin||SKINS[0],hc=p.hc||HAIRC[0],hs=p.hs||(g==='m'?'bowl':'braids'),eq=p.eq||{};
   const def=g==='m'?DEF_M:DEF_F;
   if(o.only){const it=CLOTH[eq[o.only]];if(!it)return '';if(o.only==='top')return drawTop(it);if(o.only==='bottom')return drawBottom(it);if(o.only==='shoes')return drawShoes(it,null);return drawAccBack(it)+drawAcc(it)}
   const top=CLOTH[eq.top]||CLOTH[def.top],bot=CLOTH[eq.bottom]||CLOTH[def.bottom],sh=CLOTH[eq.shoes]||CLOTH[def.shoes],acc=eq.acc&&CLOTH[eq.acc];
   const isDress=DRESSY.has(top.k);CUR_SKIN=skin;
   const pose=o.pose||'stand',dy=pose==='sit'?16:pose==='kneel'?24:0,kneel=pose==='kneel';
-  let s=o.noShadow?'':`<ellipse cx="60" cy="166" rx="30" ry="6" fill="#000" opacity=".13"/>`;
-  const back=(acc?drawAccBack(acc):'')+hairBack(hs,hc);
+  let s=o.noShadow?'':`<ellipse cx="60" cy="166" rx="28" ry="6" fill="#000" opacity=".13"/>`;
+  const hb=hairBack(hs,hc),back=(acc?drawAccBack(acc):'')+hb+vol(hb,'gHair');
+  const SH=drawShoes(sh,skin),shoes=SH+vol(SH);
+  const legs=(y,h)=>`<rect x="46" y="${y}" width="12" height="${h}" rx="5" fill="${skin}"${SW}/><rect x="62" y="${y}" width="12" height="${h}" rx="5" fill="${skin}"${SW}/>`;
   let lower='';
   if(pose==='sit'){
-    lower=`<rect x="46" y="140" width="12" height="20" rx="5" fill="${skin}"${SW}/><rect x="62" y="140" width="12" height="20" rx="5" fill="${skin}"${SW}/>`+(isDress?'':`<g transform="translate(0 141) scale(1 .52) translate(0 -121)">${drawBottom(bot)}</g>`)+drawShoes(sh,skin);
+    const B=isDress?'':`<g transform="translate(0 141) scale(1 .52) translate(0 -121)">${drawBottom(bot)}</g>`;lower=legs(140,20)+B+vol(B)+shoes;
   }else if(kneel){
     const pants=!isDress&&!['skirt','pleat'].includes(bot.k),full=pants&&bot.k==='jeans';
     lower=`<rect x="44" y="146" width="13" height="19" rx="5" fill="${full?bot.c:skin}"${SW}/><ellipse cx="38" cy="164" rx="9" ry="4.2" fill="${sh.c}"${SW}/>`
       +`<rect x="56" y="143" width="31" height="13" rx="6" fill="${pants?bot.c:skin}"${SW}/><rect x="75" y="147" width="13" height="18" rx="5" fill="${full?bot.c:skin}"${SW}/><ellipse cx="85" cy="166" rx="9.5" ry="4.6" fill="${sh.c}"${SW}/>`
       +(isDress?'':`<g transform="translate(0 143) scale(1 .42) translate(0 -121)">${drawBottom(bot)}</g>`);
   }else{
-    lower=`<rect x="46" y="124" width="12" height="36" rx="5" fill="${skin}"${SW}/><rect x="62" y="124" width="12" height="36" rx="5" fill="${skin}"${SW}/>`+(isDress?'':drawBottom(bot))+drawShoes(sh,skin);
+    const B=isDress?'':drawBottom(bot);lower=legs(124,36)+B+vol(B)+shoes;
   }
   NO_RS=kneel;
-  let up=`<rect x="27" y="94" width="13" height="30" rx="6.5" fill="${skin}"${SW}/><circle cx="33.5" cy="125" r="5.6" fill="${skin}"${SW}/>`+(kneel?'':`<rect x="80" y="94" width="13" height="30" rx="6.5" fill="${skin}"${SW}/><circle cx="86.5" cy="125" r="5.6" fill="${skin}"${SW}/>`);
-  up+=drawTop(top);
+  let up=`<rect x="27" y="94" width="13" height="30" rx="6.5" fill="${skin}"${SW}/><circle cx="33.5" cy="125" r="6" fill="${skin}"${SW}/>`+(kneel?'':`<rect x="80" y="94" width="13" height="30" rx="6.5" fill="${skin}"${SW}/><circle cx="86.5" cy="125" r="6" fill="${skin}"${SW}/>`);
+  const T=drawTop(top);up+=T+vol(T);
   NO_RS=false;
   if(kneel){
     const longSl=LONGSL.has(top.k),sc=top.k==='overall'?'#fff':top.c;
     up+=`<path d="M86 98 L106 70" stroke="${O}" stroke-width="15.4" stroke-linecap="round"/><path d="M86 98 L106 70" stroke="${skin}" stroke-width="11" stroke-linecap="round"/>`
-      +`<path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${O}" stroke-width="18" stroke-linecap="round"/><path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${sc}" stroke-width="13.6" stroke-linecap="round"/>`;
+      +`<path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${O}" stroke-width="18" stroke-linecap="round"/><path d="M86 98 L${longSl?102:92} ${longSl?76:90}" stroke="${sc}" stroke-width="13.6" stroke-linecap="round"/>`
+      +`<circle cx="106" cy="69" r="5.8" fill="${skin}"${SW}/><g transform="translate(108 60) scale(1.15)">${RINGBOX}</g>`;
   }
-  up+=`${headBase(skin)}`;
-  up+=faceBig(g,o.mood);
-  up+=hairFront(hs,hc);
-  if(acc)up+=drawAcc(acc);
-  if(kneel)up+=`<circle cx="106" cy="69" r="5.8" fill="${skin}"${SW}/><g transform="translate(108 60) scale(1.15)">${RINGBOX}</g>`;
-  return s+(dy?`<g transform="translate(0 ${dy})">${back}</g>${lower}<g transform="translate(0 ${dy})">${up}</g>`:back+lower+up);
+  const hf=hairFront0(hs,hc),A=acc?drawAcc(acc):'';
+  const shadowFr=`<g clip-path="url(#cHead)" opacity=".2" pointer-events="none"><g transform="translate(0 3.6)">${vol(hf).replace(/url\(#gVol\)/g,'#7a3a1a')}</g></g>`;
+  const head=hairSide(hs,hc)+vol(hairSide(hs,hc),'gHair')+headBase(skin)+faceBig(g,o.mood,hc)+shadowFr+hairFront(hs,hc)+vol(hf,'gHair')+A+vol(A);
+  const BT='translate(60 166) scale(.95 .8) translate(-60 -166)',hy=(166-(76-dy)*.8+1.5).toFixed(1),HT=`translate(60 ${hy}) scale(1.13) translate(-60 -90)`;
+  return `<g class="chr">${s}<g transform="${HT}">${back}</g><g transform="${BT}">${lower}${dy?`<g transform="translate(0 ${dy})">${up}</g>`:up}</g><g transform="${HT}">${head}</g></g>`;
 }
 const charSVG=(p,o={},cls='')=>`<svg viewBox="${o.vb||'0 0 120 180'}" class="${cls}" role="img" aria-label="${esc(p?.nick||'nhân vật')}">${charG(p,o)}</svg>`;
 const placeChar=(p,x,y,sc=1,o={},cls='idle')=>p?`<g transform="translate(${x-60*sc} ${y-168*sc}) scale(${sc})"><g class="${cls}">${charG(p,o)}</g></g>`:'';
@@ -1014,7 +1034,7 @@ function tufts(list){return list.map(([x,y])=>`<path d="M${x-6} ${y} q2 -9 4 -2 
 function flowerDots(list){return list.map(([x,y,c],i)=>`<g transform="translate(${x} ${y})">${[0,1,2,3,4].map(j=>`<circle cx="${4*Math.cos(j*1.256)}" cy="${4*Math.sin(j*1.256)}" r="3" fill="${c}"/>`).join('')}<circle r="2.2" fill="#ffd23f"/></g>`).join('')}
 
 /* ================= state & storage ================= */
-const S={mode:'local',uid:null,me:null,home:null,partner:null,day:null,dayKey:null,invites:[],view:'farm',tool:'hand',seed:'carrot',modal:null,readOnly:false,fishing:{phase:'idle'},auth:{tab:'login',g:'f',skin:SKINS[0],hs:'bob',hc:HAIRC[1]},sent:{},found:null,searchMsg:''};
+const S={mode:'local',uid:null,me:null,home:null,partner:null,day:null,dayKey:null,invites:[],view:'farm',tool:'hand',seed:'carrot',modal:null,readOnly:false,fishing:{phase:'idle'},auth:{tab:'login',g:'f',skin:SKINS[0],hs:'braids',hc:HAIRC[1]},sent:{},found:null,searchMsg:''};
 let DB=null,USER=null,ROOM=null;
 function makeLocalDB(){
   const KEY='ntdt_db_v1';let store={};
@@ -1828,7 +1848,7 @@ function othersPlaced(list){
 function nameTag(x,y,txt,bg='#fff'){const w=Math.max(46,txt.length*8.2+20);return `<g transform="translate(${x} ${y})" pointer-events="none"><rect x="${-w/2}" y="-15" width="${w}" height="26" rx="13" fill="${bg}"${SW}/><path d="M-6 11 L0 18 L6 11Z" fill="${bg}"${SW}/><rect x="${-w/2+2}" y="-13" width="${w-4}" height="22" rx="11" fill="${bg}"/><text x="0" y="4" text-anchor="middle" font-family="Baloo 2,Nunito,sans-serif" font-weight="800" font-size="14" fill="${O}">${esc(txt)}</text></g>`}
 const SCENES=['park','market','town','boutique','church','farm','coop','home'];
 const sceneView=()=>SCENES.includes(S.view);
-const sceneDS=y=>isMap()?.42:S.view==='park'?DS(y):S.view==='church'?CDS(y):(ROOMS[S.view]?ROOMS[S.view].ds(y):DS(y));
+const sceneDS=y=>isMap()?.5:S.view==='park'?DS(y):S.view==='church'?CDS(y):(ROOMS[S.view]?ROOMS[S.view].ds(y):DS(y));
 const sceneW=()=>S.view==='park'?PW_:S.view==='church'?CW_:(ROOMS[S.view]?ROOMS[S.view].W:PW_);
 const PRES={room:null,peers:[],sig:'',api:null,lastJ:'',tok:0};
 function roomPeers(){return PRES.peers}
@@ -1930,7 +1950,7 @@ function fighterG(p,role,mv,el){
   let hips='';
   if(!isDress){if(pants)hips=`<rect x="43" y="119" width="34" height="14" rx="5" fill="${bot.c}"${SW}/>`;else hips=drawBottom(bot)}
   NO_ARMS=true;const torso=drawTop(top);NO_ARMS=false;
-  const head=`${headBase(skin)}`+faceBig(g,role==='atk'?'angry':'hurt')+hairFront(hs,hc)+(acc?drawAcc(acc):'');
+  const head=`${headBase(skin)}`+faceBig(g,role==='atk'?'angry':'hurt',hc)+hairFront(hs,hc)+(acc?drawAcc(acc):'');
   const back=(acc?drawAccBack(acc):'')+hairBack(hs,hc);
   return `<g transform="translate(60 166)"><g ${A(body)}><g transform="translate(-60 -166)">${back}${legs}${hips}${torso}${head}${arms}</g></g></g>`;
 }
@@ -2928,7 +2948,7 @@ function installBody(){const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   <div class="panel muted"><b>Máy tính (Chrome, Edge)</b><div>Bấm biểu tượng cài đặt (màn hình có mũi tên) ở cuối thanh địa chỉ, rồi chọn <b>Cài đặt</b>.</div></div>`}
 
 /* ================= BẢN ĐỒ GÓC NHÌN CHÉO (isometric) ================= */
-const TW=64,TH=32,MN=56,CS=.46;
+const TW=64,TH=32,MN=56,CS=.54;
 const iso=(gx,gy)=>[(gx-gy)*TW/2,(gx+gy)*TH/2];
 const isoInv=(x,y)=>[(y/(TH/2)+x/(TW/2))/2,(y/(TH/2)-x/(TW/2))/2];
 const f1=n=>(+n).toFixed(1);
@@ -3526,7 +3546,7 @@ document.addEventListener('click',ev=>{
     case 'decline':declineInvite(v);break;
     case 'logout':logout();break;
     case 'atab':S.auth.tab=v;S.auth.err='';renderAll();break;
-    case 'ag':S.auth.g=v;if(v==='m'&&['bob','long','buns','pony'].includes(S.auth.hs))S.auth.hs='short';if(v==='f'&&['short','spiky'].includes(S.auth.hs))S.auth.hs='bob';authPreview();break;
+    case 'ag':S.auth.g=v;if(v==='m'&&['bob','long','buns','pony','braids','twin'].includes(S.auth.hs))S.auth.hs='bowl';if(v==='f'&&['short','spiky','bowl'].includes(S.auth.hs))S.auth.hs='braids';authPreview();break;
     case 'ahs':S.auth.hs=v;authPreview();break;
     case 'ahc':S.auth.hc=v;authPreview();break;
     case 'askin':S.auth.skin=v;authPreview();break;
